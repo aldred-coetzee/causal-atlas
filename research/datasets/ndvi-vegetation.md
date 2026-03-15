@@ -546,3 +546,241 @@ drought_flag = anomaly < -1.5  # 1.5 standard deviations below normal
 - FEWS NET NDVI methodology: https://fews.net/
 - Advancements in drought using remote sensing (2024): https://link.springer.com/article/10.1007/s00704-024-04914-w
 - Predicting below-average NDVI anomalies (2025): https://www.sciencedirect.com/science/article/pii/S0034425725003840
+
+---
+
+## MODIS vs VIIRS NDVI Continuity Issues
+
+As MODIS nears end-of-life, ensuring continuity with VIIRS is critical for long-term analysis.
+
+### Spectral Band Differences
+
+| Band | MODIS (MOD13) | VIIRS (VNP13) | Impact on NDVI |
+|---|---|---|---|
+| Red | 620–670 nm | 600–680 nm | VIIRS red band is wider, captures slightly different reflectance |
+| NIR | 841–876 nm | 846–885 nm | Slight difference in NIR sensitivity |
+| NDVI effect | — | — | VIIRS NDVI is systematically **higher** than MODIS by ~0.01–0.02 units |
+
+### Quantified Differences
+
+Published cross-calibration studies (Miura & Turner, 2014; Skakun et al., 2018) find:
+
+| Metric | Value |
+|---|---|
+| Mean VIIRS–MODIS NDVI bias | +0.010 to +0.020 |
+| RMSE between sensors | 0.015–0.022 NDVI units |
+| After cross-calibration, mean error | <0.003 NDVI units |
+| NDVI anomaly inter-consistency uncertainty | ±0.033 |
+
+### Recommendations for Causal Atlas
+
+1. **Do not naively concatenate MODIS and VIIRS NDVI time series.** The ~0.02 bias will introduce a false trend at the transition point (2012).
+2. **Use the overlap period (2012–present)** to compute sensor-specific baselines and cross-calibration offsets.
+3. **Compute anomalies relative to sensor-specific climatologies.** If using MODIS 2001–2020 as baseline, compute MODIS anomalies. If switching to VIIRS post-2022, compute VIIRS anomalies against a VIIRS 2012–2022 baseline.
+4. **For continuous long-term records**, apply published cross-calibration coefficients (e.g., Skakun et al., 2018) or use a sensor-harmonised product.
+
+---
+
+## Vegetation Condition Index (VCI) — Computation and Use
+
+VCI is the standard drought-monitoring index derived from NDVI.
+
+### Formula
+
+```
+VCI = 100 × (NDVIcurrent - NDVImin) / (NDVImax - NDVImin)
+```
+
+Where:
+- `NDVIcurrent`: NDVI for the current period (e.g., current dekad or month)
+- `NDVImin`: Historical minimum NDVI for that same period (e.g., minimum January NDVI over 2001–2020)
+- `NDVImax`: Historical maximum NDVI for that same period
+- All computed **pixel-by-pixel** and **period-by-period** (same month/dekad across years)
+
+### Interpretation
+
+| VCI Range | Condition | Implication |
+|---|---|---|
+| 0–10 | Extreme drought | Severe crop/pasture losses expected |
+| 10–20 | Severe drought | Significant vegetation stress |
+| 20–35 | Moderate drought | Below-normal vegetation |
+| 35–50 | Below normal | Mild stress |
+| 50–100 | Normal to above | No drought stress |
+
+### Python Implementation
+
+```python
+import numpy as np
+import xarray as xr
+
+def compute_vci(ndvi_timeseries, baseline_start='2001', baseline_end='2020'):
+    """
+    Compute Vegetation Condition Index from monthly NDVI.
+
+    Args:
+        ndvi_timeseries: xarray.DataArray with dims (time, lat, lon)
+        baseline_start, baseline_end: years for climatology
+
+    Returns:
+        xarray.DataArray of VCI values (0-100)
+    """
+    baseline = ndvi_timeseries.sel(time=slice(baseline_start, baseline_end))
+
+    # Compute per-month min and max across years
+    ndvi_min = baseline.groupby('time.month').min('time')
+    ndvi_max = baseline.groupby('time.month').max('time')
+
+    # Compute VCI for each timestep
+    month = ndvi_timeseries.time.dt.month
+    vci = 100.0 * (ndvi_timeseries.groupby('time.month') - ndvi_min) / \
+          (ndvi_max - ndvi_min)
+
+    return vci.clip(0, 100)
+```
+
+### Related Indices
+
+| Index | Formula | Use |
+|---|---|---|
+| **VCI** | See above | Drought severity relative to historical range |
+| **TCI** (Temperature Condition Index) | Same formula but with LST | Heat stress assessment |
+| **VHI** (Vegetation Health Index) | `α × VCI + (1-α) × TCI` (α=0.5) | Combined drought and heat stress |
+| **NDVI Anomaly (z-score)** | `(NDVI - mean) / std` | Standardised deviation from normal |
+| **NDVI Anomaly (%)** | `(NDVI - mean) / mean × 100` | Percentage deviation from normal |
+
+---
+
+## FEWS NET eMODIS / eVIIRS Products
+
+The Famine Early Warning Systems Network (FEWS NET) uses custom-processed NDVI products for food security monitoring.
+
+### eMODIS (Legacy, discontinued October 2022)
+
+| Property | Detail |
+|---|---|
+| **Producer** | USGS EROS Center |
+| **Sensor** | MODIS (Terra) |
+| **Resolution** | 250 m |
+| **Compositing** | 10-day (dekadal) maximum value composites |
+| **Smoothing** | Swets et al. (1999) weighted least-squares temporal smoother |
+| **Coverage** | Africa, Central Asia, Central America/Caribbean |
+| **Status** | **Discontinued as of October 1, 2022** |
+| **Archive** | Still available at https://earlywarning.usgs.gov/fews/ |
+
+### eVIIRS (Current replacement)
+
+| Property | Detail |
+|---|---|
+| **Producer** | USGS EROS Center |
+| **Sensor** | VIIRS (Suomi-NPP) |
+| **Resolution** | 375 m (slightly coarser than eMODIS 250m) |
+| **Compositing** | 10-day (dekadal) maximum value composites at 5-day intervals |
+| **Smoothing** | Same Swets et al. smoother algorithm as eMODIS |
+| **Transformation** | A transformative algorithm creates NDVI composites that mirror eMODIS values |
+| **Products** | NDVI, NDVI anomaly (% of median), NDVI difference from median |
+| **URL** | https://earlywarning.usgs.gov/fews/product/900/ |
+
+### Key Feature: Temporal Smoothing
+
+The Swets smoother is critical for food security analysis:
+1. Raw 10-day composites are ingested
+2. A weighted least-squares linear regression corrects cloud-contaminated observations
+3. A 10-year pixel-by-pixel median is computed for each dekad
+4. Current-year smoothed composites are compared to the historical median
+5. Anomaly products (% of median) flag vegetation stress
+
+### Products Available
+
+| Product | Description | Coverage | URL |
+|---|---|---|---|
+| eVIIRS NDVI | Smoothed 10-day composite | Global (selected regions) | https://earlywarning.usgs.gov/fews/product/900/ |
+| eVIIRS NDVI Anomaly | % of median NDVI | Selected regions | https://earlywarning.usgs.gov/fews/product/902/ |
+| eVIIRS Phenology | Growing season start/peak/end | Selected regions | USGS EROS Archive |
+
+### Relevance to Causal Atlas
+
+FEWS NET products are **analysis-ready** for food security applications — pre-smoothed, gap-filled, with anomalies pre-computed. However, they are limited to FEWS NET coverage areas (primarily food-insecure regions). For global coverage, use the underlying MODIS/VIIRS products directly.
+
+---
+
+## Crop Phenology Detection from NDVI Time Series
+
+NDVI time series can be used to detect crop growing season parameters — critical for understanding food security timing.
+
+### Key Phenological Parameters
+
+| Parameter | Abbreviation | Definition |
+|---|---|---|
+| Start of Season (SOS) | SOS | Date when NDVI begins its growing-season increase |
+| Peak of Season | POS | Date of maximum NDVI |
+| End of Season (EOS) | EOS | Date when NDVI returns to its base level after harvest |
+| Growing Season Length | GSL | EOS - SOS (in days) |
+| Maximum NDVI | NDVImax | Peak greenness value |
+| Base NDVI | NDVIbase | Non-growing-season baseline value |
+| Integrated NDVI | iNDVI | Area under the NDVI curve during growing season (cumulative greenness) |
+
+### Detection Methods
+
+1. **Threshold-based:** SOS = date when NDVI exceeds X% of the amplitude (NDVImax - NDVIbase). Common thresholds: 20%, 50%.
+2. **Derivative-based:** SOS = date of maximum rate of NDVI increase (inflection point on the rising limb).
+3. **Curve-fitting:** Fit a double logistic or asymmetric Gaussian function to the annual NDVI curve, then extract parameters analytically.
+4. **Savitzky-Golay smoothing + threshold:** Smooth noisy NDVI time series, then apply threshold detection.
+
+### Python Implementation (Threshold Method)
+
+```python
+import numpy as np
+from scipy.signal import savgol_filter
+
+def detect_phenology(ndvi_ts, dates, threshold_pct=0.2):
+    """
+    Detect Start and End of Growing Season from NDVI time series.
+
+    Args:
+        ndvi_ts: array of NDVI values (one per timestep)
+        dates: array of dates corresponding to NDVI values
+        threshold_pct: fraction of amplitude for SOS/EOS detection
+
+    Returns:
+        dict with SOS, POS, EOS dates and NDVImax
+    """
+    # Smooth the time series
+    smoothed = savgol_filter(ndvi_ts, window_length=7, polyorder=3)
+
+    # Find baseline and peak
+    ndvi_base = np.nanpercentile(smoothed, 10)
+    ndvi_max_idx = np.nanargmax(smoothed)
+    ndvi_max = smoothed[ndvi_max_idx]
+    amplitude = ndvi_max - ndvi_base
+
+    threshold = ndvi_base + threshold_pct * amplitude
+
+    # SOS: first crossing of threshold before peak
+    sos_idx = None
+    for i in range(ndvi_max_idx):
+        if smoothed[i] >= threshold:
+            sos_idx = i
+            break
+
+    # EOS: first crossing below threshold after peak
+    eos_idx = None
+    for i in range(ndvi_max_idx, len(smoothed)):
+        if smoothed[i] <= threshold:
+            eos_idx = i
+            break
+
+    return {
+        'SOS': dates[sos_idx] if sos_idx else None,
+        'POS': dates[ndvi_max_idx],
+        'EOS': dates[eos_idx] if eos_idx else None,
+        'NDVImax': ndvi_max,
+        'amplitude': amplitude,
+        'GSL_days': (dates[eos_idx] - dates[sos_idx]).days if sos_idx and eos_idx else None,
+    }
+```
+
+### Application to Causal Atlas
+
+- **Growing season anomalies** (shorter GSL, lower NDVImax, delayed SOS) are early indicators of crop failure
+- **Phenology timing** informs the lag structure for food security analysis: a drought during early growing season has different impacts than one during grain-filling
+- **Multi-cropping detection**: Regions with two NDVI peaks per year have distinct food security dynamics

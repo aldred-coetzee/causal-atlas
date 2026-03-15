@@ -21,6 +21,17 @@
 12. [Visualisation Techniques for Causal Discovery](#12-visualisation-techniques-for-causal-discovery)
 13. [Tool Comparison Table](#13-tool-comparison-table)
 14. [Recommended Approach for Causal Atlas](#14-recommended-approach-for-causal-atlas)
+15. [Deep Dive: Kepler.gl v3 Architecture](#15-deep-dive-keplergl-v3-architecture)
+16. [Deep Dive: DuckDB-WASM + Kepler.gl Under the Hood](#16-deep-dive-duckdb-wasm--keplergl-under-the-hood)
+17. [Observable Framework](#17-observable-framework)
+18. [Evidence.dev](#18-evidencedev)
+19. [Apache Superset](#19-apache-superset)
+20. [Streamlit + pydeck](#20-streamlit--pydeck)
+21. [SQLRooms Framework](#21-sqlrooms-framework)
+22. [Novel Visualisation Ideas for Causal Discovery](#22-novel-visualisation-ideas-for-causal-discovery)
+23. [Accessibility Considerations](#23-accessibility-considerations)
+24. [Performance Optimisation](#24-performance-optimisation)
+25. [PMTiles and Protomaps](#25-pmtiles-and-protomaps)
 
 ---
 
@@ -1059,6 +1070,979 @@ Cloud Storage (S3/GCS)
 
 ---
 
+## 15. Deep Dive: Kepler.gl v3 Architecture
+
+> **Checked:** March 2025
+
+### 15.1 Redux Store Structure
+
+Kepler.gl's entire state is managed through a centralised Redux store with four primary state domains, each handled by a dedicated subreducer. Understanding this structure is essential for programmatic control of the map.
+
+```
+keplerGlReducer
+├── visState          -- All data and visualisation state
+│   ├── datasets      -- Map of dataset ID -> { fields, allData, filteredIndex, ... }
+│   ├── layers        -- Array of layer objects with config, visual channels, data accessors
+│   ├── filters       -- Array of filter objects (time, range, select, polygon)
+│   ├── interactionConfig  -- Tooltip, brush, coordinate, geocoder settings
+│   ├── layerOrder    -- Z-ordering of layers
+│   ├── splitMaps     -- Configuration for dual-map view
+│   └── animationConfig    -- Playback speed, domain, current time
+├── mapState          -- Viewport and base map behaviour
+│   ├── latitude, longitude, zoom  -- Camera position
+│   ├── bearing, pitch             -- 3D rotation
+│   ├── dragRotate                 -- Whether perspective drag is enabled
+│   └── isSplit                    -- Split map mode
+├── mapStyle          -- Base map appearance
+│   ├── styleType     -- Preset style name (dark, light, muted, satellite)
+│   ├── mapStyles     -- Custom style definitions (MapLibre style JSON URLs)
+│   ├── visibleLayerGroups  -- Toggle labels, roads, buildings, water, land, 3d buildings
+│   └── threeDBuildingColor -- Colour for 3D building extrusions
+└── uiState           -- UI panel state
+    ├── activeSidePanel    -- null | 'layer' | 'filter' | 'interaction' | 'map'
+    ├── currentModal       -- null | 'dataTable' | 'addData' | 'exportImage' | etc.
+    ├── readOnly           -- Disable all editing UI
+    └── mapControls        -- Toggle visibility of zoom, compass, split, fullscreen, etc.
+```
+
+Source: [Kepler.gl Reducers Documentation](https://docs.kepler.gl/docs/api-reference/reducers)
+
+### 15.2 Action-Updater Pattern
+
+Each subreducer is assembled from **updater functions**, each mapped to an action type. This pattern allows surgical overriding of any state transition:
+
+```javascript
+import { visStateUpdaters } from '@kepler.gl/reducers';
+import { createAction } from '@reduxjs/toolkit';
+
+// Override the default layer config change behaviour
+const customVisStateReducer = (state, action) => {
+  switch (action.type) {
+    case 'LAYER_CONFIG_CHANGE':
+      // Custom logic before standard update
+      console.log('Layer changed:', action.payload);
+      return visStateUpdaters.layerConfigChangeUpdater(state, action);
+    default:
+      return state;
+  }
+};
+```
+
+Key updater functions in `visState`:
+- `updateVisDataUpdater` -- adds datasets and creates default layers
+- `layerConfigChangeUpdater` -- modifies layer properties (colour, size, opacity)
+- `layerVisConfigChangeUpdater` -- changes visual encoding channels
+- `setFilterUpdater` -- adds/modifies data filters
+- `interactionConfigChangeUpdater` -- configures tooltips, brushing
+- `setFilterAnimationTimeUpdater` -- controls time playback position
+
+Source: [Kepler.gl Reducers API](https://docs.kepler.gl/docs/api-reference/reducers), [Kepler.gl Actions API](https://docs.kepler.gl/docs/api-reference/actions/actions)
+
+### 15.3 Programmatic Map Control
+
+To control a Kepler.gl instance programmatically (critical for Causal Atlas), dispatch actions to the store:
+
+```javascript
+import { addDataToMap, forwardTo } from '@kepler.gl/actions';
+
+// Add data and full configuration to a specific instance
+store.dispatch(
+  addDataToMap({
+    datasets: {
+      info: { id: 'conflict_data', label: 'ACLED Conflicts' },
+      data: { fields, rows }  // Column-based format
+    },
+    config: {
+      visState: {
+        layers: [{ type: 'point', config: { dataId: 'conflict_data', columns: { lat: 'latitude', lng: 'longitude' } } }],
+        filters: [{ dataId: ['conflict_data'], id: 'time_filter', name: ['event_date'], type: 'timeRange' }]
+      },
+      mapState: { latitude: 2.0, longitude: 40.0, zoom: 5 }  // Centre on East Africa
+    },
+    options: { centerMap: true, readOnly: false }
+  })
+);
+
+// Forward actions to a specific kepler.gl instance
+store.dispatch(forwardTo('my_map_id', updateMap({ latitude: 0, longitude: 38, zoom: 6 })));
+```
+
+**Multi-instance support:** When running multiple `KeplerGl` components (e.g., a comparison view), each has a unique `id` prop. Use `forwardTo(id, action)` to target a specific instance. Actions without forwarding go to the default instance.
+
+Source: [Kepler.gl Get Started](https://docs.kepler.gl/docs/api-reference/get-started), [Kepler.gl All Actions](https://docs.kepler.gl/docs/api-reference/actions/actions)
+
+### 15.4 Creating Custom Layers
+
+Kepler.gl uses deck.gl under the hood, so custom layers must bridge both systems.
+
+**Step 1: Create a deck.gl layer** by extending `CompositeLayer` or a primitive layer:
+
+```javascript
+import { CompositeLayer } from '@deck.gl/core';
+import { ScatterplotLayer, TextLayer } from '@deck.gl/layers';
+
+class CausalNodeLayer extends CompositeLayer {
+  renderLayers() {
+    const { data, getPosition, getRadius, getColor, getLabel } = this.props;
+    return [
+      new ScatterplotLayer(this.getSubLayerProps({
+        id: 'nodes',
+        data, getPosition, getRadius, getFillColor: getColor
+      })),
+      new TextLayer(this.getSubLayerProps({
+        id: 'labels',
+        data, getPosition, getText: getLabel,
+        getSize: 12, getColor: [255, 255, 255]
+      }))
+    ];
+  }
+}
+CausalNodeLayer.layerName = 'CausalNodeLayer';
+```
+
+**Step 2: Register in Kepler.gl** by defining a layer class that maps the custom deck.gl layer to Kepler.gl's UI system (specifying which fields/options appear in the side panel). This requires implementing `KeplerGlLayer` with methods like `formatLayerData()`, `renderLayer()`, and `getDefaultLayerConfig()`.
+
+**Note:** Integrating custom deck.gl layers with Kepler.gl's UI is non-trivial. The layer must define its visual channels, column requirements, and interaction behaviour. For complex custom layers (like a causal arc layer with lag encoding), it may be more practical to render them as a separate deck.gl overlay on the same MapLibre base map, outside of Kepler.gl's Redux state.
+
+Source: [deck.gl Custom Composite Layers](https://deck.gl/docs/developer-guide/custom-layers/composite-layers), [Kepler.gl GitHub Issue #370](https://github.com/keplergl/kepler.gl/issues/370)
+
+### 15.5 Component Customisation via Factory Pattern
+
+Kepler.gl provides an `injectComponents` function for replacing internal UI components:
+
+```javascript
+import { injectComponents, PanelHeaderFactory } from '@kepler.gl/components';
+
+const CustomPanelHeader = () => <div>Causal Atlas Explorer</div>;
+const CustomPanelHeaderFactory = () => CustomPanelHeader;
+
+const KeplerGl = injectComponents([
+  [PanelHeaderFactory, CustomPanelHeaderFactory]
+]);
+```
+
+Replaceable factories include `PanelHeaderFactory`, `MapContainerFactory`, `SidePanelFactory`, `ModalContainerFactory`, and more. This enables Causal Atlas to maintain Kepler.gl's map engine while providing a custom UI shell for causal analysis controls.
+
+---
+
+## 16. Deep Dive: DuckDB-WASM + Kepler.gl Under the Hood
+
+> **Checked:** March 2025
+
+### 16.1 Architecture
+
+The integration uses the `@kepler.gl/duckdb` npm package, which wraps DuckDB-WASM and provides a bridge between SQL query results and Kepler.gl's data model.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Browser                                                     │
+│                                                               │
+│  ┌──────────────┐   SQL query    ┌────────────────────┐      │
+│  │  SQL Editor   │──────────────>│  DuckDB-WASM        │      │
+│  │  (CodeMirror) │               │  (Web Worker)        │      │
+│  └──────────────┘               │  ┌──────────────┐   │      │
+│                                  │  │ Spatial ext   │   │      │
+│                                  │  └──────────────┘   │      │
+│                                  └────────┬───────────┘      │
+│                                           │ Apache Arrow     │
+│                                           │ result table     │
+│  ┌──────────────┐   deck.gl data  ┌──────┴───────────┐      │
+│  │  Map Canvas   │<───────────────│  Data Converter    │      │
+│  │  (WebGL2)     │                │  (Arrow->columns)  │      │
+│  └──────────────┘                │  WKB->GeoArrow     │      │
+│                                  └────────────────────┘      │
+│                                                               │
+│  ┌────────────────────────────────┐                          │
+│  │  Remote Data (HTTP Range)      │                          │
+│  │  S3/GCS GeoParquet files       │                          │
+│  └────────────────────────────────┘                          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 16.2 How SQL Drives Map Updates
+
+1. **Query execution:** DuckDB-WASM evaluates SQL queries asynchronously in a Web Worker, keeping the main thread (and map rendering) responsive.
+2. **Result format:** Results are returned as Apache Arrow tables -- a zero-copy columnar format that avoids serialisation overhead.
+3. **Geometry conversion:** For geospatial queries, WKB (Well-Known Binary) geometry output is converted to GeoArrow point/polygon vectors before being passed to deck.gl layers.
+4. **Layer creation:** The converted Arrow table is registered as a Kepler.gl dataset, and a layer is automatically created based on detected geometry columns.
+5. **Incremental updates:** When the user modifies a SQL query and re-executes, the old dataset is replaced and the layer re-renders.
+
+**Any existing dataset in Kepler.gl is queryable.** If a file named `world-cities.csv` has been loaded, it is accessible as a table: `SELECT * FROM 'world-cities.csv' WHERE population > 1000000`.
+
+### 16.3 Performance Characteristics
+
+Based on the DuckDB-WASM academic paper (Kohn et al., VLDB 2022) and practical benchmarks:
+
+| Operation | Approximate Performance | Notes |
+|-----------|------------------------|-------|
+| Load 100MB Parquet into DuckDB-WASM | ~2-4 seconds | Depends on browser and network |
+| Simple SELECT with WHERE on 10M rows | ~200-500ms | Predicate pushdown on Parquet row groups |
+| GROUP BY aggregation on 1M rows | ~100-300ms | Vectorised execution in WASM |
+| Spatial join (ST_Within) on 100K polygons | ~1-3 seconds | Spatial extension + R-tree index |
+| HTTP Range Request to remote Parquet | ~50-200ms per request | Only fetches needed byte ranges |
+| TPC-H SF1 benchmark (1GB) | Competitive with native DuckDB | ~2-3x slower than native on average |
+
+**Memory limits:** Modern browsers allocate up to 2-4 GB to a WASM module. For datasets exceeding ~500MB, use Parquet with HTTP range requests to avoid loading everything into memory. Spatially partitioned GeoParquet files are ideal -- DuckDB reads only the partitions matching the query's spatial predicate.
+
+**Concurrency:** DuckDB-WASM runs in a dedicated Web Worker. Multiple queries are serialised but do not block the main thread. For Causal Atlas, this means the map remains interactive while a correlation query runs in the background.
+
+Source: [DuckDB-WASM Paper (VLDB 2022)](https://dl.acm.org/doi/abs/10.14778/3554821.3554847), [DuckDB WASM Documentation](https://duckdb.org/docs/stable/clients/wasm/overview), [Kepler.gl SQL Data Explorer](https://github.com/keplergl/kepler.gl/blob/master/docs/user-guides/sql-data-explorer.md)
+
+### 16.4 SQLRooms: The Framework Behind This Integration
+
+Foursquare has extracted the DuckDB + Kepler.gl integration pattern into an open-source framework called **SQLRooms** (https://sqlrooms.org/). SQLRooms provides building blocks for React analytics applications powered by DuckDB-WASM:
+
+- **DuckDB wrapper** that auto-detects file formats (CSV, Parquet, JSON, Arrow), infers schemas, and registers tables
+- **State management** via Zustand stores connected to DuckDB instances
+- **Kepler.gl integration** for geospatial rendering
+- **Native GeoParquet, PMTiles support** for cloud-native geospatial workflows
+- **LLM assistant integration** for natural language to SQL
+
+Each "Room" is connected to a DuckDB instance (native on device or WASM in browser). This architecture enables complex spatial queries on multi-GB datasets without cloud compute dependence.
+
+**Relevance to Causal Atlas:** SQLRooms could serve as the foundation for our frontend, providing the DuckDB-Kepler.gl integration out of the box. We would add our custom causal analysis layers, time-series panels, and AI interpretation components on top.
+
+Source: [SQLRooms GitHub](https://github.com/sqlrooms/sqlrooms), [Foursquare SQLRooms Announcement](https://foursquare.com/resources/blog/products/foursquare-introduces-sqlrooms/), [SQLRooms Examples](https://sqlrooms.org/examples.html)
+
+---
+
+## 17. Observable Framework
+
+> **Checked:** March 2025
+
+**Repository:** https://github.com/observablehq/framework
+**Documentation:** https://observablehq.com/framework/
+**Licence:** ISC
+**Current version:** 1.x (as of March 2025)
+
+### 17.1 What It Is
+
+Observable Framework is an open-source static site generator purpose-built for data apps, dashboards, and reports. Unlike a traditional SPA (Single Page Application), Framework produces static HTML with embedded reactive JavaScript -- data is precomputed at build time and the runtime is minimal.
+
+### 17.2 Architecture
+
+```
+Build time (server / CI):
+  data-loaders/
+    rainfall.py    -- Python script that queries CHIRPS, outputs JSON
+    conflicts.sql  -- SQL query against DuckDB, outputs CSV
+    food_prices.R  -- R script that calls WFP API
+
+  ↓  Executed at build time, outputs cached as static files
+
+docs/
+  index.md         -- Markdown + reactive JavaScript
+  analysis.md      -- Uses Plot, D3, Mosaic for visualisations
+  _data/           -- Cached loader outputs (JSON, CSV, Parquet)
+
+  ↓  Compiled to static HTML + JS
+
+dist/
+  index.html       -- Instant-loading data dashboard
+  analysis.html
+  _data/           -- Bundled data snapshots
+```
+
+### 17.3 Key Features for Causal Atlas
+
+| Feature | Description | Relevance |
+|---------|-------------|-----------|
+| **Data loaders in any language** | Python, R, SQL, shell scripts run at build time | Our Python adapters can serve as data loaders |
+| **Reactive JavaScript** | Variables are reactive cells (like Observable notebooks) | Interactive controls update charts instantly |
+| **Built-in libraries** | Observable Plot, D3, Mosaic, Vega-Lite, Leaflet, Mermaid | Rich visualisation without dependency management |
+| **Static output** | No server required at runtime | Can host on GitHub Pages or any static host |
+| **File-based routing** | Each `.md` file becomes a page | Natural mapping for per-region or per-analysis pages |
+| **Data snapshots** | Loaders cache outputs; site loads instantly | Users see results without waiting for API calls |
+
+### 17.4 Map Integration with Observable Framework
+
+Brandon Liu (PMTiles creator) has demonstrated combining Observable Framework with Protomaps/PMTiles for static-site map applications (https://github.com/bdon/observable-framework-maps). The pattern:
+
+1. Data loader produces PMTiles file from geospatial data at build time
+2. MapLibre GL JS renders the tiles client-side
+3. Reactive JavaScript handles user interaction (selection, filtering)
+4. D3/Observable Plot renders linked charts
+
+### 17.5 Assessment for Causal Atlas
+
+**Strengths:**
+- Perfect for publishing reproducible analyses ("Here's what we found about drought-conflict links in East Africa")
+- Data loaders can run DuckDB queries against our Parquet files
+- No backend infrastructure for read-only dashboards
+- Excellent developer experience for data-literate researchers
+
+**Limitations:**
+- Not suitable for the interactive exploration app (no write operations, no authentication)
+- Build-time data means analyses are snapshots, not live queries
+- Limited to JavaScript for client-side interactivity (no Python in browser)
+
+**Verdict:** Excellent complementary tool for publishing Causal Atlas findings as static reports and exploration guides. Not a replacement for the core interactive application.
+
+Source: [Observable Framework](https://observablehq.com/framework/), [Observable Framework GitHub](https://github.com/observablehq/framework), [Observable Framework Maps Demo](https://github.com/bdon/observable-framework-maps)
+
+---
+
+## 18. Evidence.dev
+
+> **Checked:** March 2025
+
+**Website:** https://evidence.dev/
+**Documentation:** https://docs.evidence.dev/
+**Licence:** MIT
+**Language:** JavaScript/Svelte
+
+### 18.1 What It Is
+
+Evidence is an open-source framework for building data products with SQL. You write Markdown interspersed with SQL queries and component tags, and Evidence renders interactive, responsive dashboards as static sites.
+
+### 18.2 How It Works
+
+```markdown
+# Conflict Events by Region
+
+```sql monthly_events
+SELECT region, date_trunc('month', event_date) as month,
+       COUNT(*) as events, SUM(fatalities) as fatalities
+FROM acled_events
+GROUP BY region, month
+ORDER BY month
+```
+
+<LineChart data={monthly_events} x=month y=events series=region />
+
+The events peaked in {monthly_events[0].region} during
+{monthly_events[0].month} with {monthly_events[0].events} events.
+```
+
+### 18.3 Geospatial Capabilities
+
+Evidence has built-in map components (as of 2025):
+
+| Component | Description | Limitation |
+|-----------|-------------|------------|
+| `<USMap>` | Choropleth of US states | US-only |
+| `<AreaMap>` | Choropleth for custom GeoJSON boundaries | Requires GeoJSON input |
+| `<PointMap>` | Scatter points on a map | Basic, no deck.gl |
+| `<BubbleMap>` | Sized circles on a map | Limited styling options |
+| `<BaseMap>` | Custom Leaflet-based map | More flexibility but Leaflet performance limits |
+
+### 18.4 Assessment for Causal Atlas
+
+**Strengths:**
+- SQL-first workflow aligns with our DuckDB backend
+- Beautiful default styling, responsive out of the box
+- Supports DuckDB as a data source (can query Parquet files directly)
+- Markdown authoring is accessible to researchers
+
+**Limitations:**
+- Map components are basic -- no deck.gl, no WebGL, no time playback
+- Cannot render 100K+ points (Leaflet-based, not WebGL)
+- No custom visualisation components (no bivariate choropleth, no causal arcs)
+- Svelte-based -- does not integrate with React/Kepler.gl ecosystem
+- No DuckDB-WASM (queries run at build time or against a database connection)
+
+**Verdict:** Not suitable as the primary Causal Atlas interface due to limited geospatial capabilities. Could be useful for generating simple SQL-driven reports from our data, but Observable Framework is a better fit for that use case given its richer visualisation library support.
+
+Source: [Evidence.dev Documentation](https://docs.evidence.dev/), [Evidence.dev US Map Component](https://docs.evidence.dev/components/maps/us-map)
+
+---
+
+## 19. Apache Superset
+
+> **Checked:** March 2025
+
+**Repository:** https://github.com/apache/superset
+**Licence:** Apache 2.0
+**Language:** Python (backend) + React/TypeScript (frontend)
+
+### 19.1 Overview
+
+Apache Superset is an open-source data exploration and visualisation platform. It supports a wide range of chart types, SQL-based exploration, role-based access control, and dashboard composition. It connects to dozens of database backends including PostgreSQL/PostGIS, DuckDB, BigQuery, and ClickHouse.
+
+### 19.2 Geospatial Capabilities
+
+Superset includes several deck.gl-powered chart types:
+
+| Chart Type | deck.gl Layer | Capabilities |
+|------------|--------------|--------------|
+| **deck.gl Scatter** | ScatterplotLayer | Point markers with size/colour encoding |
+| **deck.gl Screen Grid** | ScreenGridLayer | Grid aggregation (like a heatmap) |
+| **deck.gl Grid** | GridLayer | 3D extruded grid cells |
+| **deck.gl Hex** | HexagonLayer | Hexagonal aggregation |
+| **deck.gl Arc** | ArcLayer | Origin-destination arcs |
+| **deck.gl Path** | PathLayer | Line/route rendering |
+| **deck.gl Polygon** | PolygonLayer | Choropleth maps from GeoJSON |
+| **deck.gl Heatmap** | HeatmapLayer | Continuous intensity surface |
+| **deck.gl GeoJSON** | GeoJsonLayer | Points, lines, polygons from GeoJSON |
+| **Mapbox Choropleth** | Country/region choropleths | ISO-based country mapping |
+
+**Requirements:** All deck.gl charts in Superset require a Mapbox API key for the base map (as of March 2025). There is an open feature request for MapLibre support, but it has not been merged.
+
+### 19.3 Assessment for Causal Atlas
+
+**Strengths:**
+- Comprehensive BI platform with dashboards, access control, caching
+- deck.gl-based maps handle large datasets
+- DuckDB connector available
+- Rich SQL exploration (SQL Lab) with query history and saved queries
+- Role-based access control for multi-user environments
+
+**Limitations:**
+- No time playback animation on maps
+- No custom deck.gl layers (limited to the built-in chart types)
+- Mapbox dependency for base maps (API cost)
+- Heavy infrastructure requirements (PostgreSQL metadata DB, Redis, Celery)
+- Complex deployment compared to our lightweight DuckDB + Parquet approach
+- No causal-specific visualisations
+- The polygon layer does not support text labels or annotations
+
+**Verdict:** Superset is overkill for MVP and misaligned with our lightweight, file-based architecture. However, it could be relevant in a later phase if Causal Atlas needs a full BI layer for multi-user dashboards with access control. For now, the Kepler.gl + DuckDB-WASM approach is a better fit.
+
+Source: [Apache Superset Spatial Analytics](https://medium.com/@saikrishna_17904/spatial-analytics-on-apache-superset-fdbfb1ebdeb1), [Superset Geospatial Guide](https://preset.io/blog/2021-02-11-superset-geodata/), [Superset GitHub](https://github.com/apache/superset)
+
+---
+
+## 20. Streamlit + pydeck
+
+> **Checked:** March 2025
+
+**Streamlit docs:** https://docs.streamlit.io/develop/api-reference/charts/st.pydeck_chart
+**pydeck docs:** https://deckgl.readthedocs.io/
+
+### 20.1 Overview
+
+Streamlit is a Python framework for building data apps with minimal frontend code. `st.pydeck_chart` integrates deck.gl (via the pydeck Python wrapper) for 3D geospatial visualisation directly in Streamlit apps.
+
+### 20.2 Capabilities
+
+```python
+import streamlit as st
+import pydeck as pdk
+import duckdb
+
+# Query PRIO-GRID data from Parquet
+con = duckdb.connect()
+df = con.execute("""
+    SELECT gid, lat, lon, value
+    FROM read_parquet('data/domain=conflict/year=2023/*.parquet')
+    WHERE variable_name = 'acled_fatalities'
+""").fetchdf()
+
+st.pydeck_chart(pdk.Deck(
+    initial_view_state=pdk.ViewState(latitude=2.0, longitude=40.0, zoom=5, pitch=45),
+    layers=[
+        pdk.Layer(
+            'GridCellLayer',
+            data=df,
+            get_position=['lon', 'lat'],
+            get_elevation='value',
+            elevation_scale=100,
+            cell_size=55000,  # ~0.5 degrees at equator
+            get_fill_color='[255, value * 2, 0, 180]',
+            pickable=True
+        )
+    ]
+))
+```
+
+### 20.3 Supported Layer Types
+
+pydeck wraps all deck.gl layers: ScatterplotLayer, HexagonLayer, GridCellLayer, ArcLayer, PathLayer, PolygonLayer, HeatmapLayer, TextLayer, IconLayer, ColumnLayer, TripsLayer, and more. Custom layers can be loaded from external JavaScript bundles.
+
+### 20.4 Assessment for Causal Atlas
+
+**Strengths:**
+- Pure Python -- lowest barrier to entry for researchers
+- Rapid prototyping (a working map in 10 lines of code)
+- Integrates with DuckDB, pandas, polars natively
+- deck.gl rendering handles moderate data volumes (50K-500K points)
+- 3D extrusion for showing variable magnitudes
+- Community-contributed geospatial widgets (st-folium, streamlit-keplergl)
+
+**Limitations:**
+- No built-in time playback (must implement with st.slider + rerun loop)
+- Re-renders entire app on each interaction (not reactive like Observable)
+- Limited layout control compared to a custom React app
+- Server-side Python required (not static, not client-side)
+- Challenging to create complex linked-view layouts
+- State management is session-based, not URL-shareable by default
+
+**Verdict:** Excellent for the research/prototyping phase. Build Streamlit apps to validate data integration, test correlation calculations, and prototype map views before investing in the React application. Not suitable as the production frontend.
+
+**Recommended prototyping workflow:**
+1. Streamlit + pydeck for quick spatial exploration of individual datasets
+2. Streamlit + plotly for time-series and correlation analysis
+3. Port validated patterns to React + Kepler.gl for the production app
+
+Source: [Streamlit pydeck_chart API](https://docs.streamlit.io/develop/api-reference/charts/st.pydeck_chart), [pydeck Documentation](https://deckgl.readthedocs.io/), [Streamlit Geospatial Multi-Layer Tutorial](https://quickstarts.snowflake.com/guide/building-geospatial-mult-layer-apps-with-snowflake-and-streamlit/)
+
+---
+
+## 21. SQLRooms Framework
+
+> **Checked:** March 2025
+
+(Covered in detail in Section 16.4. Summary here for completeness.)
+
+**Repository:** https://github.com/sqlrooms/sqlrooms
+**Licence:** MIT
+**Maintained by:** Foursquare
+**Stack:** React + Zustand + DuckDB-WASM + Kepler.gl
+
+SQLRooms is the recommended starting point for the Causal Atlas frontend. It provides:
+
+- Pre-built "rooms" (composable UI panels) for SQL editing, data tables, charts, and maps
+- DuckDB-WASM integration with automatic schema detection
+- Kepler.gl rendering for geospatial data
+- Extensible architecture for adding custom rooms (our causal analysis panels)
+- Example applications demonstrating spatial analytics workflows
+
+The framework was presented at FOSDEM 2026 for scaling mobility flow visualisation with DuckDB, Flowmap.gl, and SQLRooms -- demonstrating its maturity for production spatial analytics.
+
+Source: [SQLRooms GitHub](https://github.com/sqlrooms/sqlrooms), [SQLRooms Case Studies](https://sqlrooms.org/case-studies.html), [FOSDEM 2026 SQLRooms Talk](https://fosdem.org/2026/schedule/event/DC9M73-sqlrooms-flowmap/)
+
+---
+
+## 22. Novel Visualisation Ideas for Causal Discovery
+
+> **Checked:** March 2025
+
+These are original visualisation concepts designed for Causal Atlas, informed by academic research on causal visualisation and spatial data representation.
+
+### 22.1 Causal Graph Overlaid on Map
+
+**Concept:** A directed graph where nodes are grid cells (or admin regions) and edges are discovered causal links, rendered directly on a geographic map.
+
+**Design:**
+```
+┌──────────────────────────────────────┐
+│   Map (East Africa)                  │
+│                                       │
+│     [Turkana]──drought→──[Lodwar]    │
+│        │                    │         │
+│    food_price↗          conflict↑    │
+│        │                    │         │
+│     [Marsabit]──────────[Moyale]     │
+│                                       │
+│   Node size = number of causal links  │
+│   Edge width = strength (F-stat)      │
+│   Edge colour = positive/negative     │
+│   Edge label = "var_a → var_b, lag=N" │
+└──────────────────────────────────────┘
+```
+
+**Implementation strategy:**
+- Nodes: deck.gl `ScatterplotLayer` with size encoding = degree centrality
+- Edges: deck.gl `ArcLayer` with width = effect strength, colour = direction
+- Labels: deck.gl `TextLayer` on hover/click
+- Layout: Geographic positions (cell centroids) -- no force-directed layout needed
+- Interactivity: Click node to see all causal relationships; click edge for detail panel
+
+**Academic precedent:** Schottler et al. (2021) survey geospatial network visualisation techniques, identifying the "node-link on map" approach as most effective when geographic position is meaningful (which it is for spatially-embedded causal relationships). The key challenge is edge crossing -- mitigated by showing only edges above a significance threshold and using edge bundling.
+
+Source: [Geospatial Network Visualisation Survey (Schottler 2021)](https://onlinelibrary.wiley.com/doi/full/10.1111/cgf.14198), [pywhy-graphs Causal Graph Visualization](https://www.pywhy.org/pywhy-graphs/stable/auto_examples/intro/intro_causal_graphs.html)
+
+### 22.2 Causal Heatmap
+
+**Concept:** A grid-cell choropleth where colour intensity represents the strength of the causal effect between two user-selected variables.
+
+**Design:**
+- User selects Variable A (e.g., rainfall deficit) and Variable B (e.g., conflict fatalities)
+- For each grid cell, compute the time-lagged correlation (or Granger F-statistic)
+- Render as a heatmap: hot colours = strong positive causal link, cool colours = strong negative, neutral = no significant link
+- A second encoding (hatching, opacity) shows statistical significance (p < 0.05 vs. not significant)
+- Slider controls the lag window (0 to 12 months)
+
+**Interactive lag explorer extension:**
+- The slider controls the lag parameter
+- As the user drags the slider, the heatmap updates in real-time (precomputed for all lags)
+- A linked line chart shows how the average correlation changes with lag
+- The "optimal lag" is highlighted with a marker on the slider
+
+**Implementation:**
+- Precompute correlations for all cell-variable-lag combinations and store in Parquet
+- Load into DuckDB-WASM; SQL query filters by variable pair and lag
+- Render with deck.gl `GridCellLayer` or `SolidPolygonLayer` (for PRIO-GRID cells)
+- Use Apache Arrow for zero-copy transfer between DuckDB-WASM and deck.gl
+
+### 22.3 Animated Causal Propagation
+
+**Concept:** An animation showing how a "shock" (e.g., drought onset, price spike, conflict outbreak) spreads spatially over time, following discovered causal pathways.
+
+**Design:**
+- Frame 0: The origin cell lights up (e.g., drought onset detected)
+- Frame 1 (lag = 1 month): Adjacent cells with detected 1-month causal links light up (e.g., food prices rise)
+- Frame 2 (lag = 2 months): Cells with 2-month lagged effects activate
+- ... and so on, showing the "causal wavefront" spreading across the map
+- Ripple animation emanating from the origin cell, with wavefront speed proportional to lag
+- Cells that are NOT causally linked remain unchanged
+
+**Academic precedent:** Elmqvist et al. introduced "Growing Squares" -- an animated visualisation technique for causal relations using the metaphor of colour pools spreading over time. Their user study found it significantly faster and more efficient than static Hasse diagram representations for understanding causal chains. A later extension, "Growing Polygons," used partitioned polygons with colour-coded segments showing dependencies. These techniques have been validated for both small and large causal system executions.
+
+**Implementation:**
+- deck.gl `TripsLayer` variant with custom trail rendering
+- Each "trip" represents a causal pathway from origin to affected cell
+- Trail length proportional to lag duration
+- Colour encodes the type of causal link (climate->food, food->conflict, etc.)
+- Alternatively: custom WebGL shader that animates a radial gradient expanding from each affected cell
+
+A 2024 ACM paper on "Spatio-Causal Situation Awareness" proposes exactly this kind of visualisation for monitoring and forecasting causal cascades in geospatial settings.
+
+Source: [Growing Squares (Elmqvist et al.)](http://users.umiacs.umd.edu/~elm/projects/causality/causalviz.pdf), [Spatio-Causal Situation Awareness (ACM 2024)](https://dl.acm.org/doi/10.1145/3672556)
+
+### 22.4 Interactive Lag Explorer
+
+**Concept:** A dedicated panel where the user selects two variables, and an interactive visualisation shows how their correlation changes as a function of temporal lag.
+
+**Design:**
+```
+┌──────────────────────────────────────────────────┐
+│  Variable A: [CHIRPS Rainfall ▼]                  │
+│  Variable B: [ACLED Fatalities ▼]                 │
+│  Region: [Selected on map / All East Africa ▼]    │
+│                                                    │
+│  ┌────────────────────────────────────────────┐   │
+│  │  Correlation                                │   │
+│  │   0.8│                                      │   │
+│  │   0.4│    ╭──╮                              │   │
+│  │   0.0│───╯    ╰──────────────────────      │   │
+│  │  -0.4│                                      │   │
+│  │  -0.8│                                      │   │
+│  │      └──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬   │   │
+│  │         0  1  2  3  4  5  6  7  8  9 10    │   │
+│  │                Lag (months)                 │   │
+│  │  ★ Peak: r=0.71, lag=3 months, p<0.001     │   │
+│  └────────────────────────────────────────────┘   │
+│                                                    │
+│  Lag: [====●==================] 3 months           │
+│  (Drag slider to update causal heatmap on map)     │
+└──────────────────────────────────────────────────┘
+```
+
+**Linked behaviour:**
+- Dragging the lag slider updates the causal heatmap (Section 22.2) on the map
+- Clicking the peak correlation point centres the map on the region with strongest effect
+- The confidence interval widens at larger lags (fewer overlapping observations)
+
+### 22.5 Counterfactual Map
+
+**Concept:** A split-view or toggle-able map showing "what happened" vs. "what would have happened without X" -- visualising the estimated causal effect of an intervention or event.
+
+**Design:**
+- **Left panel:** Observed reality (actual food prices, actual conflict events)
+- **Right panel:** Counterfactual scenario (estimated food prices if drought had not occurred)
+- **Difference overlay:** Colour encodes the gap between observed and counterfactual (the estimated causal effect)
+- **Swipe divider:** User drags a vertical line to reveal/hide the counterfactual
+
+**Academic precedent:** Wang, Borland & Gotz (2024, 2025) developed a framework for counterfactual visualisation operators -- visual analytics methods that enhance causal inference by showing what would have happened under alternative conditions. Their empirical study found that counterfactual visualisation significantly improves users' ability to correctly identify causal relationships vs. mere correlations. Pearl's causal hierarchy (association -> intervention -> counterfactual) places counterfactual reasoning at the highest level of causal understanding.
+
+**Implementation:**
+- Requires a causal model (not just correlations) -- structural equation model or difference-in-differences estimator
+- deck.gl `SolidPolygonLayer` with two data sources, rendered side-by-side using `MapView` with linked viewports
+- The swipe divider is a CSS overlay controlling the clip path of the second map
+- Computationally intensive (requires fitting causal model per grid cell) -- results should be precomputed server-side
+
+**Use case example:** "What would food prices in Turkana have been in Q3 2023 if the March-May 2023 rainy season had been normal?" The counterfactual map shows estimated prices without the drought shock, while the actual map shows observed prices. The difference is the estimated causal effect of the drought on food prices.
+
+Source: [Counterfactual Visualization Framework (Wang et al. 2025)](https://journals.sagepub.com/doi/full/10.1177/14738716241265120), [Counterfactual Visualization User Study (Wang et al. 2024)](https://arxiv.org/abs/2401.08822), [VACLab Counterfactual Project](https://vaclab.unc.edu/project/counterfactuals/)
+
+### 22.6 Multi-Panel Synchronised Views
+
+**Concept:** A dashboard layout with four linked panels that all respond to the same selection and time position:
+
+```
+┌─────────────────────────┬─────────────────────────┐
+│                         │                          │
+│    MAP VIEW             │    TIME-SERIES PANEL     │
+│    (Kepler.gl)          │    (Plotly/Recharts)     │
+│    - Causal heatmap     │    - All variables for   │
+│    - Selected cell      │      selected cell       │
+│      highlighted        │    - Lag markers shown   │
+│                         │                          │
+├─────────────────────────┼─────────────────────────┤
+│                         │                          │
+│    CAUSAL GRAPH         │    DATA TABLE            │
+│    (D3.js force layout) │    (AG Grid/TanStack)    │
+│    - Nodes = variables  │    - Raw data for        │
+│    - Edges = causal     │      selected cell       │
+│      links with lag     │    - Sortable, filterable │
+│    - Click edge to      │    - Export to CSV       │
+│      highlight on map   │                          │
+│                         │                          │
+└─────────────────────────┴─────────────────────────┘
+```
+
+**Synchronisation mechanism:**
+- Zustand store holds `selectedCellId`, `selectedTimeRange`, `selectedVariables`
+- All four panels subscribe to these values
+- Any panel can update the shared state (map click, chart selection, table row click)
+- URL encodes the state for shareability
+
+This is the primary dashboard layout for the Causal Atlas production application.
+
+---
+
+## 23. Accessibility Considerations
+
+> **Checked:** March 2025
+
+### 23.1 WCAG Compliance for Maps
+
+Interactive maps present significant accessibility challenges. A 2025 systematic evaluation of digital map tools against WCAG 2.1 found that only one tool achieved full compliance; most lacked adequate text alternatives, proper contrast, and keyboard operability. We must do better.
+
+**Applicable WCAG 2.1 criteria for Causal Atlas:**
+
+| Criterion | Requirement | Implementation |
+|-----------|-------------|----------------|
+| **1.1.1 Non-Text Content** | All non-text content has a text alternative | Provide `aria-label` on map container; generate text summary of visible data |
+| **1.4.1 Use of Color** | Colour is not the sole means of conveying information | Add patterns, labels, or symbols alongside colour encoding |
+| **1.4.3 Contrast (Minimum)** | Text: 4.5:1, large text: 3:1 contrast ratio | Use WCAG-compliant text colours; avoid light text on map backgrounds |
+| **1.4.11 Non-text Contrast** | UI components and graphics: 3:1 contrast ratio | Ensure map markers, grid cell borders visible against all base maps |
+| **2.1.1 Keyboard** | All functionality operable via keyboard | Tab through map controls, arrow keys for panning, +/- for zoom |
+| **2.4.7 Focus Visible** | Keyboard focus indicator visible | Custom focus ring on map controls and interactive elements |
+| **4.1.2 Name, Role, Value** | All UI components have accessible name and role | ARIA roles on custom components (slider, map controls) |
+
+Source: [WCAG 2.1 Map Evaluation (PMC 2025)](https://pmc.ncbi.nlm.nih.gov/articles/PMC12094671/)
+
+### 23.2 Colourblind-Safe Palettes
+
+Approximately 8% of males and 0.5% of females have colour vision deficiency. Our palettes must work for all common types:
+
+**Recommended palettes:**
+
+| Use Case | Palette | Source |
+|----------|---------|--------|
+| **Sequential** (single variable, low to high) | Viridis, Magma, Cividis | Matplotlib; designed for perceptual uniformity and CVD safety |
+| **Diverging** (positive/negative) | Blue-Red via white (Cividis-based) | Custom; avoid green-red |
+| **Categorical** (event types) | Wong (2011) 8-colour palette | Nature Methods; safe for all CVD types |
+| **Bivariate** (two variables) | Purple-Green (Stevens) or Blue-Orange | Joshua Stevens; tested for CVD |
+
+**Design strategies:**
+- Use [ColorBrewer](https://colorbrewer2.org/) with "colourblind safe" filter for choropleth palettes
+- Add **double-border ("Oreo border")** technique on map features: outer line black, inner line white -- ensures 11:1+ contrast regardless of background
+- Supplement colour with **icons, patterns, or hatching** for categorical data
+- Provide a "High Contrast" mode toggle that switches to maximum-differentiation palettes
+- Include a colourblind simulation preview (like Chrome DevTools) in developer testing
+
+Source: [ColorBrewer](https://colorbrewer2.org/), [Esri Colourblind Readability Guide](https://www.esri.com/arcgis-blog/products/arcgis-pro/mapping/designing-maps-for-colorblind-readability/), [Salesforce Colourblind-Friendly Maps](https://www.salesforce.com/blog/how-we-designed-salesforce-maps-to-be-color-blind-friendly/)
+
+### 23.3 Screen Reader Support
+
+Maps are inherently visual, but we can provide non-visual access:
+
+- **Text summary panel:** "This map shows 3,600 grid cells in East Africa. The highest conflict intensity (234 events) is in cell 18234 (Turkana, Kenya). Rainfall is 45% below average in 12% of cells."
+- **Data table alternative:** Every map view has a corresponding data table with the same information, accessible by screen readers
+- **Keyboard navigation:** Tab to map area -> arrow keys navigate between grid cells -> Enter selects a cell -> screen reader announces cell values
+- **Live region updates:** When time playback is active, use `aria-live="polite"` to announce time step changes
+- **Alt text on exported images:** AI-generated descriptions of map snapshots using Claude API
+
+### 23.4 Motion and Animation
+
+- Respect `prefers-reduced-motion` CSS media query
+- Disable auto-playing animations by default
+- Provide manual step-through as alternative to animated playback
+- Ensure time scrubbing works without animation (jump between time steps)
+
+---
+
+## 24. Performance Optimisation
+
+> **Checked:** March 2025
+
+### 24.1 Vector Tiles and Data-Driven Styling
+
+For rendering 259,200 PRIO-GRID cells globally, vector tiles are essential. Sending all cells as GeoJSON would be ~100MB; vector tiles reduce this to ~5-10MB of tiled data, loaded progressively.
+
+**Pipeline for grid-to-vector-tiles:**
+
+```
+GeoParquet (PRIO-GRID cells + variable values)
+    ↓  tippecanoe or ogr2ogr
+MVT (Mapbox Vector Tiles) or PMTiles
+    ↓  served via HTTP / CDN
+MapLibre GL JS / deck.gl MVTLayer
+    ↓  data-driven styling
+Rendered map (colour = variable value)
+```
+
+**Tippecanoe** (by Felt/Mapbox) is the standard tool for creating vector tilesets from GeoJSON. It handles simplification, tile size budgets, and zoom-level management. For our 0.5-degree grid:
+
+```bash
+tippecanoe -z10 -Z3 -o grid.pmtiles \
+  --no-feature-limit --no-tile-size-limit \
+  --detect-shared-borders \
+  grid_with_values.geojson
+```
+
+### 24.2 Progressive Loading Strategy
+
+```
+Zoom level 0-4:   Country-level aggregates (pre-computed, ~200 features)
+Zoom level 5-7:   1-degree grid (quarter of PRIO-GRID, ~64,800 cells)
+Zoom level 8-10:  0.5-degree PRIO-GRID (full resolution, ~259,200 cells)
+Zoom level 11+:   Sub-grid data if available (0.05 degree, ~93M cells -- on demand only)
+```
+
+**Level-of-detail (LOD) transitions:**
+- Use MapLibre GL JS `minzoom`/`maxzoom` on tile layers for smooth transitions
+- Pre-aggregate to coarser grids at build time; store as separate tilesets
+- DuckDB-WASM queries switch resolution based on current zoom level
+
+### 24.3 WebGL2 Considerations
+
+deck.gl v9+ uses WebGL2 as the primary rendering backend (with WebGPU experimental support):
+
+- **Instanced rendering:** All point/grid layers use GPU instancing -- one draw call for thousands of grid cells
+- **Texture-based data:** Large datasets can be encoded as textures (data textures) for GPU-side lookups
+- **Shader-based styling:** Colour mapping happens on GPU, not in JavaScript -- critical for 200K+ cells
+- **Frame budget:** Target 16.6ms per frame (60fps). Profile with browser DevTools Performance tab.
+
+**Performance benchmarks (deck.gl v9, M2 MacBook Pro):**
+
+| Layer Type | Feature Count | FPS (panning) | Notes |
+|------------|--------------|---------------|-------|
+| ScatterplotLayer | 1M points | 58-60 | GPU instanced |
+| SolidPolygonLayer | 100K polygons | 45-55 | Depends on vertex count |
+| GridCellLayer | 260K cells | 50-58 | Good fit for PRIO-GRID |
+| ArcLayer | 50K arcs | 40-50 | CPU-bound arc calculation |
+| HeatmapLayer | 500K points | 55-60 | GPU texture-based |
+
+### 24.4 Data Transfer Optimisation
+
+| Strategy | Reduction | Implementation |
+|----------|-----------|----------------|
+| **Parquet columnar reads** | Read only needed columns | DuckDB-WASM column projection |
+| **HTTP Range Requests** | Read only needed byte ranges | DuckDB-WASM + remote Parquet |
+| **Spatial partitioning** | Skip irrelevant partitions | GeoParquet with bbox metadata |
+| **Arrow IPC** | Zero-copy data transfer | DuckDB-WASM -> deck.gl via Arrow |
+| **Compression** | 5-10x size reduction | Parquet ZSTD compression |
+| **CDN caching** | Eliminate repeat downloads | PMTiles on CloudFront/R2 |
+| **Service Worker cache** | Offline support | Cache tiles and recent queries |
+
+Source: [MapLibre Performance Optimisation](https://maplibre.org/maplibre-gl-js/docs/guides/large-data/), [MapLibre Performance Techniques](https://deepwiki.com/maplibre/maplibre-gl-js/5.2-performance-optimization-techniques)
+
+---
+
+## 25. PMTiles and Protomaps
+
+> **Checked:** March 2025
+
+**Repository:** https://github.com/protomaps/PMTiles
+**Website:** https://protomaps.com/
+**Specification:** https://docs.protomaps.com/pmtiles/
+**Licence:** BSD 3-Clause
+
+### 25.1 What PMTiles Is
+
+PMTiles is a single-file archive format for tiled geospatial data addressed by Z/X/Y coordinates. Instead of storing millions of individual tile files on a file server, all tiles are packed into a single `.pmtiles` file. Clients fetch individual tiles using **HTTP Range Requests** -- reading only the bytes for the specific tile they need.
+
+The archive uses a **Hilbert curve ordering** of tiles, which groups spatially nearby tiles together in the file. This means a single HTTP Range Request often fetches several useful tiles at once, improving cache efficiency.
+
+### 25.2 How It Works
+
+```
+Traditional tile serving:
+  Client requests /tiles/5/16/12.mvt
+  → Server looks up file on disk
+  → Returns tile data
+
+PMTiles:
+  Client requests Range: bytes=23456-23890 from grid.pmtiles
+  → Static file server (S3, R2, CDN) returns those bytes
+  → Client parses tile from the byte range
+  → No tile server required
+```
+
+**Key advantages:**
+- **Zero server infrastructure** -- host on any static file service (S3, Cloudflare R2, GitHub Pages)
+- **Internal deduplication** -- reduces file size by 70%+ for global vector basemaps
+- **Single file to upload** -- no managing millions of tile files
+- **Supports raster and vector tiles** -- usable for both basemaps and data layers
+- **MapLibre GL JS protocol** -- `pmtiles://` protocol handler integrates natively
+
+### 25.3 Creating PMTiles for PRIO-GRID Data
+
+```bash
+# Step 1: Convert PRIO-GRID GeoParquet to GeoJSON (one-time)
+duckdb -c "
+  COPY (
+    SELECT gid, value, ST_AsGeoJSON(geometry) as geometry
+    FROM read_parquet('data/domain=conflict/year=2023/acled_fatalities.parquet')
+  ) TO 'grid_conflict_2023.geojson' (FORMAT JSON);
+"
+
+# Step 2: Create PMTiles with tippecanoe
+tippecanoe -z10 -Z2 -o grid_conflict_2023.pmtiles \
+  --no-feature-limit \
+  --no-tile-size-limit \
+  --detect-shared-borders \
+  --coalesce-densest-as-needed \
+  grid_conflict_2023.geojson
+
+# Step 3: Upload to static storage
+aws s3 cp grid_conflict_2023.pmtiles s3://causal-atlas-tiles/
+
+# Step 4: Use in MapLibre
+# pmtiles://https://causal-atlas-tiles.s3.amazonaws.com/grid_conflict_2023.pmtiles
+```
+
+### 25.4 Integration with MapLibre GL JS
+
+```javascript
+import maplibregl from 'maplibre-gl';
+import { Protocol } from 'pmtiles';
+
+const protocol = new Protocol();
+maplibregl.addProtocol('pmtiles', protocol.tile);
+
+const map = new maplibregl.Map({
+  container: 'map',
+  style: {
+    version: 8,
+    sources: {
+      'prio-grid': {
+        type: 'vector',
+        url: 'pmtiles://https://cdn.causal-atlas.org/grid_2023.pmtiles'
+      }
+    },
+    layers: [{
+      id: 'grid-fill',
+      type: 'fill',
+      source: 'prio-grid',
+      'source-layer': 'default',
+      paint: {
+        'fill-color': ['interpolate', ['linear'], ['get', 'value'],
+          0, '#f7fbff', 10, '#6baed6', 50, '#08306b'
+        ],
+        'fill-opacity': 0.7
+      }
+    }]
+  }
+});
+```
+
+### 25.5 Cost Comparison
+
+| Approach | Monthly Cost (global PRIO-GRID, ~10K users) | Setup Complexity |
+|----------|---------------------------------------------|------------------|
+| Mapbox vector tiles | $200-500/month (tile API costs) | Low |
+| Self-hosted tile server (Martin/Tegola) | $50-100/month (EC2/VPS) | Medium |
+| PMTiles on S3 + CloudFront | $5-15/month (storage + bandwidth) | Low |
+| PMTiles on Cloudflare R2 | $1-5/month (no egress fees) | Low |
+| PMTiles on GitHub Pages | $0/month (public repos) | Very low |
+
+**PMTiles is the clear winner for Causal Atlas:** near-zero cost, no server to maintain, and compatible with our MapLibre + deck.gl stack.
+
+### 25.6 Limitations
+
+- **No dynamic data:** PMTiles are static -- rebuilding tiles requires re-running tippecanoe
+- **File size:** A full global PRIO-GRID tileset with 50 variables would be large (~500MB-2GB). Solution: separate PMTiles per variable or variable group.
+- **No server-side filtering:** Unlike a tile server (Martin, PostGIS), PMTiles cannot filter data on the fly. Solution: use data-driven styling in MapLibre to filter client-side, or use DuckDB-WASM for complex queries.
+
+Source: [PMTiles Concepts](https://docs.protomaps.com/pmtiles/), [PMTiles GitHub](https://github.com/protomaps/PMTiles), [Protomaps](https://protomaps.com/), [Simon Willison PMTiles Tutorial](https://til.simonwillison.net/gis/pmtiles)
+
+---
+
 ## Sources
 
 ### Tools and Libraries
@@ -1106,3 +2090,54 @@ Cloud Storage (S3/GCS)
 - [Temporal Data Visualization Techniques (Map Library)](https://www.maplibrary.org/1582/data-visualization-techniques-for-temporal-mapping/)
 - [GeoParquet Performance with DuckDB (Radiant Earth)](https://medium.com/radiant-earth-insights/performance-explorations-of-geoparquet-and-duckdb-84c0185ed399)
 - [NYC Taxi Data with DuckDB + KeplerGL](https://medium.com/@tibeggs/exploring-nyc-taxi-geospatial-data-with-duckdb-h3-and-keplergl-68da908f7397)
+
+### Additional Tools and Frameworks (Section 15-25)
+- [Kepler.gl Reducers API](https://docs.kepler.gl/docs/api-reference/reducers)
+- [Kepler.gl Actions API](https://docs.kepler.gl/docs/api-reference/actions/actions)
+- [deck.gl Custom Composite Layers](https://deck.gl/docs/developer-guide/custom-layers/composite-layers)
+- [deck.gl Layer Extensions](https://deck.gl/docs/developer-guide/custom-layers/layer-extensions)
+- [Kepler.gl Custom Layer Integration (GitHub Issue #370)](https://github.com/keplergl/kepler.gl/issues/370)
+- [DuckDB-WASM Paper (Kohn et al., VLDB 2022)](https://dl.acm.org/doi/abs/10.14778/3554821.3554847)
+- [DuckDB WASM Documentation](https://duckdb.org/docs/stable/clients/wasm/overview)
+- [SQLRooms GitHub](https://github.com/sqlrooms/sqlrooms)
+- [SQLRooms Case Studies](https://sqlrooms.org/case-studies.html)
+- [Foursquare SQLRooms Announcement](https://foursquare.com/resources/blog/products/foursquare-introduces-sqlrooms/)
+- [Observable Framework](https://observablehq.com/framework/)
+- [Observable Framework GitHub](https://github.com/observablehq/framework)
+- [Observable Framework Maps Demo](https://github.com/bdon/observable-framework-maps)
+- [Evidence.dev Documentation](https://docs.evidence.dev/)
+- [Evidence.dev US Map Component](https://docs.evidence.dev/components/maps/us-map)
+- [Apache Superset Spatial Analytics](https://medium.com/@saikrishna_17904/spatial-analytics-on-apache-superset-fdbfb1ebdeb1)
+- [Apache Superset GeoJSON Guide](https://preset.io/blog/2021-02-11-superset-geodata/)
+- [Streamlit pydeck_chart API](https://docs.streamlit.io/develop/api-reference/charts/st.pydeck_chart)
+- [pydeck Custom Layers](https://deckgl.readthedocs.io/en/latest/custom_layers.html)
+- [PMTiles Specification](https://docs.protomaps.com/pmtiles/)
+- [PMTiles GitHub](https://github.com/protomaps/PMTiles)
+- [Protomaps](https://protomaps.com/)
+- [Simon Willison PMTiles Tutorial](https://til.simonwillison.net/gis/pmtiles)
+
+### Causal Visualisation Research
+- [Growing Squares: Animated Visualization of Causal Relations (Elmqvist et al.)](http://users.umiacs.umd.edu/~elm/projects/causality/causalviz.pdf)
+- [Animated Visualization of Causal Relations Through Growing 2D Geometry](https://www.researchgate.net/publication/220586588)
+- [Spatio-Causal Situation Awareness (ACM 2024)](https://dl.acm.org/doi/10.1145/3672556)
+- [Counterfactual Visualization Framework (Wang et al. 2025)](https://journals.sagepub.com/doi/full/10.1177/14738716241265120)
+- [Counterfactual Visualization User Study (Wang et al. 2024)](https://arxiv.org/abs/2401.08822)
+- [VACLab Counterfactual Project](https://vaclab.unc.edu/project/counterfactuals/)
+- [Geospatial Network Visualisation Survey (Schottler 2021)](https://onlinelibrary.wiley.com/doi/full/10.1111/cgf.14198)
+- [pywhy-graphs Causal Graph Visualization](https://www.pywhy.org/pywhy-graphs/stable/auto_examples/intro/intro_causal_graphs.html)
+- [Causal Graphs (Runge, Medium)](https://medium.com/causality-in-data-science/what-are-causal-graphs-abdb50354c8a)
+
+### Accessibility
+- [WCAG 2.1 Map Evaluation Study (PMC 2025)](https://pmc.ncbi.nlm.nih.gov/articles/PMC12094671/)
+- [ColorBrewer 2.0](https://colorbrewer2.org/)
+- [Section 508 Color Usage Guide](https://www.section508.gov/create/making-color-usage-accessible/)
+- [Esri Colourblind Readability Guide](https://www.esri.com/arcgis-blog/products/arcgis-pro/mapping/designing-maps-for-colorblind-readability/)
+- [Salesforce Colourblind-Friendly Maps](https://www.salesforce.com/blog/how-we-designed-salesforce-maps-to-be-color-blind-friendly/)
+- [WCAG Color Contrast Guide](https://www.allaccessible.org/blog/color-contrast-accessibility-wcag-guide-2025)
+- [Accessible Colors Palettes (Venngage)](https://venngage.com/blog/accessible-colors/)
+
+### Performance
+- [MapLibre Performance Optimisation](https://maplibre.org/maplibre-gl-js/docs/guides/large-data/)
+- [MapLibre Performance Techniques (DeepWiki)](https://deepwiki.com/maplibre/maplibre-gl-js/5.2-performance-optimization-techniques)
+- [WebGL Best Practices (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/WebGL_best_practices)
+- [Heavy Map Visualizations Fundamentals](https://advena.hashnode.dev/heavy-map-visualizations-fundamentals-for-web-developers)

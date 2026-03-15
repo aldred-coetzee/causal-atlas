@@ -578,3 +578,252 @@ Earthquakes are episodic, high-impact events. For Causal Atlas, the primary anal
 - ANSS networks: https://earthquake.usgs.gov/monitoring/anss/
 - Real-time feeds: https://earthquake.usgs.gov/earthquakes/feed/
 - USGS contact for API issues: gs-haz_dev_team_group@usgs.gov
+
+---
+
+## 13. ShakeMap — Ground Motion Intensity Grids
+
+ShakeMap provides interpolated maps of ground shaking intensity following significant earthquakes. Unlike the earthquake catalog (point locations), ShakeMap produces **gridded data** that can be directly aggregated to PRIO-GRID cells.
+
+### What ShakeMap Provides
+
+| Product | Description | Format |
+|---|---|---|
+| **PGA grid** | Peak Ground Acceleration (% g) | GeoTIFF, shapefile, XML |
+| **PGV grid** | Peak Ground Velocity (cm/s) | GeoTIFF, shapefile, XML |
+| **MMI grid** | Modified Mercalli Intensity (I–X+) | GeoTIFF, shapefile, XML |
+| **PSA grids** | Pseudo-Spectral Acceleration at 0.3s, 1.0s, 3.0s | GeoTIFF, XML |
+| **Uncertainty grids** | Standard deviation of ground motion estimates | GeoTIFF |
+| **Station list** | Contributing seismic station data | JSON, XML |
+| **Contour lines** | MMI contours | GeoJSON, KML |
+
+### Programmatic Access
+
+ShakeMap products are available through the ComCat event detail endpoint:
+
+```python
+import requests
+import rasterio
+from io import BytesIO
+
+# Step 1: Get event detail (includes product URLs)
+event_id = "us6000jllz"  # Turkey 2023 earthquake
+detail_url = f"https://earthquake.usgs.gov/fdsnws/event/1/query?eventid={event_id}&format=geojson"
+detail = requests.get(detail_url).json()
+
+# Step 2: Extract ShakeMap product URLs
+products = detail['properties']['products']
+if 'shakemap' in products:
+    shakemap = products['shakemap'][0]
+
+    # Download MMI grid (GeoTIFF)
+    for content in shakemap['contents'].values():
+        if content['url'].endswith('.tif') and 'mmi' in content['url'].lower():
+            mmi_url = content['url']
+            break
+
+    resp = requests.get(mmi_url)
+    with rasterio.open(BytesIO(resp.content)) as src:
+        mmi_data = src.read(1)
+        transform = src.transform
+        print(f"MMI grid shape: {mmi_data.shape}")
+        print(f"Max MMI: {mmi_data.max():.1f}")
+```
+
+### Using libcomcat for ShakeMap
+
+```python
+from libcomcat.search import get_event_by_id
+from libcomcat.products import get_shakemap_data
+
+detail = get_event_by_id("us6000jllz")
+
+# Check if ShakeMap is available
+if detail.hasProduct('shakemap'):
+    # Download ShakeMap grids
+    sm_data = get_shakemap_data(detail)
+    # Returns dict with grid data, station list, etc.
+```
+
+### MMI Scale Reference
+
+| MMI | Shaking | Description | PGA (% g) | Potential Damage |
+|---|---|---|---|---|
+| I | Not felt | — | <0.05 | None |
+| II–III | Weak | Felt by few | 0.05–0.3 | None |
+| IV | Light | Felt by many | 0.3–2.8 | None |
+| V | Moderate | Felt by all, some breakage | 2.8–6.2 | Very light |
+| VI | Strong | Felt by all, minor damage | 6.2–12 | Light |
+| VII | Very strong | Moderate damage to buildings | 12–22 | Moderate |
+| VIII | Severe | Heavy damage to vulnerable structures | 22–40 | Moderate to heavy |
+| IX | Violent | Heavy damage to most structures | 40–75 | Heavy |
+| X+ | Extreme | Near-total destruction | >75 | Very heavy |
+
+---
+
+## 14. PAGER — Loss Estimation
+
+PAGER (Prompt Assessment of Global Earthquakes for Response) automatically estimates potential fatalities and economic losses within approximately 20 minutes of any M5.5+ earthquake globally.
+
+### PAGER Alert Levels
+
+| Alert | Estimated Fatalities | Estimated Economic Losses (% GDP) | Response Implication |
+|---|---|---|---|
+| **Green** | 0 | <1% of GDP | No response needed |
+| **Yellow** | 1–99 | 1–10% of GDP | Local/regional response |
+| **Orange** | 100–999 | 10–100% of GDP | National response |
+| **Red** | 1,000+ | >100% of GDP | International response |
+
+### Accessing PAGER Data
+
+PAGER data is available as a product within ComCat event details:
+
+```python
+# Via ComCat API
+event_id = "us6000jllz"
+detail_url = f"https://earthquake.usgs.gov/fdsnws/event/1/query?eventid={event_id}&format=geojson"
+detail = requests.get(detail_url).json()
+
+# PAGER alert level from summary properties
+alert_level = detail['properties']['alert']  # 'green', 'yellow', 'orange', 'red'
+
+# Detailed PAGER data from products
+if 'losspager' in detail['properties']['products']:
+    pager = detail['properties']['products']['losspager'][0]
+    # Contents include:
+    # - alertfatal.json: fatality probability distribution
+    # - alertecon.json: economic loss probability distribution
+    # - exposure.json: population exposure by MMI level
+
+# Via libcomcat
+from libcomcat.search import get_event_by_id
+detail = get_event_by_id(event_id)
+if detail.hasProduct('losspager'):
+    pager_contents = detail.getProducts('losspager')[0]
+```
+
+### Population Exposure by Shaking Intensity
+
+PAGER computes population exposure across MMI levels. This is directly relevant for computing earthquake exposure per PRIO-GRID cell:
+
+```python
+import requests
+import json
+
+# Fetch PAGER exposure data
+event_id = "us6000jllz"
+detail = requests.get(
+    f"https://earthquake.usgs.gov/fdsnws/event/1/query?eventid={event_id}&format=geojson"
+).json()
+
+pager = detail['properties']['products']['losspager'][0]
+# Population exposed at each MMI level
+# Typically available in the PAGER XML or JSON contents
+```
+
+### PAGER Open-Source Code
+
+The PAGER loss estimation code is open-source:
+- **GitHub:** https://github.com/usgs/pager
+- **Language:** Python
+- **Key module:** `losspager` — contains country-specific vulnerability functions
+- **Data:** Country-specific fatality and economic loss functions calibrated against historical earthquakes
+- **Use case for Causal Atlas:** Run PAGER-style loss estimates for historical earthquakes to create a per-cell-month economic/fatality impact estimate
+
+---
+
+## 15. Computing Earthquake Exposure per PRIO-GRID Cell
+
+### Method 1: Simple Event Counting
+
+```python
+import pandas as pd
+import numpy as np
+
+def earthquake_exposure_simple(eq_catalog, resolution=0.5):
+    """
+    Compute monthly earthquake exposure per PRIO-GRID cell.
+    Simple approach: count events and max magnitude.
+    """
+    df = eq_catalog.copy()
+
+    # Assign PRIO-GRID cell
+    df['col'] = ((df['longitude'] + 180) / resolution).astype(int) + 1
+    df['row'] = ((df['latitude'] + 90) / resolution).astype(int) + 1
+    df['pgid'] = (df['row'] - 1) * 720 + df['col']
+
+    # Extract month
+    df['month'] = pd.to_datetime(df['time'], unit='ms').dt.to_period('M')
+
+    # Aggregate
+    monthly = df.groupby(['pgid', 'month']).agg(
+        event_count=('mag', 'count'),
+        max_magnitude=('mag', 'max'),
+        total_energy=('mag', lambda x: (10**(1.5 * x + 4.8)).sum()),  # Seismic energy
+        max_mmi=('mmi', 'max'),
+        max_cdi=('cdi', 'max'),
+    ).reset_index()
+
+    return monthly
+```
+
+### Method 2: ShakeMap-Based Exposure
+
+For significant earthquakes with ShakeMaps, compute PGA or MMI per PRIO-GRID cell:
+
+```python
+from rasterstats import zonal_stats
+import geopandas as gpd
+
+def shakemap_to_priogrid(shakemap_tif, priogrid_polygons):
+    """
+    Aggregate ShakeMap raster to PRIO-GRID cell statistics.
+
+    Args:
+        shakemap_tif: Path to ShakeMap MMI or PGA GeoTIFF
+        priogrid_polygons: GeoDataFrame of PRIO-GRID cells
+
+    Returns:
+        DataFrame with max/mean shaking per cell
+    """
+    stats = zonal_stats(
+        priogrid_polygons,
+        shakemap_tif,
+        stats=['max', 'mean', 'count'],
+        all_touched=True
+    )
+
+    result = priogrid_polygons[['pgid']].copy()
+    result['shaking_max'] = [s['max'] for s in stats]
+    result['shaking_mean'] = [s['mean'] for s in stats]
+    result['pixels_affected'] = [s['count'] for s in stats]
+
+    # Filter to cells actually affected
+    result = result[result['shaking_max'] > 0]
+    return result
+```
+
+### Method 3: Attenuation-Based Exposure
+
+When no ShakeMap is available, estimate ground shaking using attenuation relationships:
+
+```python
+import numpy as np
+
+def estimate_pga(magnitude, distance_km, depth_km):
+    """
+    Estimate Peak Ground Acceleration using a simplified
+    Ground Motion Prediction Equation (GMPE).
+    Based on simplified Boore-Atkinson NGA-West2.
+
+    Returns PGA in fraction of g.
+    """
+    # Simplified log-linear model (approximate only)
+    hypo_dist = np.sqrt(distance_km**2 + depth_km**2)
+    log_pga = -1.3 + 0.9 * magnitude - 1.5 * np.log10(hypo_dist + 10)
+    pga = 10**log_pga / 100  # Convert from %g to fraction of g
+    return np.clip(pga, 0, 2.0)
+
+# For each PRIO-GRID cell centroid, compute distance to earthquake
+# and estimate PGA. This creates a continuous exposure surface.
+```

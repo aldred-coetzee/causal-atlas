@@ -545,3 +545,193 @@ with zipfile.ZipFile(io.BytesIO(resp.content)) as z:
 - wbgapi on GitHub: https://github.com/tgherzog/wbgapi
 - Poverty and Inequality Platform: https://pip.worldbank.org/
 - WDI quarterly updates: https://datatopics.worldbank.org/world-development-indicators/
+
+---
+
+## Worldwide Governance Indicators (WGI) — Detailed Reference
+
+The WGI merits special attention as a critical control variable for conflict and fragility analysis.
+
+### The Six Dimensions — Detailed
+
+| Dimension | Code | What It Measures | Key Sub-Indicators |
+|---|---|---|---|
+| **Voice and Accountability** | VA | Extent to which citizens can participate in selecting government, freedom of expression, media, association | Press freedom, civil liberties, political rights, transparency of government policymaking |
+| **Political Stability and Absence of Violence/Terrorism** | PV | Likelihood of political instability or politically motivated violence, including terrorism | Ethnic tensions, armed conflict, social unrest, terrorism risk, government stability |
+| **Government Effectiveness** | GE | Quality of public services, civil service independence, policy formulation and implementation quality | Bureaucratic quality, infrastructure, government budget management, policy consistency |
+| **Regulatory Quality** | RQ | Government's ability to formulate and implement sound policies that promote private sector development | Business regulatory burden, trade policy, investment freedom, competition policy |
+| **Rule of Law** | RL | Extent to which agents have confidence in and abide by the rules of society, contract enforcement, property rights, courts, crime | Property rights, judicial independence, contract enforcement, police quality, crime prevalence |
+| **Control of Corruption** | CC | Extent to which public power is exercised for private gain, including petty and grand corruption | Bribery, diversion of public funds, nepotism, state capture |
+
+### 2025 Methodology Revision
+
+The WGI underwent a major methodology revision in 2025:
+
+| Change | Old Approach | New Approach |
+|---|---|---|
+| **Screening** | Broad inclusion of sources | Stricter protocol for qualifying data sources |
+| **New sources** | — | Additional qualified sources added |
+| **Institutional framework** | General | Closer alignment with institutional-functions framework |
+| **Global average** | Fixed over time | Allowed to vary over time (captures global governance trends) |
+| **Absolute scale** | Not available | New 0–100 scale anchored to fixed benchmark countries |
+| **Dimensions** | Same 6 | Targeted refinements to indicator mapping across dimensions |
+
+### Score Interpretation
+
+**Governance Estimate (traditional):**
+- Range: approximately -2.5 to +2.5
+- Mean: near 0 (by construction in original methodology; can now shift under 2025 revision)
+- Standard deviation: approximately 1
+- Interpretation: 0 is roughly the global mean governance quality; +2.5 is best, -2.5 is worst
+
+**Absolute Score (new in 2025):**
+- Range: 0 to 100
+- Anchored to fixed benchmark countries (selected for stability)
+- Allows absolute comparisons over time (has governance in country X improved?)
+
+### Data Access for WGI
+
+```python
+import wbgapi as wb
+
+# Switch to WGI database
+wb.db = 3  # WGI source ID
+
+# All six dimensions, estimates + percentile ranks
+wgi_codes = {
+    'VA.EST': 'Voice and Accountability (Estimate)',
+    'PV.EST': 'Political Stability (Estimate)',
+    'GE.EST': 'Government Effectiveness (Estimate)',
+    'RQ.EST': 'Regulatory Quality (Estimate)',
+    'RL.EST': 'Rule of Law (Estimate)',
+    'CC.EST': 'Control of Corruption (Estimate)',
+    'VA.PER.RNK': 'Voice and Accountability (Percentile)',
+    'PV.PER.RNK': 'Political Stability (Percentile)',
+    'GE.PER.RNK': 'Government Effectiveness (Percentile)',
+    'RQ.PER.RNK': 'Regulatory Quality (Percentile)',
+    'RL.PER.RNK': 'Rule of Law (Percentile)',
+    'CC.PER.RNK': 'Control of Corruption (Percentile)',
+}
+
+# Fetch all WGI estimates for Sub-Saharan Africa
+df = wb.data.DataFrame(
+    list(wgi_codes.keys())[:6],
+    economy=wb.region.members('SSA'),
+    time=range(2000, 2024)
+)
+
+wb.db = 2  # Reset to WDI
+```
+
+### WGI Source: https://www.worldbank.org/en/publication/worldwide-governance-indicators
+
+---
+
+## Fragile States Index as Complement to WGI
+
+The Fragile States Index (FSI), produced by the Fund for Peace, complements WGI for fragility analysis.
+
+| Property | Detail |
+|---|---|
+| **Producer** | Fund for Peace |
+| **Coverage** | 179 countries, 2006–2024 |
+| **Update frequency** | Annual |
+| **Scale** | 0–120 (composite); 0–10 per indicator |
+| **Indicators** | 12 indicators across Cohesion, Economic, Political, Social/Cross-cutting dimensions |
+| **URL** | https://fragilestatesindex.org/ |
+| **Data access** | Excel download from website; also available via Mendeley Data and World Bank Data Catalog |
+| **API** | None available |
+| **Licence** | Free for research use with attribution |
+
+### FSI Indicators
+
+**Cohesion:** Security Apparatus, Factionalized Elites, Group Grievance
+**Economic:** Economic Decline, Uneven Economic Development, Human Flight/Brain Drain
+**Political:** State Legitimacy, Public Services, Human Rights/Rule of Law
+**Social/Cross-cutting:** Demographic Pressures, Refugees/IDPs, External Intervention
+
+### FSI vs WGI
+
+| Aspect | WGI | FSI |
+|---|---|---|
+| Focus | Governance quality | State fragility/instability |
+| Scale | -2.5 to +2.5 (+ new 0-100) | 0–120 (higher = more fragile) |
+| Sources | 35 expert/survey sources | Mixed methods (quantitative + qualitative) |
+| Granularity | 6 dimensions | 12 indicators |
+| Temporal depth | 1996–present | 2006–present |
+| Academic citation | Extremely high | High |
+| Python access | `wbgapi` | Manual download |
+
+---
+
+## Sub-National Data Availability
+
+### World Bank Subnational Poverty
+
+- **Database:** World Bank Subnational Poverty Database
+- **Coverage:** ~100 countries with admin-1 level poverty estimates
+- **Indicators:** Poverty headcount ratio, poverty gap, number of poor
+- **Source:** Household surveys (DHS, LSMS, national surveys)
+- **Limitation:** Very sparse temporal coverage — typically 1-3 survey years per country
+- **URL:** Available through the Poverty and Inequality Platform (PIP): https://pip.worldbank.org/
+
+### Handling Sparse Temporal Coverage
+
+Many WDI indicators for developing countries have significant gaps. Strategies:
+
+| Strategy | Method | When to Use |
+|---|---|---|
+| **Forward-fill** | Carry last known value forward | Short gaps (1-2 years), stable indicators |
+| **Interpolation** | Linear between known values | Moderate gaps, trending indicators |
+| **MRV (Most Recent Value)** | Use most recent available value | Cross-sectional analysis |
+| **Nighttime lights proxy** | Use NTL as sub-annual, sub-national GDP proxy | When GDP data unavailable |
+| **Imputation models** | Model-based imputation using correlated indicators | Large gaps, multiple indicators available |
+| **Gap flagging** | Mark imputed values and carry uncertainty | Always |
+
+```python
+import wbgapi as wb
+import pandas as pd
+
+# Fetch with Most Recent Values to handle gaps
+df = wb.data.DataFrame(
+    'SI.POV.DDAY',  # Poverty headcount
+    economy='all',
+    mrv=5,          # Get up to 5 most recent values
+)
+
+# Forward-fill gaps for country-level indicators
+df_filled = df.sort_index(axis=1).ffill(axis=1)
+```
+
+---
+
+## Climate Change Knowledge Portal (CCKP)
+
+The World Bank also operates the Climate Change Knowledge Portal, providing climate projection data useful as context for Causal Atlas.
+
+| Property | Detail |
+|---|---|
+| **URL** | https://climateknowledgeportal.worldbank.org/ |
+| **Data** | Historical climate (CRU, ERA5), CMIP6 projections, 70+ climate indices |
+| **Spatial** | Global gridded at 0.25° and 0.5°; country and sub-national aggregations |
+| **Temporal** | Historical: 1901–2022; Projections: to 2100 |
+| **Format** | NetCDF, CSV |
+| **Access** | AWS Open Data (https://registry.opendata.aws/wbg-cckp/), API, web download |
+| **Licence** | CC BY 4.0 |
+
+### CCKP Data Collections
+
+| Collection | Resolution | Period | Source |
+|---|---|---|---|
+| `cru-x0.5` | 0.5° | 1901–2022 | CRU TS (same as used by PRIO-GRID v3) |
+| `era5-x0.25` | 0.25° | 1950–2022 | ERA5 reanalysis |
+| `cmip6-x0.25` | 0.25° | 1950–2100 | CMIP6 downscaled, bias-corrected |
+| `pop-x0.25` | 0.25° | 1995–2100 | Population projections |
+
+### Relevance to Causal Atlas
+
+CCKP provides a convenient single source for:
+- **Climate baselines** (historical temperature, precipitation at PRIO-GRID resolution)
+- **Climate projections** (for forward-looking causal analysis)
+- **Climate indices** (heat days, dry days, wet days — pre-computed)
+- **Country-level climate summaries** aligned with WDI country codes

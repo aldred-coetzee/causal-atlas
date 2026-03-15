@@ -616,3 +616,552 @@ Conflict event (ACLED/UCDP)
 - FAOSTAT data quality analysis: https://datascience.codata.org/articles/10.5334/dsj-2024-044
 - Cropland nutrient budgets (ESSD): https://essd.copernicus.org/articles/16/525/2024/
 - Wikipedia FAOSTAT overview: https://en.wikipedia.org/wiki/Food_and_Agriculture_Organization_Corporate_Statistical_Database
+
+---
+
+## FAOSTAT API — Detailed Reference
+
+> **Last checked:** March 2025
+
+### Domain Codes — Complete Reference
+
+The FAOSTAT REST API uses domain codes to specify which dataset to query. Here is the complete set organised by theme:
+
+#### API Endpoint Pattern
+
+```
+GET https://fenixservices.fao.org/faostat/api/v1/{lang}/data/{domain_code}
+```
+
+Where `{lang}` is `en`, `es`, `fr`, `ar`, `zh`, or `ru`.
+
+#### Metadata Discovery Endpoints
+
+```python
+import requests
+
+# List all available datasets (domain codes)
+datasets = requests.get(
+    "https://fenixservices.fao.org/faostat/api/v1/en/definitions/domain"
+).json()
+
+# List all countries/areas for a domain
+areas = requests.get(
+    "https://fenixservices.fao.org/faostat/api/v1/en/definitions/domain/QCL/area"
+).json()
+
+# List all items (commodities) for a domain
+items = requests.get(
+    "https://fenixservices.fao.org/faostat/api/v1/en/definitions/domain/QCL/item"
+).json()
+
+# List all elements (measurement types) for a domain
+elements = requests.get(
+    "https://fenixservices.fao.org/faostat/api/v1/en/definitions/domain/QCL/element"
+).json()
+
+# List all years available for a domain
+years = requests.get(
+    "https://fenixservices.fao.org/faostat/api/v1/en/definitions/domain/QCL/year"
+).json()
+```
+
+#### Complete API Example with All Parameters
+
+```python
+import requests
+import pandas as pd
+import io
+
+def faostat_query(domain, areas, items, elements, years,
+                  area_cs='FAO', item_cs='FAO', element_cs='FAO',
+                  output_type='csv', show_codes=True, show_flags=True,
+                  show_unit=True, null_values=False):
+    """
+    Full-featured FAOSTAT API query.
+
+    Parameters
+    ----------
+    domain : str
+        FAOSTAT domain code (e.g., 'QCL', 'FBS', 'FS', 'PP')
+    areas : list
+        Area codes (depends on area_cs: FAO numeric, ISO3, M49)
+    items : list
+        Item codes (FAO numeric or CPC)
+    elements : list
+        Element codes
+    years : list or range
+        Year values
+    area_cs : str
+        Area coding system: 'FAO', 'ISO3', or 'M49'
+    item_cs : str
+        Item coding system: 'FAO' or 'CPC'
+    element_cs : str
+        Element coding system: 'FAO'
+    output_type : str
+        'csv' or 'objects'
+
+    Returns
+    -------
+    pd.DataFrame
+    """
+    base_url = f"https://fenixservices.fao.org/faostat/api/v1/en/data/{domain}"
+
+    params = {
+        'area': ','.join(str(a) for a in areas),
+        'area_cs': area_cs,
+        'item': ','.join(str(i) for i in items),
+        'item_cs': item_cs,
+        'element': ','.join(str(e) for e in elements),
+        'element_cs': element_cs,
+        'year': ','.join(str(y) for y in years),
+        'show_codes': str(show_codes).lower(),
+        'show_flags': str(show_flags).lower(),
+        'show_unit': str(show_unit).lower(),
+        'null_values': str(null_values).lower(),
+        'output_type': output_type,
+    }
+
+    resp = requests.get(base_url, params=params, timeout=120)
+    resp.raise_for_status()
+
+    if output_type == 'csv':
+        return pd.read_csv(io.StringIO(resp.text))
+    else:
+        return pd.DataFrame(resp.json()['data'])
+
+# Example 1: Maize production for all East African countries, 2015-2023
+df_maize = faostat_query(
+    domain='QCL',
+    areas=['KEN', 'TZA', 'UGA', 'ETH', 'RWA', 'BDI', 'SSD', 'SOM'],
+    items=[56],                     # Maize
+    elements=[5510, 5312, 5419],   # Production, Area harvested, Yield
+    years=range(2015, 2024),
+    area_cs='ISO3',
+)
+
+# Example 2: Food security indicators for the Sahel
+df_fs = faostat_query(
+    domain='FS',
+    areas=['NER', 'MLI', 'BFA', 'TCD', 'MRT', 'SEN'],
+    items=[210041],  # Prevalence of undernourishment
+    elements=[6120],
+    years=range(2000, 2024),
+    area_cs='ISO3',
+)
+
+# Example 3: Fertiliser use (nitrogen) for sub-Saharan Africa
+df_fert = faostat_query(
+    domain='RFN',
+    areas=[5501],  # FAO code for sub-Saharan Africa aggregate
+    items=[3102],  # Nitrogen fertilisers (N total)
+    elements=[5157, 5159],  # Use per area of cropland, Total
+    years=range(2000, 2024),
+)
+```
+
+#### API Limitations
+
+| Limitation | Detail |
+|---|---|
+| **No authentication** | Public API; no keys needed |
+| **Rate limits** | Not formally documented; ~100 requests/minute appears safe |
+| **Max response size** | Large queries may time out (>60 seconds); split by year ranges |
+| **Data latency** | 1–2 years behind current year for most domains |
+| **Concurrent requests** | Be conservative (2–3 concurrent) to avoid throttling |
+
+---
+
+## GIEWS — Global Information and Early Warning System
+
+> **Last checked:** March 2025
+
+### Overview
+
+GIEWS is FAO's operational food security monitoring system, continuously monitoring food supply, demand, and prices in all countries. It is one of the oldest food security early warning systems, established in 1975.
+
+**URL:** <https://www.fao.org/giews/en/>
+
+### Key Data Products
+
+| Product | Description | URL |
+|---|---|---|
+| **Country Briefs** | Country-specific food security updates (irregularly updated) | <https://www.fao.org/giews/country-analysis/en/> |
+| **FPMA (Food Price Monitoring & Analysis)** | Monthly domestic retail/wholesale price series for 2,900+ price series across 126 countries (since 2009) | <https://www.fao.org/giews/food-prices/en/> |
+| **Country Cereal Balance Sheets (CCBS)** | Annual supply-utilisation balances for major cereals, 220+ countries, since 1980 | <https://www.fao.org/giews/data-tools/en/> |
+| **Crop Calendar** | Planting and harvesting dates by crop and country | Available via GIEWS tools |
+| **Agricultural Stress Index (ASI)** | Satellite-derived drought indicator for agricultural areas | Near-real-time |
+| **Earth Observation data** | NDVI, rainfall anomalies, LST for crop monitoring | Via GIEWS data tools |
+
+### FPMA Tool
+
+The Food Price Monitoring and Analysis Tool is particularly relevant to Causal Atlas:
+
+- **Coverage:** 2,900+ monthly domestic price series for major foods across 126 countries
+- **Data since:** January 2009 (some series earlier)
+- **Prices tracked:** Retail and wholesale for locally consumed staples
+- **Complements WFP data:** FPMA covers some countries and markets not monitored by WFP
+- **Anomaly detection:** FPMA includes automated alerts for unusual price movements
+
+**Access:** <https://fpma.fao.org/giews/fpmat4/#/dashboard/home>
+
+### Relevance to Causal Atlas
+
+GIEWS provides:
+1. **Country cereal balance sheets** — essential for understanding import dependency and vulnerability to global price shocks
+2. **Crop calendars** — needed to define growing season windows for correlating rainfall with production
+3. **Agricultural Stress Index** — an alternative/complement to SPI/SPEI for agricultural drought monitoring
+4. **FPMA price data** — complements WFP price data with additional country/market coverage
+5. **Country briefs** — qualitative context for interpreting quantitative signals
+
+---
+
+## FAO Hand-in-Hand Geospatial Platform
+
+> **Last checked:** March 2025
+
+### Overview
+
+The Hand-in-Hand (HiH) Geospatial Platform is FAO's flagship open-access geospatial data platform, providing agricultural and food security data layers at multiple resolutions.
+
+| Attribute | Detail |
+|---|---|
+| **URL** | <https://data.apps.fao.org/> |
+| **Landing page** | <https://www.fao.org/hih-geospatial-platform/en> |
+| **Data layers** | >2 million layers across 5,400+ datasets |
+| **Users** | 90+ organisations worldwide |
+| **Licence** | Open access |
+
+### Key Data Layers
+
+| Category | Examples | Resolution |
+|---|---|---|
+| **Crop production** | Crop suitability (GAEZ), crop area maps | Various (30m to 10km) |
+| **Climate** | Rainfall, temperature, drought indices | 0.05° to 0.25° |
+| **Soil** | Soil type, fertility, carbon content | 250m (SoilGrids) |
+| **Water** | Irrigation areas, water stress, WaPOR ET | 100m to 5km |
+| **Land cover** | ESA WorldCover, GlobeLand30 | 10m to 30m |
+| **Socioeconomic** | Population density, poverty, market access | Various |
+| **Food security** | IPC phases, food prices, nutrition | Admin level |
+
+### API Architecture
+
+The platform uses standard geospatial web service protocols:
+
+| Protocol | Purpose | Example |
+|---|---|---|
+| **WMS** (Web Map Service) | Map image tiles | `GetMap` requests |
+| **WMTS** (Web Map Tile Service) | Cached tile access (Google Earth Engine integration) | Tile-based access |
+| **WFS** (Web Feature Service) | Vector data download | GeoJSON/shapefile |
+| **WCS** (Web Coverage Service) | Raster data download | GeoTIFF extraction |
+| **OGC API** | Modern REST-based geospatial access | JSON-based queries |
+
+### Programmatic Access
+
+```python
+import requests
+
+# Example: Query WCS for a data layer
+wcs_url = "https://data.apps.fao.org/geoserver/ows"
+params = {
+    'service': 'WCS',
+    'version': '2.0.1',
+    'request': 'GetCoverage',
+    'coverageId': 'layer_name',  # Specific layer identifier
+    'format': 'image/geotiff',
+    'subset': 'Lat(0,10)',
+    'subset': 'Long(30,42)',
+}
+
+# Note: Layer identifiers must be looked up in the platform catalogue
+```
+
+**Quick-Start Guide:** <https://openknowledge.fao.org/server/api/core/bitstreams/acb53145-6aa2-4d3a-9f1b-86ab99303034/content>
+
+---
+
+## AQUASTAT — Water Resources Data
+
+> **Last checked:** March 2025
+
+### Overview
+
+AQUASTAT is FAO's global water information system and the most cited source on global water statistics. It provides data on water resources, water use, and agricultural water management for 200+ countries.
+
+**URL:** <https://www.fao.org/aquastat/en/>
+
+### Key Variables Relevant to Causal Atlas
+
+| Variable | Unit | Relevance |
+|---|---|---|
+| **Total renewable water resources** | km³/year | Baseline water availability per country |
+| **Total water withdrawal** | km³/year | Water stress indicator |
+| **Agricultural water withdrawal** | km³/year | Irrigation dependency |
+| **Water stress (SDG 6.4.2)** | % | Water scarcity indicator for drought-agriculture chains |
+| **Irrigated cropland area** | 1000 ha | Which areas buffer against rainfall variability |
+| **Irrigation water use efficiency** | — | Agricultural water productivity |
+| **Dam capacity** | km³ | Water storage and flood management capacity |
+| **Flood occurrence** | events/year | Hydrological hazard data |
+
+### Database Structure
+
+| Database | Content | Coverage |
+|---|---|---|
+| **Core database** | 180+ variables on water resources and use | 200+ countries, 1960–2017 |
+| **Irrigated crop calendars** | Planting/harvesting dates for irrigated crops | Country-specific |
+| **Sub-national irrigation** | Irrigation area at sub-national level | Select countries |
+| **Dams and reservoirs** | Location, capacity, year built for major dams | Global |
+
+### Access
+
+- **Interactive database:** <https://www.fao.org/aquastat/en/databases/maindatabase/>
+- **Bulk download:** CSV exports from the interactive interface
+- **No formal API** — data must be queried through the web interface or downloaded in bulk
+- **World Bank Data360 mirror:** <https://data360.worldbank.org/en/dataset/FAO_AS>
+
+### Relevance to Drought-Agriculture Causal Chains
+
+AQUASTAT is critical for understanding the **mediating role of irrigation** in climate-food security pathways:
+
+```
+Rainfall deficit (CHIRPS) → Water stress (AQUASTAT) → Crop production loss (FAOSTAT)
+                                    ↓
+                          Irrigated areas (AQUASTAT) → Buffer against drought
+```
+
+Countries with high irrigation coverage (Egypt, Pakistan) may show weak rainfall-production correlations because irrigation decouples crops from direct rainfall dependency. AQUASTAT data enables Causal Atlas to identify and control for this mediating factor.
+
+---
+
+## FAO-GAEZ — Global Agro-Ecological Zones
+
+> **Last checked:** March 2025
+
+### Overview
+
+GAEZ (Global Agro-Ecological Zones) is a collaborative model between FAO and IIASA that assesses agricultural production potential and crop suitability worldwide, considering climate, soil, terrain, and management conditions.
+
+| Attribute | Detail |
+|---|---|
+| **Current version** | GAEZ v4 (2021); GAEZ v5 (2025) |
+| **Portal (v4)** | <https://gaez.fao.org/> |
+| **Portal (v5)** | <https://www.fao.org/gaez/en> |
+| **Resolution** | 30 arc-seconds (~1 km) to 5 arc-minutes (~10 km) |
+| **Data layers** | 226,225 layers (v4), several terabytes |
+| **Climate scenarios** | Historical + CMIP5/CMIP6 future projections |
+| **Crops modeled** | 49+ major and minor crops |
+
+### Six Major Themes (GAEZ v4)
+
+| Theme | Content | Key variables |
+|---|---|---|
+| **1. Land and Water Resources** | Soil, terrain, land cover | Soil suitability classes, terrain slope, land use |
+| **2. Agro-climatic Resources** | Climate characterisation | Growing period, temperature regime, moisture regime |
+| **3. Agro-climatic Potential Yield** | Maximum attainable yield under climate constraints | Potential yield for 49 crops under rain-fed and irrigated conditions |
+| **4. Suitability and Attainable Yield** | Yield accounting for soil and terrain limitations | Crop suitability index (0–100), attainable yield (kg/ha) |
+| **5. Actual Yields and Production** | Current production levels | Estimated current yield vs potential |
+| **6. Yield and Production Gaps** | Gap between actual and potential | Exploitable yield gap (kg/ha) |
+
+### Relevance to Causal Atlas
+
+GAEZ provides essential context for interpreting climate-food security relationships:
+
+1. **Crop suitability maps** identify which areas *should* be productive given climate/soil — deviations from potential may indicate human factors (conflict, policy, investment)
+2. **Yield gaps** quantify how much additional production is theoretically possible — areas with large gaps are potentially more resilient to climate shocks
+3. **Climate change scenarios** project how suitability will shift — important for long-term trend analysis
+4. **Growing period length** defines the temporal window for correlating rainfall with crop outcomes
+
+### Data Access
+
+```python
+# GAEZ v4 data can be downloaded via the data viewer
+# Export CSV with download URLs, then batch download:
+
+import subprocess
+
+# Example: download crop suitability rasters
+urls = [
+    "https://s3.eu-west-1.amazonaws.com/data.gaezdev.aws.fao.org/res05/CRUTS32/Hist/8110L/suHr_mze.tif",
+    # ... more URLs from the data viewer export
+]
+
+for url in urls:
+    subprocess.run(['curl', '-O', url])
+```
+
+**Documentation:** <https://openknowledge.fao.org/server/api/core/bitstreams/73f77f36-4976-41b9-823c-a82f1f14f87f/content>
+
+---
+
+## CountrySTAT — National Food and Agriculture Statistics
+
+> **Last checked:** March 2025
+
+### Overview
+
+CountrySTAT is an FAO system that provides **sub-national food and agriculture statistics** — filling a critical gap in FAOSTAT, which is primarily national-level.
+
+| Attribute | Detail |
+|---|---|
+| **URL** | <https://www.fao.org/in-action/countrystat/background/en/> |
+| **Coverage** | 31 countries (26 in Africa) |
+| **Spatial resolution** | Sub-national (uses GAUL administrative units) |
+| **Standards** | FAOSTAT data standards + GAUL spatial framework |
+| **Data types** | Crop production, livestock, food balance, prices — at admin-1 and admin-2 level |
+
+### Country Coverage (as of 2025)
+
+| Region | Countries |
+|---|---|
+| **West Africa** | Benin, Burkina Faso, Cabo Verde, Côte d'Ivoire, Gambia, Ghana, Guinea, Guinea-Bissau, Liberia, Mali, Mauritania, Niger, Nigeria, Senegal, Sierra Leone, Togo |
+| **East Africa** | Burundi, Ethiopia, Kenya, Rwanda, Tanzania, Uganda |
+| **Central Africa** | Cameroon, Congo |
+| **Southern Africa** | Malawi, Mozambique |
+| **Other** | Armenia, Georgia, Kyrgyzstan, Tajikistan, Turkey |
+
+### Relevance to Causal Atlas
+
+CountrySTAT is **extremely valuable** for Causal Atlas because it provides the sub-national agricultural production data that FAOSTAT lacks:
+
+- **Sub-national crop production** enables correlating CHIRPS rainfall at PRIO-GRID resolution with production outcomes at the admin-1/2 level instead of national level
+- **This dramatically improves causal inference** — national-level averaging masks within-country variation that drives local food security outcomes
+- **However**, coverage is limited to 31 countries and data quality/completeness varies significantly by country
+
+---
+
+## FAOSTAT vs USDA PSD — Known Discrepancies
+
+> **Last checked:** March 2025
+
+### Overview
+
+Both FAOSTAT and the USDA Production, Supply and Distribution (PSD) database are major global sources for agricultural production and trade data. They often disagree.
+
+### Key Differences
+
+| Aspect | FAOSTAT | USDA PSD |
+|---|---|---|
+| **Maintainer** | FAO (Rome) | USDA Foreign Agricultural Service (Washington) |
+| **Country coverage** | 245+ countries | ~190 countries (focused on commercially important) |
+| **Temporal coverage** | 1961–present | Varies; many series from 1960 |
+| **Update frequency** | Annual (1–2 year lag) | Monthly updates for current crop year |
+| **Primary purpose** | Statistical reference for all FAO members | US trade policy, market intelligence |
+| **Methodology** | Countries self-report; FAO fills gaps with estimates | USDA attachés and analysts produce independent estimates |
+| **Timeliness** | 1–2 year lag typical | **Near real-time** for current crop year |
+| **Livestock** | Official country data + FAO estimates | Based on USDA FAS assessments |
+
+### Sources of Discrepancy
+
+| Source | Explanation | Impact |
+|---|---|---|
+| **Independent estimation** | USDA produces its own crop estimates using satellite imagery, ground intelligence, and economic modeling — these may differ from country self-reports used by FAOSTAT | 5–20% differences for key crops in some countries |
+| **Marketing year vs calendar year** | FAOSTAT uses calendar year; USDA PSD uses marketing/crop year (varies by country and commodity) | Same production may be attributed to different years |
+| **Definition differences** | "Production" may include or exclude certain categories (e.g., green maize vs grain maize) | Systematic level differences |
+| **Update timing** | USDA revises estimates monthly; FAOSTAT revises annually | At any point, they may reflect different vintages of information |
+| **Mirror statistics** | When a country doesn't report trade, FAOSTAT uses partner reports; USDA may use different gap-filling | Trade data can diverge substantially |
+
+### Complementary Use
+
+- **Use FAOSTAT** for historical analyses (longer, more consistent time series) and for countries not covered by USDA
+- **Use USDA PSD** for current-year production estimates (more timely) and for major commodity-producing countries
+- For livestock, some products are missing from USDA PSD; FAOSTAT can fill these gaps
+- **Cross-validate:** When FAOSTAT and PSD disagree significantly for a country-year, this itself may signal data quality issues worth investigating
+
+---
+
+## WaPOR — Water Productivity Open Access Data
+
+> **Last checked:** March 2025
+
+### Overview
+
+WaPOR (Water Productivity through Open access of Remotely sensed derived data) is FAO's portal for monitoring water productivity through remote sensing, covering **Africa and the Near East**.
+
+| Attribute | Detail |
+|---|---|
+| **URL** | <https://wapor.apps.fao.org/> |
+| **Coverage** | Africa and Near East (Level 1), 26 countries (Level 2), 12 pilot areas (Level 3) |
+| **Temporal range** | January 2009 – near present |
+| **Update frequency** | Near real-time |
+| **Licence** | Open access |
+
+### Resolution Levels
+
+| Level | Resolution | Coverage | Use case |
+|---|---|---|---|
+| **Level 1** | 250m | Continental (Africa + Near East) | Regional assessment |
+| **Level 2** | 100m | 26 countries and 6 river basins | Country-level analysis |
+| **Level 3** | 30m | 12 pilot irrigation schemes | Field-level water management |
+
+### Key Variables
+
+| Variable | Abbreviation | Temporal resolution | Description |
+|---|---|---|---|
+| Actual evapotranspiration & interception | **ETIa** | Annual, monthly, dekadal | Total water consumed by vegetation |
+| Reference evapotranspiration | **RET** | Daily, monthly | Atmospheric evaporative demand (Penman-Monteith) |
+| Precipitation | **PCP** | Annual, monthly, dekadal | From CHIRPS |
+| Net primary production | **NPP** | Annual, dekadal | Biomass production |
+| Total biomass production | **TBP** | Annual | Total above-ground dry matter |
+| Land cover classification | **LCC** | Annual | 23-class land cover |
+| Phenology | **PHE** | Annual | Start/end of growing season |
+
+### API Access
+
+WaPOR provides REST APIs for programmatic data access:
+
+```python
+import requests
+
+# WaPOR API base URL
+WAPOR_BASE = "https://io.apps.fao.org/gismgr/api/v1"
+
+# List available datasets
+response = requests.get(f"{WAPOR_BASE}/catalog/workspaces/WAPOR_2/mapsets")
+datasets = response.json()
+
+# Get raster data for a specific area
+# (specific endpoints depend on the layer)
+
+# For Python users, the pywapor package provides higher-level access:
+# pip install pywapor
+```
+
+### `pywapor` Python Package
+
+```bash
+pip install pywapor
+```
+
+```python
+# pywapor provides tools for:
+# - Downloading WaPOR data
+# - Computing water productivity indicators
+# - Gap-filling and quality assessment
+# Documentation: https://github.com/FAO-SID/pywapor
+```
+
+### Relevance to Causal Atlas
+
+WaPOR is critical for the **rainfall → evapotranspiration → crop water stress → production** causal chain:
+
+1. **ETIa (actual evapotranspiration)** is a direct measure of crop water use — more informative than rainfall alone because it accounts for soil moisture, vegetation type, and atmospheric demand
+2. **RET (reference ET)** combined with CHIRPS precipitation enables computation of **water balance** and **SPEI** at high resolution across Africa
+3. **NPP/TBP (biomass production)** provides a remote-sensing proxy for crop production that is more timely than FAO production statistics
+4. **Dekadal resolution** enables sub-monthly monitoring of water stress — useful for early warning
+5. **Africa and Near East focus** aligns well with Causal Atlas's primary study regions
+
+### Integration with Other Datasets
+
+```
+CHIRPS precipitation → WaPOR precipitation (same source)
+                    ↕
+WaPOR ETIa ←→ CHIRTS temperature (for PET computation)
+    ↓
+WaPOR NPP/TBP ←→ MODIS NDVI (complementary vegetation indices)
+    ↓
+FAOSTAT crop production (annual calibration/validation)
+    ↓
+WFP food prices (outcome variable)
+```
+
+WaPOR bridges the gap between climate inputs (CHIRPS, CHIRTS) and agricultural outcomes (FAOSTAT) by providing **real-time, spatially explicit measures of crop water use and biomass production**.

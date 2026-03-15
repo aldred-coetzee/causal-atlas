@@ -854,3 +854,825 @@ CHIRPS is one of the most important datasets for Causal Atlas due to precipitati
 
 - **Pete Peterson** (CHIRPS data engineer): pete@geog.ucsb.edu
 - **Climate Hazards Center:** <https://www.chc.ucsb.edu/>
+
+---
+
+## 13. CHIRPS-GEFS: Forecast Extension
+
+> **Last checked:** March 2025
+
+### 13.1 Overview
+
+CHIRPS-GEFS is a bias-corrected and downscaled version of the NCEP Global Ensemble Forecast System (GEFS) v12 precipitation forecasts. It provides 5-day to 15-day precipitation forecasts that are directly compatible with CHIRPS historical data, enabling seamless blending of observed and forecast rainfall for early warning applications.
+
+**Key publication:** Funk, C., et al. (2022). "Advancing early warning capabilities with CHIRPS-compatible NCEP GEFS precipitation forecasts." *Scientific Data*, 9, 295. DOI: [10.1038/s41597-022-01468-2](https://doi.org/10.1038/s41597-022-01468-2)
+
+### 13.2 How It Works
+
+1. **Raw GEFS forecasts** (0.25° resolution, ensemble of 31 members) are obtained from NCEP
+2. **Bias correction:** GEFS climatological biases are removed using the CHPclim2 climatology, the same used in CHIRPS — this ensures compatibility between forecast and observed products
+3. **Downscaling:** The bias-corrected forecasts are downscaled from 0.25° to 0.05° using the CHPclim2 high-resolution climatology as a guide
+4. **Output:** Daily precipitation forecasts at 0.05° resolution for the next ~15 days, aggregated to 5-day, 10-day, and 15-day totals and anomalies
+
+### 13.3 Data Products
+
+| Product | Description | Update frequency |
+|---------|-------------|-----------------|
+| 5-day forecast totals | Cumulative precipitation for next 5 days | ~Every 5 days |
+| 10-day forecast totals | Cumulative precipitation for next 10 days | ~Every 5 days |
+| 15-day forecast totals | Cumulative precipitation for next 15 days | ~Every 5 days |
+| 5/10/15-day anomalies | Departure from climatological average | ~Every 5 days |
+| Reforecasts (Phase 2) | Historical reforecasts 2000–2019 | Static archive |
+
+### 13.4 Access
+
+| Resource | URL |
+|----------|-----|
+| CHC CHIRPS-GEFS page | <https://chc.ucsb.edu/data/chirps-gefs> |
+| Data repository (DOI) | <https://doi.org/10.15780/G2PH2M> |
+| Operational data server | <https://data.chc.ucsb.edu/products/EWX/data/forecasts/CHIRPS-GEFS_precip/> |
+| Reforecasts (2000–2019) | <https://data.chc.ucsb.edu/products/EWX/data/forecasts/CHIRPS-GEFS_precip_reforecast/> |
+| Early Warning eXplorer (EWX) | <https://ewx3.chc.ucsb.edu/> |
+| ClimateSERV | <https://climateserv.servirglobal.net/> |
+| FAO Catalog entry | <https://data.apps.fao.org/catalog/dataset/fd93b304-c926-491e-af67-d31649fbcf78> |
+
+- **Format:** GeoTIFF
+- **Resolution:** 0.05° × 0.05° (same as CHIRPS)
+- **Extent:** 50°S to 50°N (matching CHIRPS v2.0)
+- **No authentication required**
+
+### 13.5 Operational Use at FEWS NET
+
+CHIRPS-GEFS maps and time series graphics are updated every ~5 days and show:
+- Recent CHIRPS-observed precipitation
+- 15-day outlook using GEFS forecasts
+- Combined observed + forecast rainfall anomalies for the current season
+
+This enables FEWS NET analysts to assess whether current rainfall deficits are likely to persist or improve, directly informing food security outlooks.
+
+### 13.6 Relevance to Causal Atlas
+
+CHIRPS-GEFS extends Causal Atlas from purely retrospective analysis into **near-future forecasting**. By combining CHIRPS historical data with CHIRPS-GEFS forecasts:
+- We can project SPI/SPEI values 2–3 weeks into the future
+- This enables early warning of emerging drought conditions before they appear in monthly CHIRPS data
+- Forecast accuracy degrades with lead time, so CHIRPS-GEFS is most useful for 5–10 day outlooks
+
+---
+
+## 14. CHIRTS: Temperature Companion Datasets
+
+> **Last checked:** March 2025
+
+### 14.1 Overview
+
+The Climate Hazards Center InfraRed Temperature with Stations (CHIRTS) datasets are companion products to CHIRPS, providing high-resolution temperature data using a similar methodology of combining satellite infrared observations with station data.
+
+**Key publication:** Verdin, A., et al. (2020). "Development and validation of the CHIRTS-daily quasi-global high-resolution daily temperature data set." *Scientific Data*, 7, 303. DOI: [10.1038/s41597-020-00643-7](https://doi.org/10.1038/s41597-020-00643-7)
+
+### 14.2 Products
+
+| Product | Variable | Resolution | Temporal range | Temporal resolution |
+|---------|----------|------------|----------------|---------------------|
+| **CHIRTSmax** (monthly) | Maximum 2m temperature | 0.05° × 0.05° | 1983–2016 | Monthly |
+| **CHIRTSmin** (monthly) | Minimum 2m temperature | 0.05° × 0.05° | 1983–2016 | Monthly |
+| **CHIRTS-daily** (v1) | Tmax, Tmin, SVP, VPD, RH, Heat Index | 0.05° × 0.05° | 1983–2016 | Daily |
+| **CHIRTS-ERA5** | Tmax, Tmin, Heat Index, WBGT | 0.05° × 0.05° | 1980–near present | Daily |
+
+### 14.3 Methodology
+
+1. **CHIRTSmax/min (monthly):** Combines thermal infrared satellite data (providing land surface temperature proxies) with station-based maximum/minimum air temperatures, using a climatology (CHTclim) similar in concept to CHPclim for CHIRPS
+2. **CHIRTS-daily:** Merges monthly CHIRTSmax data with daily temperature variations from ERA5 reanalysis to produce daily Tmax and Tmin at 0.05° resolution
+3. **CHIRTS-ERA5:** An updated version that extends to near-present by continuously incorporating ERA5 reanalysis updates
+
+### 14.4 Derived Variables (CHIRTS-daily)
+
+| Variable | Abbreviation | Description |
+|----------|-------------|-------------|
+| Maximum temperature | Tmax | Maximum daily 2m air temperature (°C) |
+| Minimum temperature | Tmin | Minimum daily 2m air temperature (°C) |
+| Saturation Vapour Pressure | SVP | Computed from Tmax/Tmin (kPa) |
+| Vapour Pressure Deficit | VPD | SVP minus actual vapour pressure (kPa) |
+| Relative Humidity | RH | Percentage relative humidity |
+| Heat Index | HI | Perceived temperature under shade (°C) |
+| Wet Bulb Globe Temperature | WBGT | Heat stress metric (CHIRTS-ERA5 only) |
+
+### 14.5 Access
+
+| Resource | URL |
+|----------|-----|
+| CHC CHIRTS-daily page | <https://www.chc.ucsb.edu/data/chirtsdaily> |
+| CHC CHIRTSmonthly page | <https://www.chc.ucsb.edu/data/chirtsmonthly> |
+| Data server (CHIRTS-daily) | <https://data.chc.ucsb.edu/products/CHIRTSdaily/> |
+| Data server (CHIRTSmax monthly) | <https://data.chc.ucsb.edu/products/CHIRTSmax/> |
+| Data server (CHIRTSmin monthly) | <https://data.chc.ucsb.edu/products/CHIRTSmin/> |
+| Google Earth Engine | `UCSB-CHG/CHIRTS/DAILY` |
+
+- **Licence:** Public domain (CC0)
+- **No authentication required**
+
+### 14.6 Google Earth Engine Access
+
+```javascript
+// Load CHIRTS-daily
+var chirts = ee.ImageCollection('UCSB-CHG/CHIRTS/DAILY');
+
+// Get maximum temperature for a date range
+var tmax = chirts.filterDate('2015-06-01', '2015-06-30')
+    .select('tmax')
+    .mean();
+
+// Compute monthly mean maximum temperature for East Africa
+var region = ee.Geometry.Rectangle([28, -12, 52, 15]);
+var stats = tmax.reduceRegion({
+  reducer: ee.Reducer.mean(),
+  geometry: region,
+  scale: 5566,
+  maxPixels: 1e9
+});
+print(stats);
+```
+
+### 14.7 Relevance to Causal Atlas
+
+CHIRTS is essential for Causal Atlas because:
+
+1. **SPEI computation:** SPEI requires potential evapotranspiration (PET) in addition to precipitation. PET can be computed from CHIRTS Tmax/Tmin using the Hargreaves equation — meaning CHIRPS + CHIRTS together provide all inputs needed for SPEI
+2. **Heat stress → health:** Extreme Tmax and Heat Index values can be correlated with health outcomes (heatstroke, mortality)
+3. **Heat stress → agriculture:** High temperatures during critical crop growth stages cause yield loss; CHIRTS enables grid-cell level analysis
+4. **VPD → wildfire risk:** Vapour pressure deficit is a key driver of fire weather conditions
+5. **Temperature → disease vectors:** Mosquito-borne disease transmission rates depend on temperature; CHIRTS provides the resolution needed for sub-national analysis
+
+---
+
+## 15. Comparison with Other Precipitation Products
+
+> **Last checked:** March 2025
+
+### 15.1 Product Summary
+
+| Product | Resolution | Coverage | Period | Source type | Open access |
+|---------|-----------|----------|--------|-------------|-------------|
+| **CHIRPS v2.0** | 0.05° | 50°S–50°N, land | 1981–present | Satellite IR + gauges | Yes |
+| **CHIRPS v3.0** | 0.05° | 60°S–60°N, land | 1981–present | Satellite IR + gauges (4x more) | Yes |
+| **GPM IMERG** | 0.1° | 60°S–60°N | 2000–present (v7) | Multi-satellite (PMW+IR) + gauges | Yes |
+| **TAMSAT v3.1** | 0.0375° | Africa only | 1983–present | Satellite IR + gauges (Africa focused) | Yes |
+| **ARC2** | 0.1° | Africa, 40°S–40°N | 1983–present | Satellite IR + GTS gauges | Yes |
+| **MSWEP v2.8** | 0.1° | Global | 1979–present | Multi-source (satellite, reanalysis, gauges) | Conditional |
+| **ERA5** | 0.25° (~31 km) | Global | 1940–present | Reanalysis | Yes |
+| **PERSIANN-CDR** | 0.25° | 60°S–60°N | 1983–present | Satellite IR + neural network | Yes |
+
+### 15.2 Quantified Accuracy Differences (Africa)
+
+Based on multi-scale validation studies over Africa (Satgé et al., 2023; Ageet et al., 2022; Dinku et al., 2018):
+
+#### Monthly Scale Performance (KGE — Kling-Gupta Efficiency, higher is better)
+
+| Product | Northern Africa | Western Africa | Eastern Africa | Southern Africa | Central Africa |
+|---------|----------------|----------------|----------------|-----------------|----------------|
+| CHIRPS v2.0 | Moderate | Good | **Best** | Good | Good |
+| MSWEP v2.8 | **Best** | Good | Good | Good | Good |
+| RFE v2.0 | Good | **Best** | Good | Good | Good |
+| ARC v2.0 | Good | Good | Good | Good | **Best** |
+| IMERG-F v6B | Moderate | Moderate | Good | Good | Good |
+| ERA5 | Poor–Moderate | Moderate | Poor–Moderate | Moderate | Moderate |
+| TAMSAT v3.1 | N/A (Africa only) | Poor–Moderate | Moderate | Moderate | Moderate |
+
+#### Daily Scale Performance
+
+At the daily timescale, performance patterns shift:
+- **RFE, ARC2, CPC** yield the highest KGE scores at the daily timestep
+- **TAMSAT** performs better than CHIRPS at the daily timescale in some West African basins
+- **CHIRPS** daily performance is moderate — it is optimised for monthly/pentadal use
+- **IMERG-F** is most reliable for detecting heavy and high-intensity rainfall events at all spatial scales
+
+#### Drought Detection Capability
+
+- **CHIRPS v2.0** and **ARC v2.0** are the most reliable products for detecting dry conditions (< 1 mm/day) across all 19 spatial scales tested — indicating **high confidence for drought studies**, which is Causal Atlas's primary use case
+- **IMERG-F v6B** excels at detecting extreme rainfall events
+
+#### Key Regional Findings
+
+**East Africa (Dinku et al., 2018):**
+- CHIRPS validation against ENACTS (national enhanced observations) showed strong correlations at monthly scale (r > 0.85)
+- CHIRPS significantly outperforms ARC2, with higher skill and low or no bias
+- Performance degrades in complex terrain (Ethiopian Highlands) and coastal areas
+
+**Ethiopia (Evaluation, 2024):**
+- CHIRPS outperforms ERA5 in high-altitude areas
+- CHIRPS has better capability detecting high-intensity rainfall events than ERA5
+- Validated against 167 rain gauges
+
+**West Africa (Tarek et al., 2022):**
+- CHIRPS is the most effective product for hydrological modelling at monthly timestep
+- Performance weakens in coastal and mountainous regions
+
+**Trans-African (Ageet et al., 2022):**
+- Validation using 6 years of rain gauge data from 596 TAHMO stations
+- CHIRPS daily mean rainfall bias over Africa: 15.5% (0.5 mm)
+- CHIRPS correlations stratified across East, Southern, and West Africa at daily, pentadal, and monthly scales — improving substantially at longer aggregation periods
+
+### 15.3 When to Prefer Each Product
+
+| Use case | Recommended product | Rationale |
+|----------|-------------------|-----------|
+| Monthly drought monitoring, Africa | **CHIRPS** | Best drought detection, long record (1981+), 0.05° resolution |
+| Daily flood analysis, Africa | **IMERG** or **RFE** | Better daily accuracy, better extreme event detection |
+| Global analysis | **MSWEP** | Consistently high accuracy globally, multi-source fusion |
+| Africa-specific at highest resolution | **TAMSAT** | 0.0375° resolution, tailored for Africa; but lower accuracy than CHIRPS |
+| Reanalysis / model forcing | **ERA5** | Full global coverage, hourly data, but large wet bias in tropics |
+| Longest possible record | **CHIRPS** or **PERSIANN-CDR** | Both start 1983; CHIRPS from 1981 |
+
+### 15.4 Key References
+
+- Satgé, F., et al. (2023). "Accuracy of satellite and reanalysis rainfall estimates over Africa: A multi-scale assessment of eight products for continental applications." *Journal of Hydrology: Regional Studies*. <https://www.sciencedirect.com/science/article/pii/S221458182300201X>
+- Ageet, S., et al. (2022). "Validation and Intercomparison of Satellite-Based Rainfall Products over Africa with TAHMO In Situ Rainfall Observations." *Journal of Hydrometeorology*, 23(7). <https://journals.ametsoc.org/view/journals/hydr/23/7/JHM-D-21-0161.1.xml>
+- Dinku, T., et al. (2018). "Validation of the CHIRPS satellite rainfall estimates over eastern Africa." *Quarterly Journal of the Royal Meteorological Society*, 144(S1), 292–312. DOI: [10.1002/qj.3244](https://doi.org/10.1002/qj.3244)
+- Beck, H.E., et al. (2024). "Global-scale evaluation of precipitation datasets for hydrological modelling." *Hydrology and Earth System Sciences*, 28, 3099–3118. <https://hess.copernicus.org/articles/28/3099/2024/>
+
+---
+
+## 16. SPI at Multiple Timescales — Full Python Code
+
+> **Last checked:** March 2025
+
+### 16.1 Using the `climate-indices` Package (Recommended for Production)
+
+The `climate-indices` package (maintained by NIDIS / Drought.gov) is the most robust open-source implementation, supporting SPI with gamma and Pearson Type III distributions, plus SPEI and Palmer drought indices.
+
+```bash
+pip install climate-indices
+```
+
+#### Command-Line: Compute SPI at 1, 3, 6, 12 Month Scales
+
+```bash
+process_climate_indices \
+  --index spi \
+  --periodicity monthly \
+  --netcdf_precip chirps-v2.0.monthly.nc \
+  --var_name_precip precip \
+  --output_file_base chirps_spi \
+  --scales 1 3 6 12 \
+  --calibration_start_year 1981 \
+  --calibration_end_year 2010 \
+  --multiprocessing all
+```
+
+This produces four output NetCDF files:
+- `chirps_spi_gamma_01.nc` (SPI-1)
+- `chirps_spi_gamma_03.nc` (SPI-3)
+- `chirps_spi_gamma_06.nc` (SPI-6)
+- `chirps_spi_gamma_12.nc` (SPI-12)
+
+#### Programmatic: Compute SPI for a Single Grid Cell
+
+```python
+from climate_indices import indices, compute
+
+import numpy as np
+
+# Monthly precipitation for a single grid cell, starting January 1981
+precip_monthly = np.array([...])  # shape: (n_months,)
+
+# Compute SPI-3 using gamma distribution
+spi3 = indices.spi(
+    values=precip_monthly,
+    scale=3,
+    distribution=indices.Distribution.gamma,
+    data_start_year=1981,
+    calibration_year_initial=1981,
+    calibration_year_final=2010,
+    periodicity=compute.Periodicity.monthly,
+)
+```
+
+### 16.2 Using the `spei` Package (Lightweight Alternative)
+
+```bash
+pip install spei
+```
+
+```python
+import pandas as pd
+from spei import spi
+
+# Load CHIRPS monthly data for a single grid cell as a pandas Series
+precip = pd.Series(
+    data=[...],  # monthly precipitation values in mm
+    index=pd.date_range('1981-01', periods=528, freq='ME'),
+    name='precip_mm'
+)
+
+# Compute SPI at multiple scales
+spi_1 = spi(precip, dist='gamma', timescale=1, cal_start='1981-01', cal_end='2010-12')
+spi_3 = spi(precip, dist='gamma', timescale=3, cal_start='1981-01', cal_end='2010-12')
+spi_6 = spi(precip, dist='gamma', timescale=6, cal_start='1981-01', cal_end='2010-12')
+spi_12 = spi(precip, dist='gamma', timescale=12, cal_start='1981-01', cal_end='2010-12')
+```
+
+### 16.3 Grid-Scale SPI Computation with xarray + Dask
+
+For computing SPI across the full CHIRPS grid (millions of cells), parallelisation with Dask is essential:
+
+```python
+import xarray as xr
+import numpy as np
+from scipy.stats import gamma, norm
+import dask
+
+def compute_spi_gridcell(precip_series, scale, cal_start_idx, cal_end_idx):
+    """Compute SPI for a single grid cell time series."""
+    n = len(precip_series)
+    if np.all(np.isnan(precip_series)):
+        return np.full(n, np.nan)
+
+    # Rolling sum
+    accumulated = np.convolve(precip_series, np.ones(scale), mode='full')[:n]
+    accumulated[:scale - 1] = np.nan
+
+    # Calibration period
+    cal_data = accumulated[cal_start_idx:cal_end_idx]
+    cal_data = cal_data[~np.isnan(cal_data)]
+    cal_positive = cal_data[cal_data > 0]
+
+    if len(cal_positive) < 30:
+        return np.full(n, np.nan)
+
+    # Probability of zero
+    q = np.sum(cal_data == 0) / len(cal_data) if len(cal_data) > 0 else 0
+
+    # Fit gamma
+    try:
+        alpha, _, beta = gamma.fit(cal_positive, floc=0)
+    except Exception:
+        return np.full(n, np.nan)
+
+    spi = np.full(n, np.nan)
+    valid = ~np.isnan(accumulated)
+
+    prob = np.where(
+        accumulated[valid] == 0,
+        q,
+        q + (1 - q) * gamma.cdf(accumulated[valid], alpha, loc=0, scale=beta)
+    )
+    # Clamp probabilities to avoid infinities
+    prob = np.clip(prob, 1e-6, 1 - 1e-6)
+    spi[valid] = norm.ppf(prob)
+    spi = np.clip(spi, -3.5, 3.5)
+
+    return spi
+
+def compute_spi_grid(ds, var_name='precip', scale=3,
+                     cal_start='1981-01', cal_end='2010-12'):
+    """
+    Compute SPI across the full CHIRPS grid using xarray.apply_ufunc.
+    """
+    precip = ds[var_name]
+    times = pd.DatetimeIndex(precip.time.values)
+
+    cal_start_idx = np.searchsorted(times, pd.Timestamp(cal_start))
+    cal_end_idx = np.searchsorted(times, pd.Timestamp(cal_end)) + 1
+
+    spi_da = xr.apply_ufunc(
+        compute_spi_gridcell,
+        precip,
+        input_core_dims=[['time']],
+        output_core_dims=[['time']],
+        vectorize=True,
+        dask='parallelized',
+        output_dtypes=[float],
+        kwargs={'scale': scale,
+                'cal_start_idx': cal_start_idx,
+                'cal_end_idx': cal_end_idx},
+    )
+
+    spi_da.name = f'spi_{scale}'
+    spi_da.attrs['long_name'] = f'Standardized Precipitation Index ({scale}-month)'
+    spi_da.attrs['calibration_period'] = f'{cal_start} to {cal_end}'
+
+    return spi_da
+
+# Usage
+ds = xr.open_dataset('chirps-v2.0.monthly.nc', chunks={'time': -1, 'latitude': 50, 'longitude': 50})
+spi3 = compute_spi_grid(ds, scale=3)
+spi3.to_netcdf('chirps_spi3.nc')
+```
+
+---
+
+## 17. SPEI Computation
+
+> **Last checked:** March 2025
+
+### 17.1 What SPEI Adds Over SPI
+
+The **Standardized Precipitation Evapotranspiration Index (SPEI)** extends SPI by incorporating temperature effects on drought through potential evapotranspiration (PET). While SPI only considers precipitation, SPEI accounts for how rising temperatures increase evaporative demand, making it a better indicator of agricultural drought under climate change.
+
+**SPEI = SPI methodology applied to (Precipitation − PET) instead of Precipitation alone**
+
+### 17.2 Computing PET from CHIRTS Temperature Data
+
+The Hargreaves equation is the simplest PET method requiring only Tmax and Tmin (available from CHIRTS):
+
+```python
+import numpy as np
+
+def hargreaves_pet(tmax, tmin, lat, doy):
+    """
+    Compute daily potential evapotranspiration using Hargreaves equation.
+
+    Parameters
+    ----------
+    tmax : float or array
+        Daily maximum temperature (°C)
+    tmin : float or array
+        Daily minimum temperature (°C)
+    lat : float
+        Latitude in degrees
+    doy : int
+        Day of year (1-366)
+
+    Returns
+    -------
+    float or array
+        PET in mm/day
+    """
+    # Mean temperature
+    tmean = (tmax + tmin) / 2.0
+
+    # Temperature range
+    trange = np.maximum(tmax - tmin, 0)
+
+    # Extraterrestrial radiation (Ra) approximation
+    lat_rad = np.radians(lat)
+    dr = 1 + 0.033 * np.cos(2 * np.pi * doy / 365)
+    delta = 0.409 * np.sin(2 * np.pi * doy / 365 - 1.39)
+    ws = np.arccos(-np.tan(lat_rad) * np.tan(delta))
+    ws = np.clip(ws, 0, np.pi)
+
+    Ra = (24 * 60 / np.pi) * 0.0820 * dr * (
+        ws * np.sin(lat_rad) * np.sin(delta) +
+        np.cos(lat_rad) * np.cos(delta) * np.sin(ws)
+    )
+
+    # Hargreaves equation
+    pet = 0.0023 * Ra * (tmean + 17.8) * np.sqrt(trange)
+    pet = np.maximum(pet, 0)
+
+    return pet
+```
+
+### 17.3 Full SPEI Computation
+
+```python
+from climate_indices import indices, compute
+
+# Monthly precipitation from CHIRPS (mm)
+precip_monthly = np.array([...])
+
+# Monthly PET computed from CHIRTS using Hargreaves (mm)
+pet_monthly = np.array([...])
+
+# Compute SPEI-3 using Pearson Type III distribution
+spei3 = indices.spei(
+    values_precip=precip_monthly,
+    values_pet=pet_monthly,
+    scale=3,
+    distribution=indices.Distribution.pearson,
+    data_start_year=1983,  # CHIRTS starts 1983
+    calibration_year_initial=1983,
+    calibration_year_final=2010,
+    periodicity=compute.Periodicity.monthly,
+)
+```
+
+### 17.4 When to Use SPEI vs SPI
+
+| Scenario | Recommended | Rationale |
+|----------|-------------|-----------|
+| Precipitation-only drought monitoring | SPI | Simpler, longer record (CHIRPS starts 1981) |
+| Agricultural drought under warming | **SPEI** | Captures temperature-driven evaporative stress |
+| Health impact analysis (heat + drought) | **SPEI** | Integrates both climate stressors |
+| Comparison with historical baselines | SPI | Fewer assumptions, more comparable across studies |
+| Climate change projections | **SPEI** | Temperature trend is a first-order driver |
+
+### 17.5 References
+
+- Vicente-Serrano, S.M., Beguería, S., & López-Moreno, J.I. (2010). "A Multiscalar Drought Index Sensitive to Global Warming: The Standardized Precipitation Evapotranspiration Index." *Journal of Climate*, 23(7), 1696–1718.
+- Global SPEI Database: <https://spei.csic.es/>
+- Drought.gov Python tools: <https://www.drought.gov/data-maps-tools/climate-and-drought-indices-python-spi-spei-pet>
+- `climate-indices` documentation: <https://climate-indices.readthedocs.io/>
+- `spei` PyPI package: <https://pypi.org/project/spei/>
+- `standard_precip` GitHub: <https://github.com/e-baumer/standard_precip>
+
+---
+
+## 18. Data Quality Flags and Handling
+
+> **Last checked:** March 2025
+
+### 18.1 CHIRPS Quality Control Pipeline
+
+CHIRPS does not use traditional data quality flags in its output files (the raster values are simply precipitation in mm, or -9999 for NoData/ocean). However, the production pipeline applies extensive QC to station inputs before blending.
+
+#### False Zero Detection
+
+The most significant QC challenge in CHIRPS is **"false zeros"** — missing station values incorrectly coded as zero precipitation in GTS and GSOD automated networks. CHIRPS v3.0 addresses this with explicit screening:
+
+- **Daily level:** If a GTS/GSOD station reports 0 on a day when the satellite-only CHIRP3 estimate exceeds the long-term (1991–2020) average daily rainfall intensity at that pixel, the station value is treated as **missing** rather than zero
+- **Pentadal level:** If a station reports 0 for a pentad but CHIRP indicates ≥ 7 mm, the station is treated as missing
+- **Monthly level:** If a station reports 0 for a month but CHIRP indicates ≥ 20 mm, the station is treated as missing
+
+#### Extreme Value Screening
+
+Automatic QC routines screen station data for:
+- **Standardised anomalies exceeding ±4σ** — flagged and excluded
+- **Very large absolute values** — flagged and excluded
+- **Ratios > 5× the CHIRP satellite estimate** — flagged and excluded
+
+These extreme values are not used in the CHIRPS blending process.
+
+#### Station Anchor Selection
+
+- A new station is added to the processing set only if there is not already an "anchor station" within 5 km
+- If an anchor station already exists within 5 km, the new station is flagged for use only as a gap-filler at the anchor station location
+
+#### Reality Checks (R-Checks)
+
+The "Reality Checks" process is a hands-on quality assessment where:
+1. CHIRPS fields are examined visually via the Early Warning Explorer (EWX)
+2. Station values are overlaid on CHIRPS fields to check for spatial consistency
+3. Ancillary information (FEWS NET datasets, news reports, national meteorological reports) is used to validate results
+4. Statistics are calculated to identify suspect areas
+
+### 18.2 Diagnostics Resources
+
+CHC publishes extensive QC diagnostics that users should consult when working with CHIRPS data in specific regions:
+
+| Resource | Location | Purpose |
+|----------|----------|---------|
+| Station density maps | `diagnostics/global_monthly_station_density/` | Assess gauge coverage for your region/period |
+| Station count by country | `diagnostics/chirps-n-stations_byCountry/` | Track station availability trends |
+| Monthly QC imagery | `diagnostics/global_monthly_qc_pngs/` | Visual anomaly detection |
+| Reality Checks | `diagnostics/rchecks/` | Station vs. CHIRPS field comparisons |
+| Station list | `diagnostics/list_of_stations_used/` | Identify which stations contribute to your area |
+| Raw station data | `diagnostics/monthly_station_data/` | Independent validation source |
+
+**CHIRPS v2 diagnostics:** <https://data.chc.ucsb.edu/products/CHIRPS-2.0/diagnostics/>
+**CHIRPS v3 diagnostics:** <https://www.chc.ucsb.edu/data/chirps3/diagnostics>
+
+### 18.3 Best Practices for Handling CHIRPS Data Quality
+
+1. **Always check station density** for your study region and period before drawing conclusions. Regions with <5 stations per PRIO-GRID cell may have substantially more uncertainty.
+2. **Use final products** (not preliminary) for any research analysis — preliminary products use only GTS stations and can miss significant local precipitation.
+3. **Distinguish NoData from zero** — -9999 means no data (ocean, outside coverage); 0.0 means the model estimated zero precipitation.
+4. **Compare preliminary and final** for recent months to assess the value of additional station data in your region.
+5. **Cross-validate with IMERG or ARC2** in regions where CHIRPS station density is poor (Central Africa, Pacific islands, Central Asia).
+
+---
+
+## 19. Detailed File Size and Storage Planning
+
+> **Last checked:** March 2025
+
+### 19.1 File Sizes by Product
+
+| Product | Single file (compressed .tif.gz) | Single file (uncompressed .tif) | Note |
+|---------|----------------------------------|--------------------------------|------|
+| Daily 0.05° global | 4–6 MB | ~55 MB (Float32, 7200×2000) | Size varies with land precipitation coverage |
+| Daily 0.25° global | ~0.5 MB | ~2.3 MB (Float32, 1440×400) | |
+| Pentadal 0.05° global | ~6–8 MB | ~55 MB | Higher values → less compressible |
+| Dekadal 0.05° global | ~8–10 MB | ~55 MB | |
+| Monthly 0.05° global | ~13–14 MB | ~55 MB | |
+| Annual 0.05° global | ~20 MB (uncompressed) | ~55 MB | Not always gzipped |
+| Monthly NetCDF (all years) | N/A | ~7.1 GB | Single file covering 1981–present |
+
+### 19.2 Full Archive Storage Estimates
+
+| Archive | Files | Compressed size | Uncompressed size |
+|---------|-------|----------------|-------------------|
+| Daily 0.05° global (1981–2025, 44 years) | ~16,060 | **~80 GB** | **~880 GB** |
+| Daily 0.25° global (1981–2025) | ~16,060 | **~8 GB** | **~37 GB** |
+| Monthly 0.05° global (1981–2025) | ~528 | **~7.4 GB** | **~29 GB** |
+| Monthly 0.05° Africa only (1981–2025) | ~528 | **~2 GB** | **~8 GB** |
+| Pentadal 0.05° global (1981–2025) | ~3,168 | **~25 GB** | **~174 GB** |
+| CHIRPS v3.0 monthly (1981–2025) | ~528 | **~9 GB** (est.) | **~35 GB** (est., larger rows for 60°S–60°N) |
+
+### 19.3 Causal Atlas Storage Recommendation
+
+For Causal Atlas, the recommended data pipeline is:
+
+1. **Download monthly 0.05° global** (compressed): ~7.4 GB — very manageable
+2. **Aggregate to PRIO-GRID (0.5°)** resolution: reduces data volume by 100× to ~74 MB for entire 44-year archive
+3. **Store as Parquet**: Further compressed, entire monthly PRIO-GRID precipitation archive fits in **<50 MB**
+4. **Keep daily 0.25°** for Africa only if daily analysis is needed: ~3 GB compressed
+5. **Use Google Earth Engine** for ad-hoc analysis at full 0.05° resolution to avoid local storage
+
+---
+
+## 20. Google Earth Engine: PRIO-GRID Aggregation
+
+> **Last checked:** March 2025
+
+### 20.1 Server-Side Aggregation to 0.5° Grid Cells
+
+```javascript
+// ==========================================
+// CHIRPS Monthly Aggregation to PRIO-GRID
+// Google Earth Engine JavaScript API
+// ==========================================
+
+// 1. Define the PRIO-GRID as a regular 0.5° grid
+// Create a grid image where each pixel represents a PRIO-GRID cell
+var gridImage = ee.Image.pixelLonLat()
+  .multiply(2).floor().divide(2);  // Snap to 0.5° grid
+
+var gridId = gridImage.select('longitude')
+  .multiply(1000)
+  .add(gridImage.select('latitude'));
+
+// 2. Load CHIRPS daily data
+var chirps = ee.ImageCollection('UCSB-CHG/CHIRPS/DAILY');
+
+// 3. Compute monthly totals for a given year
+var year = 2023;
+var months = ee.List.sequence(1, 12);
+
+var monthlyTotals = ee.ImageCollection(months.map(function(month) {
+  var start = ee.Date.fromYMD(year, month, 1);
+  var end = start.advance(1, 'month');
+
+  var monthlySum = chirps.filterDate(start, end)
+    .sum()
+    .rename('precip_mm');
+
+  return monthlySum
+    .set('year', year)
+    .set('month', month)
+    .set('system:time_start', start.millis());
+}));
+
+// 4. Aggregate a single month to PRIO-GRID resolution
+var juneTotal = monthlyTotals.filter(ee.Filter.eq('month', 6)).first();
+
+// Resample to 0.5° using mean aggregation
+var priogridPrecip = juneTotal
+  .reduceResolution({
+    reducer: ee.Reducer.mean(),
+    maxPixels: 100,        // 10x10 CHIRPS cells per PRIO-GRID cell
+    bestEffort: true
+  })
+  .reproject({
+    crs: 'EPSG:4326',
+    scale: 55660           // ~0.5° in metres
+  });
+
+// 5. Export PRIO-GRID aggregated data
+// Option A: Export as GeoTIFF
+Export.image.toDrive({
+  image: priogridPrecip,
+  description: 'chirps_priogrid_2023_06',
+  scale: 55660,
+  region: ee.Geometry.Rectangle([-180, -50, 180, 50]),
+  fileFormat: 'GeoTIFF',
+  maxPixels: 1e9
+});
+
+// Option B: Export as table (CSV with grid cell values)
+// First create a FeatureCollection from the grid
+var region = ee.Geometry.Rectangle([28, -12, 52, 15]); // East Africa
+
+var priogridFC = priogridPrecip.sample({
+  region: region,
+  scale: 55660,
+  geometries: true
+});
+
+Export.table.toDrive({
+  collection: priogridFC,
+  description: 'chirps_priogrid_eastafrica_2023_06',
+  fileFormat: 'CSV'
+});
+```
+
+### 20.2 Python API: Batch Processing Multiple Months
+
+```python
+import ee
+import pandas as pd
+
+ee.Initialize()
+
+def get_chirps_priogrid_monthly(year, month, region_bounds):
+    """
+    Aggregate CHIRPS monthly precipitation to PRIO-GRID resolution
+    using Google Earth Engine server-side computation.
+
+    Parameters
+    ----------
+    year : int
+    month : int
+    region_bounds : list [lon_min, lat_min, lon_max, lat_max]
+
+    Returns
+    -------
+    pd.DataFrame with columns: longitude, latitude, precip_mm
+    """
+    chirps = ee.ImageCollection('UCSB-CHG/CHIRPS/DAILY')
+
+    start = ee.Date.fromYMD(year, month, 1)
+    end = start.advance(1, 'month')
+
+    monthly_total = chirps.filterDate(start, end).sum().rename('precip_mm')
+
+    # Aggregate to 0.5°
+    priogrid = monthly_total.reduceResolution(
+        reducer=ee.Reducer.mean(),
+        maxPixels=100,
+        bestEffort=True
+    ).reproject(crs='EPSG:4326', scale=55660)
+
+    # Sample values
+    region = ee.Geometry.Rectangle(region_bounds)
+    samples = priogrid.sample(
+        region=region,
+        scale=55660,
+        geometries=True
+    )
+
+    # Extract to pandas
+    data = samples.getInfo()
+    rows = []
+    for f in data['features']:
+        coords = f['geometry']['coordinates']
+        rows.append({
+            'longitude': coords[0],
+            'latitude': coords[1],
+            'precip_mm': f['properties']['precip_mm']
+        })
+
+    return pd.DataFrame(rows)
+
+# Example: East Africa, all months of 2023
+east_africa = [28, -12, 52, 15]
+all_months = []
+for month in range(1, 13):
+    df = get_chirps_priogrid_monthly(2023, month, east_africa)
+    df['year'] = 2023
+    df['month'] = month
+    all_months.append(df)
+
+result = pd.concat(all_months, ignore_index=True)
+result.to_parquet('chirps_priogrid_eastafrica_2023.parquet')
+```
+
+---
+
+## 21. FEWS NET Operational Use of CHIRPS
+
+> **Last checked:** March 2025
+
+### 21.1 FEWS NET Overview
+
+The **Famine Early Warning Systems Network (FEWS NET)** is a USAID-funded early warning system that provides evidence-based analysis on food insecurity in over 30 countries. CHIRPS was developed specifically to serve FEWS NET's operational needs, and remains a core data input to FEWS NET's monitoring pipeline.
+
+### 21.2 How CHIRPS Fits in the FEWS NET Pipeline
+
+```
+Satellite IR observations (Meteosat, GOES)
+    ↓
+CCD (Cold Cloud Duration) estimates
+    ↓
+CHPclim bias correction
+    ↓
+CHIRP (satellite-only product, ~2 day latency)
+    ↓ + Station data (GTS, GSOD, national networks)
+CHIRPS (blended product, ~3 week latency)
+    ↓
+Derived products:
+├── Rainfall anomalies (% of normal)
+├── SPI at multiple timescales
+├── Onset/cessation of rainy season
+├── Cumulative seasonal rainfall
+└── CHIRPS-GEFS forecast extension (15-day outlook)
+    ↓
+Combined with NDVI, LST, crop models, market data
+    ↓
+FEWS NET Food Security Outlook (3-month projection)
+    ↓
+IPC-compatible food security classification
+```
+
+### 21.3 FEWS NET Data Products Using CHIRPS
+
+| Product | Description | Platform |
+|---------|-------------|----------|
+| Rainfall estimate maps | Dekadal, monthly, seasonal CHIRPS totals and anomalies | EWX, FEWS NET |
+| Agroclimatology data | CHIRPS rainfall combined with NDVI and LST | <https://fews.net/data/agroclimatology-data> |
+| USGS EROS CHIRPS downloads | Regional subsets formatted for FEWS NET analysts | <https://earlywarning.usgs.gov/fews/datadownloads/Global/CHIRPS%202.0> |
+| Seasonal rainfall accumulation | Oct–May and other season-specific accumulations | <https://earlywarning.usgs.gov/fews/product/600/> |
+| ClimateSERV | Polygon-based CHIRPS extraction for specific admin areas | <https://climateserv.servirglobal.net/> |
+
+### 21.4 Key Insight for Causal Atlas
+
+FEWS NET's operational pipeline demonstrates that CHIRPS, combined with NDVI and food price data, has **proven predictive value for food insecurity** at lead times of 2–6 months. This validates the core Causal Atlas hypothesis that climate data (via rainfall anomalies) can be causally linked to food security outcomes through crop production and market price transmission mechanisms. The specific lag structures used by FEWS NET (dekadal monitoring → seasonal projection → 3-month food security outlook) provide empirical calibration points for our own time-lagged correlation analysis.

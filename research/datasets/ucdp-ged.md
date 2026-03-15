@@ -613,3 +613,201 @@ Armed conflict / organised violence / political violence.
 - PRIO-GRID framework: https://grid.prio.org/
 - UCDP API contact for tokens: mertcan.yilmaz@pcr.uu.se
 - UCDP accessibility statement: https://www.uu.se/en/department/peace-and-conflict-research/research/ucdp/ucdp-conflict-encyclopedia-ucdp-database/accessibility-statement
+
+---
+
+## 13. UCDP Coding Methodology — Detailed
+
+Understanding how UCDP codes events is essential for interpreting the data correctly.
+
+### Source Collection
+
+UCDP uses a systematic source collection process:
+
+1. **Primary sources:** Newswire services (Reuters, AFP, AP), major international newspapers, regional news agencies
+2. **Secondary sources:** NGO reports (Human Rights Watch, Amnesty International, ICG), official government statements, UN reports, academic publications
+3. **Local sources:** Local media outlets, civil society monitoring organisations
+
+Each event record includes `number_of_sources`, `source_article`, `source_office`, and `source_original` fields documenting the evidentiary basis.
+
+### Coding Process
+
+1. **Event identification:** Trained researchers scan sources daily for reports of organised violence worldwide
+2. **Eligibility check:** Does the event involve an organised armed group? Does it result in at least one direct death? Is it part of a conflict that has or will reach the 25-death annual threshold?
+3. **Georeferencing:** The event is assigned coordinates based on the most specific location information available. A precision code (1-7) records confidence
+4. **Date assignment:** Start and end dates are assigned. Precision code (1-5) records confidence
+5. **Fatality estimation:** Low, best, and high estimates are derived from cross-referencing multiple sources. When sources conflict, the coder applies structured judgment rules
+6. **Actor identification:** Both sides (Side A and Side B) are identified and linked to standing actor and dyad records
+7. **Review:** Events are peer-reviewed by at least one additional coder. Disputed codings are resolved through discussion
+
+### The 25-Death Threshold — Detailed Implications
+
+UCDP's definition of armed conflict requires **at least 25 battle-related deaths per calendar year per conflict dyad**. This has several important implications:
+
+| Implication | Detail |
+|---|---|
+| **Inclusion criterion** | A new conflict is only added to the database when it first reaches 25 deaths in a dyad in a calendar year |
+| **Activity criterion** | An existing conflict is "active" in a given year if any of its dyads produce 25+ deaths |
+| **Sub-threshold violence** | Events below 25 deaths per year per dyad are excluded entirely. This systematically undercounts low-intensity, early-stage, or de-escalating conflicts |
+| **Calendar year boundary** | If a conflict produces 24 deaths in December and 24 deaths in January, neither year reaches the threshold, even though 48 people died in a 2-month period |
+| **Dyad-level counting** | Deaths are counted per dyad, not per conflict. A conflict with 3 dyads could have 24+24+24 = 72 deaths and still not meet the threshold in any single dyad |
+| **War threshold** | A separate threshold of 1,000 battle-related deaths per year per conflict defines "war" (major armed conflict) versus lower-intensity "minor" conflicts |
+
+### Battle-Related Deaths — What Counts
+
+UCDP counts **battle-related deaths** specifically:
+
+- **Included:** Combatant deaths in battle, civilians killed in crossfire, targeted killings of civilians by armed actors (one-sided violence), deaths from IEDs and landmines in conflict contexts
+- **Excluded:** Deaths from disease, famine, or displacement caused by conflict (indirect deaths); criminal violence not linked to organised armed groups; executions by state in non-conflict contexts; isolated incidents that cannot be linked to a conflict dyad
+
+---
+
+## 14. UCDP Dyad Structure
+
+### What Is a Dyad?
+
+A dyad is a pair of opposing actors in an armed conflict. Every GED event belongs to exactly one dyad.
+
+### Dyad Components
+
+| Component | Description | Example |
+|---|---|---|
+| **Side A** | Typically the government side. Always includes a state actor in state-based conflicts | "Government of Ethiopia" |
+| **Side B** | The opposing side. A rebel group, opposition movement, or another state | "TPLF" (Tigray People's Liberation Front) |
+| **Dyad name** | Formatted as "Side A - Side B" | "Government of Ethiopia - TPLF" |
+| **Dyad ID** | Unique identifier (post-v5.0 format: `dyad_new_id`) | 418 |
+
+### Types of Dyads
+
+| Conflict Type | Side A | Side B | Example |
+|---|---|---|---|
+| **State-based: Government vs. rebel** | State government | Non-state armed group | "Government of Colombia - FARC" |
+| **State-based: Interstate** | State government | Another state government | "Government of Russia - Government of Ukraine" |
+| **Non-state** | Non-state armed group | Another non-state armed group | "ISIS - Al-Nusra Front" |
+| **One-sided violence** | State or non-state actor | Civilians (implicit, not named) | "Government of Myanmar" targeting Rohingya civilians |
+
+### Secondary Parties
+
+Secondary warring parties are states that intervene by sending troops to support a primary party. Key rules:
+- Secondary parties do **not** create new dyads
+- A secondary party does not need to independently cause 25 deaths to be classified as active
+- Secondary parties are tracked in the UCDP/PRIO Armed Conflict Dataset and the Dyadic Dataset, but GED events are coded under the primary dyad
+
+### Conflict Hierarchy
+
+```
+Conflict (e.g., "Syria: Government")
+├── Dyad 1: Government of Syria - Free Syrian Army
+│   ├── Event 1 (battle, Aleppo, 2013-02-15, 12 deaths)
+│   ├── Event 2 (battle, Homs, 2013-02-16, 8 deaths)
+│   └── ...
+├── Dyad 2: Government of Syria - ISIS
+│   ├── Event 1 (battle, Raqqa, 2014-08-20, 25 deaths)
+│   └── ...
+└── Dyad 3: Government of Syria - Kurdish YPG
+    └── ...
+```
+
+### Incompatibility
+
+Each state-based conflict is coded with an "incompatibility" — the stated disputed issue:
+
+| Code | Type | Description |
+|---|---|---|
+| 1 | Territory | Control over a specific territory (e.g., secession, autonomy) |
+| 2 | Government | Control over the central government (regime change, power sharing) |
+| 3 | Both | Dispute over both territory and government |
+
+---
+
+## 15. UCDP Candidate Events Dataset
+
+### Purpose
+
+The UCDP Candidate Events Dataset provides **near-real-time** conflict event data, released monthly with approximately 1 month of lag. It serves as an interim dataset before events are incorporated into the annual GED release after full verification.
+
+### Key Characteristics
+
+| Property | Candidate Events | GED (Annual) |
+|---|---|---|
+| **Release cycle** | Monthly (sometimes quarterly) | Annual |
+| **Lag** | ~1 month | ~6-12 months |
+| **Verification level** | Preliminary coding, fewer sources | Full verification, multi-source cross-referencing |
+| **Coverage** | Most recent 4-18 months | Full 1989-present |
+| **Schema** | Identical to GED | Identical to Candidate |
+| **Revisions** | Events may be revised or removed in later releases | Considered final within each version |
+| **API resource** | `gedevents-candidate` | `gedevents` |
+
+### Candidate Data Quality
+
+According to Hegre et al. (2020, "Introducing the UCDP Candidate Events Dataset"), the candidate data captures **approximately 90% of events** that eventually appear in the final GED, though:
+- Some events are merged or split during verification
+- Fatality estimates may be revised (typically upward)
+- A small proportion (~5-10%) of candidate events are ultimately excluded
+- Spatial and temporal precision may improve in the final version
+
+### Access
+
+```python
+# Fetch candidate events via API
+response = requests.get(
+    f"{BASE}/gedevents-candidate/26.0.1",
+    headers=headers,
+    params={"Country": 530, "pagesize": 100}
+)
+```
+
+### Relevance to Causal Atlas
+
+The Candidate Events Dataset enables **near-real-time monitoring** — essential for an operational causal analysis system. The recommended approach:
+
+1. Use GED for historical analysis and model training
+2. Use Candidate Events for the most recent months
+3. When a new GED version is released, replace candidate data with verified GED data
+4. Track revisions: compare candidate vs. final GED to quantify measurement uncertainty
+
+---
+
+## 16. UCDP/PRIO Armed Conflict Dataset vs. GED
+
+UCDP produces multiple datasets at different levels of aggregation. Understanding the hierarchy is important:
+
+| Dataset | Unit of Analysis | Temporal Resolution | Coverage | Primary Use |
+|---|---|---|---|---|
+| **GED (Georeferenced Event Dataset)** | Individual event | Daily | 1989-present | Event-level spatial analysis |
+| **UCDP/PRIO Armed Conflict Dataset** | Conflict-year | Yearly | 1946-present | Conflict onset/duration analysis |
+| **Dyadic Dataset** | Dyad-year | Yearly | 1946-present | Actor-level analysis |
+| **Non-State Conflict Dataset** | Conflict-year | Yearly | 1989-present | Non-state violence trends |
+| **One-Sided Violence Dataset** | Actor-year | Yearly | 1989-present | Violence against civilians |
+| **Battle-Related Deaths Dataset** | Dyad-year | Yearly | 1989-present | Fatality-focused analysis |
+| **Candidate Events Dataset** | Individual event | Daily | Recent months | Near-real-time monitoring |
+
+### UCDP/PRIO Armed Conflict Dataset — Detail
+
+This is the most widely used dataset in conflict studies. It provides **conflict-year** observations:
+
+| Field | Description |
+|---|---|
+| `conflict_id` | Unique conflict identifier |
+| `location` | Countries where the conflict takes place |
+| `side_a` | Government side |
+| `side_b` | Opposition side(s) |
+| `incompatibility` | What the conflict is about (territory, government, or both) |
+| `intensity_level` | 1 = minor (25-999 deaths/year), 2 = war (1000+ deaths/year) |
+| `type_of_conflict` | 1 = extrasystemic, 2 = interstate, 3 = intrastate, 4 = internationalised intrastate |
+| `start_date` | First date the conflict reached 25 deaths |
+| `start_date2` | Date of current episode of activity |
+| `ep_end` | Whether the conflict ended that year |
+| `ep_end_date` | Date of conflict termination |
+| `gwno_a` | Gleditsch-Ward number for Side A |
+| `gwno_a_2nd` | Second state on Side A (if any) |
+| `gwno_b` | Gleditsch-Ward number for Side B (if state) |
+| `gwno_b_2nd` | Second state on Side B |
+| `gwno_loc` | Country of conflict location |
+| `region` | World region |
+| `year` | Year of observation |
+| `version` | Dataset version |
+
+**Key advantage over GED:** Covers 1946-present (vs. GED's 1989-present), enabling long-run historical analysis of conflict trends, onset patterns, and duration.
+
+**For Causal Atlas:** Use the Armed Conflict Dataset for country-year context (is a conflict active? what type? what intensity?) and GED for spatially disaggregated event analysis at the cell-month level.

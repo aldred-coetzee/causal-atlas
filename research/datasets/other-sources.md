@@ -770,3 +770,290 @@ These datasets do not contain thematic data for causal analysis but provide the 
 5. **Displacement chain:** IDMC (internal displacement) and UNHCR (cross-border refugees) together cover the full displacement spectrum. Linking these with ACLED conflict events and EM-DAT disasters enables end-to-end causal chain analysis: hazard -> displacement -> secondary effects.
 
 6. **Governance context:** V-Dem (regime type, corruption, civil liberties) and EPR (ethnic power relations) provide the structural political variables that moderate whether environmental shocks translate into conflict or humanitarian crisis.
+
+---
+
+## Additional Sources Discovered Through Deeper Research
+
+### 18. CIESIN/SEDAC Natural Hazards Datasets
+
+The NASA Socioeconomic Data and Applications Center (SEDAC), operated by Columbia University's Center for International Earth Science Information Network (CIESIN), hosts a suite of natural hazard risk datasets.
+
+| Dataset | Description | Resolution | Coverage |
+|---|---|---|---|
+| **Global Multihazard Mortality Risks** | Combined mortality risk from cyclones, droughts, earthquakes, floods, landslides, volcanoes | 2.5 arc-minute (~5 km) grid | Global |
+| **Global Earthquake Mortality Risks** | Mortality risk from earthquakes based on PGA + population | 2.5 arc-minute | Global |
+| **Global Flood Mortality Risks** | Mortality risk from floods | 2.5 arc-minute | Global |
+| **Global Cyclone Mortality Risks** | Mortality risk from tropical cyclones | 2.5 arc-minute | Global |
+| **Global Drought Mortality Risks** | Mortality risk from drought | 2.5 arc-minute | Global |
+| **Global Volcano Mortality Risks** | Mortality risk from volcanic eruptions | 2.5 arc-minute | Global |
+| **Global Landslide Mortality Risks** | Mortality risk from landslides | 2.5 arc-minute | Global |
+
+**Methodology:** Risk = Hazard frequency × Population exposure × Vulnerability. Mortality loss estimates calibrated against EM-DAT records (1981–2000). Risk classified into deciles.
+
+**Access:** https://sedac.ciesin.columbia.edu/data/collection/ndh (NASA Earthdata login required, free)
+
+**Format:** GeoTIFF rasters, shapefiles
+
+**Licence:** NASA open data policy (free, unrestricted)
+
+**Note:** These datasets are **static** (based on ~2000-era data). They represent baseline hazard risk, not time-varying exposure. Useful as a PRIO-GRID static layer for vulnerability context.
+
+### 19. Global Volcanism Program (Smithsonian Institution)
+
+| Property | Detail |
+|---|---|
+| **Maintainer** | Smithsonian Institution, National Museum of Natural History |
+| **Database** | Volcanoes of the World (VOTW) v5.3.4 (December 2025) |
+| **Coverage** | 1,432 Holocene volcanoes; eruption records spanning thousands of years |
+| **URL** | https://volcano.si.edu/ |
+| **Eruption search** | https://volcano.si.edu/search_eruption.cfm |
+| **Volcano search** | https://volcano.si.edu/search_volcano.cfm |
+| **API** | None (web search + Excel download) |
+| **Format** | Downloadable as Excel/XML from search results |
+| **Licence** | Free for research use with citation |
+
+**Key fields:** Volcano name, location (lat/lon), country, type, summit elevation, last known eruption date, VEI (Volcanic Explosivity Index 0-8), eruption type, evidence type.
+
+**Relevance to Causal Atlas:** Volcanic eruptions can affect air quality (SO2, ash), agriculture (ashfall), climate (aerosol cooling), and displacement. VEI 4+ eruptions have regional/global effects. Pre-computed static volcanic hazard zones can be overlaid on PRIO-GRID.
+
+### 20. GloFAS — Global Flood Awareness System (Copernicus)
+
+| Property | Detail |
+|---|---|
+| **Producer** | ECMWF / European Commission Joint Research Centre (JRC) |
+| **Part of** | Copernicus Emergency Management Service (CEMS) |
+| **Products** | Daily flood forecasts (since 2011), monthly seasonal streamflow outlooks (since 2017) |
+| **Spatial resolution** | 0.05° (~5 km) |
+| **Temporal** | Daily forecasts (10-day horizon), monthly seasonal forecasts (7-month horizon) |
+| **Data format** | NetCDF |
+| **Access** | Early Warning Data Store (EWDS): https://ewds.climate.copernicus.eu/ |
+| **Licence** | Copernicus licence (free, attribution required) |
+| **URL** | https://global-flood.emergency.copernicus.eu/ |
+
+#### GloFAS Products
+
+| Product | Description | Resolution | Temporal |
+|---|---|---|---|
+| **GloFAS Forecast** | Real-time ensemble flood forecasts | 0.05° | Daily, 30-day horizon |
+| **GloFAS Seasonal** | Seasonal streamflow outlooks | 0.05° | Monthly, 7-month horizon |
+| **GloFAS Historical** | River discharge reanalysis | 0.05° | 1979–present |
+| **GloFAS Reforecast** | Retrospective forecasts for calibration | 0.05° | 1999–present |
+
+#### GloFAS Seasonal Forecasts
+
+The seasonal forecast produces monthly probability of exceeding specific flood thresholds (2-year, 5-year, 20-year return periods) for 7 months ahead. This is directly useful for anticipatory analysis.
+
+**Access via Python:**
+```python
+import cdsapi
+
+client = cdsapi.Client()
+client.retrieve(
+    'cems-glofas-seasonal',
+    {
+        'system_version': 'version_4_0',
+        'variable': 'river_discharge_in_the_last_24_hours',
+        'hydrological_model': 'lisflood',
+        'year': '2024',
+        'month': '01',
+        'leadtime_hour': ['24', '720', '2160', '5040'],
+        'format': 'grib',
+    },
+    'glofas_seasonal.grib'
+)
+```
+
+### 21. Armed Conflict Survey (IISS)
+
+| Property | Detail |
+|---|---|
+| **Producer** | International Institute for Strategic Studies (IISS) |
+| **Product** | Annual Armed Conflict Survey publication |
+| **Coverage** | All active armed conflicts globally |
+| **Temporal** | Annual, since 2015 (successor to Armed Conflict Database) |
+| **Format** | PDF reports + online database |
+| **Access** | Subscription required (not open data) |
+| **URL** | https://www.iiss.org/publications/armed-conflict-survey |
+
+**Note:** The IISS Armed Conflict Survey is a **commercial product** requiring institutional subscription. It provides expert qualitative assessments rather than machine-readable event data. **Not recommended** for Causal Atlas primary integration due to access restrictions, but useful as a reference for validating our own conflict assessments.
+
+### 22. Global Terrorism Database (START/UMD)
+
+| Property | Detail |
+|---|---|
+| **Producer** | National Consortium for the Study of Terrorism and Responses to Terrorism (START), University of Maryland |
+| **Coverage** | 200,000+ terrorist attacks, 1970–2021 |
+| **Spatial** | Global; events geocoded with lat/lon |
+| **Format** | Excel, geodatabase |
+| **Access** | **Registration required** with personal information; access model has become more restrictive since ~2024 |
+| **URL** | https://www.start.umd.edu/gtd/ |
+| **Licence** | Academic use free with registration; commercial requires agreement |
+| **Codebook** | https://www.start.umd.edu/sites/default/files/2024-10/Codebook.pdf |
+
+**Key fields:** Date, country, region, city, latitude, longitude, attack type, target type, weapon type, perpetrator group, killed, wounded, property damage.
+
+**Note:** As of 2025, GTD access has become more restricted, requiring registration with personal information. The database has not been updated beyond 2021 data as of March 2025. For terrorism events, ACLED and UCDP provide alternative coverage (ACLED codes "explosions/remote violence" and strategic developments; UCDP codes one-sided violence).
+
+### 23. SIPRI Arms Transfers Database
+
+| Property | Detail |
+|---|---|
+| **Producer** | Stockholm International Peace Research Institute (SIPRI) |
+| **Coverage** | International arms transfers, 1950–2025 |
+| **Update** | Annual (last updated March 2026) |
+| **Metric** | Trend Indicator Values (TIV) — volume-based measure, not financial |
+| **URL** | https://www.sipri.org/databases/armstransfers |
+| **Trade register** | https://armstransfers.sipri.org/ |
+| **API** | No official API; unofficial Python wrapper exists on GitHub |
+| **Format** | Web interface output; downloadable as RTF, CSV, HTML, JSON via query parameters |
+| **Licence** | Free for research use with citation |
+
+**TIV methodology:** Weapons are valued based on physical/performance characteristics, not contract prices. Used weapons = 40% of new; refurbished = 66%. This creates a consistent volume measure across time and countries.
+
+**Relevance to Causal Atlas:** Arms flows to a country may be a leading indicator of conflict escalation. Country-year TIV imports can serve as a contextual variable alongside WGI governance indicators.
+
+### 24. Global Organized Crime Index (GI-TOC)
+
+| Property | Detail |
+|---|---|
+| **Producer** | Global Initiative Against Transnational Organized Crime (GI-TOC) |
+| **Editions** | 2021, 2023, 2025 |
+| **Coverage** | 193 countries |
+| **Scale** | 1–10 per indicator; composite criminality and resilience scores |
+| **URL** | https://ocindex.net/ |
+| **Data download** | https://ocindex.net/downloads (Excel) |
+| **Licence** | Free for research use |
+
+**Structure:**
+- **Criminality score** (average of 20 indicators): 10 criminal markets (human trafficking, arms trafficking, drug trade — cannabis, cocaine, heroin, synthetic, flora/fauna crimes, non-renewable resource crimes, cyber-dependent crimes) + 5 criminal actor types (mafia-style, criminal networks, state-embedded actors, foreign criminal actors, private militia/security)
+- **Resilience score** (average of 12 indicators): Political leadership, government transparency, international cooperation, national policies, judicial system, law enforcement, territorial integrity, anti-money laundering, economic regulatory capacity, victim/witness support, prevention, non-state actors
+
+**Relevance to Causal Atlas:** Organised crime scores provide context for understanding governance failures, illicit economies, and instability drivers that are distinct from (but related to) armed conflict.
+
+### 25. V-Dem (Varieties of Democracy) — Deeper Dive
+
+| Property | Detail |
+|---|---|
+| **Producer** | V-Dem Institute, University of Gothenburg, Sweden |
+| **Current version** | V-Dem v14 (March 2024); v15 and v16 since released |
+| **Coverage** | 202 countries, 1789–2023 |
+| **Variables** | 500+ V-Dem indicators + 245 indices + 57 external indicators |
+| **URL** | https://www.v-dem.net/ |
+| **Data access** | Free download (CSV, RDS); R package `vdemdata` |
+| **API** | None (download only) |
+| **Licence** | CC BY-SA 4.0 |
+| **Size** | ~150 MB compressed |
+
+#### Key V-Dem Indices for Causal Atlas
+
+| Index | Description | Range | Relevance |
+|---|---|---|---|
+| `v2x_polyarchy` | Electoral Democracy Index | 0–1 | Core democracy measure |
+| `v2x_libdem` | Liberal Democracy Index | 0–1 | Includes rule of law, civil liberties |
+| `v2x_partipdem` | Participatory Democracy Index | 0–1 | Citizen participation |
+| `v2x_delibdem` | Deliberative Democracy Index | 0–1 | Public reasoning quality |
+| `v2x_egaldem` | Egalitarian Democracy Index | 0–1 | Equal protection and distribution |
+| `v2x_corr` | Political Corruption Index | 0–1 | Corruption in various branches |
+| `v2x_rule` | Rule of Law Index | 0–1 | Compliance with law, independent judiciary |
+| `v2x_civlib` | Civil Liberties Index | 0–1 | Freedom of expression, association, religion |
+| `v2x_clphy` | Physical Violence Index | 0–1 | Torture, political killing, forced labor |
+| `v2x_freexp_altinf` | Freedom of Expression / Alternative Info | 0–1 | Media freedom, internet censorship |
+| `v2xnp_regcorr` | Regime Corruption | 0–1 | Executive, legislative, judicial corruption |
+
+#### R Package Access
+
+```r
+# install.packages("remotes")
+# remotes::install_github("vdeminstitute/vdemdata")
+library(vdemdata)
+
+# Load full dataset
+df <- vdem
+
+# Search for variables
+find_var("corruption")
+
+# Get info on a variable
+var_info("v2x_corr")
+```
+
+#### Python Access
+
+```python
+import pandas as pd
+
+# After downloading from v-dem.net:
+vdem = pd.read_csv("V-Dem-CY-Full+Others-v14.csv", low_memory=False)
+print(f"Shape: {vdem.shape}")  # ~27,000 rows × 4,000+ columns
+print(f"Countries: {vdem['country_name'].nunique()}")
+print(f"Years: {vdem['year'].min()}-{vdem['year'].max()}")
+
+# Key columns for Causal Atlas
+cols = ['country_name', 'country_text_id', 'year',
+        'v2x_polyarchy', 'v2x_libdem', 'v2x_corr',
+        'v2x_rule', 'v2x_civlib', 'v2x_clphy']
+df = vdem[cols].dropna(subset=['v2x_polyarchy'])
+```
+
+### 26. ACAPS / INFORM Severity Index — Detailed
+
+| Property | Detail |
+|---|---|
+| **Producer** | ACAPS (Assessment Capacities Project) |
+| **Current name** | INFORM Severity Index |
+| **Coverage** | ~60-80 active crises globally |
+| **Update frequency** | Monthly |
+| **Scale** | 1–5 severity categories |
+| **Dimensions** | Impact (20%), Conditions of affected people (50%), Complexity (30%) |
+| **Indicators** | 31 core indicators |
+| **URL** | https://www.acaps.org/en/thematics/all-topics/inform-severity-index |
+| **Data download** | https://www.acaps.org/en/data |
+| **HDX** | https://data.humdata.org/dataset/inform-global-crisis-severity-index |
+| **API** | https://api.acaps.org/ |
+| **Licence** | Open data |
+
+#### Severity Categories
+
+| Score | Category | Description |
+|---|---|---|
+| 1 | Very Low | Situation monitored but minimal humanitarian concern |
+| 2 | Low | Localised crisis with limited impact |
+| 3 | Medium | Significant humanitarian crisis |
+| 4 | High | Major crisis with widespread impact |
+| 5 | Very High | Extreme crisis requiring massive international response |
+
+#### The Three Dimensions
+
+**Impact (20%):**
+- Number of people affected
+- Number of fatalities
+- Number of people displaced
+
+**Conditions of affected people (50%):**
+- Access to health, education, shelter
+- Living standards
+- Coping mechanisms
+- Physical safety
+
+**Complexity (30%):**
+- Operating environment (access, security)
+- Political/institutional context
+- Social cohesion
+- Geographic factors
+
+**Relevance to Causal Atlas:** The INFORM Severity Index provides a validated, monthly, multi-dimensional crisis severity measure that can serve as a **composite outcome variable** for testing causal chains. If drought (CHIRPS) → crop failure (NDVI) → food insecurity (IPC) → crisis severity (INFORM), the entire chain can be tested with monthly data.
+
+### 27. Climate Change Knowledge Portal (World Bank)
+
+See the World Bank deep dive file (`world-bank.md`) for details. Key addition here: the CCKP provides 70+ climate indices pre-computed at 0.25° resolution, available on AWS Open Data, making it a convenient alternative to processing raw ERA5 or CRU TS data.
+
+### Key integration notes (continued)
+
+7. **Natural hazard risk layers:** SEDAC hazard risk grids (earthquake, flood, cyclone, drought) can be aggregated to PRIO-GRID as static vulnerability layers. These complement the dynamic event data from USGS, GloFAS, and EM-DAT.
+
+8. **Flood forecasting chain:** GloFAS seasonal forecasts → GloFAS daily forecasts → JRC Surface Water (observed flooding) → EM-DAT (disaster impact). This chain enables testing of forecast skill and early warning value.
+
+9. **Governance ecosystem:** V-Dem (democratic institutions), WGI (governance quality), FSI (fragility), INFORM Severity (crisis severity), and the Organized Crime Index provide a comprehensive governance context that can be joined to PRIO-GRID cells via country assignment.
+
+10. **Arms and security:** SIPRI arms transfers + GTD terrorism events + UCDP/ACLED conflict events together provide a multi-faceted picture of security dynamics at the country and sub-national levels.

@@ -972,6 +972,407 @@ HDX HAPI is highly relevant to Causal Atlas as a unified gateway to multiple hum
 
 ## 12. Sources
 
+---
+
+## 13. P-Codes: The UN OCHA Administrative Boundary System
+
+P-codes (Place Codes) are the spatial backbone of HAPI and the broader humanitarian data ecosystem. Understanding them is essential for working with HAPI data.
+
+### What Are P-Codes?
+
+P-codes are standardised location identifiers assigned by UN OCHA to administrative divisions in countries with humanitarian operations. They are part of the **Common Operational Datasets (CODs)** — the authoritative reference data agreed upon by the humanitarian community for each country.
+
+### P-Code Structure
+
+P-codes follow a hierarchical alphanumeric pattern:
+
+| Level | Format | Example | Meaning |
+|---|---|---|---|
+| Admin 0 (country) | ISO 3166-1 alpha-3 | `AFG` | Afghanistan |
+| Admin 1 (province) | Country prefix + sequence | `AF01` | Kabul Province |
+| Admin 2 (district) | Admin 1 prefix + sequence | `AF0101` | A district within Kabul |
+| Admin 3 (sub-district) | Admin 2 prefix + sequence | `AF010101` | Sub-district (where available) |
+
+**Key rules:**
+- The country prefix uses ISO 3166-1 alpha-2 codes (2 letters), not alpha-3
+- Subsequent levels append 2-digit numeric sequences
+- P-code length indicates admin level: 4 chars = admin 1, 6 chars = admin 2, 8 chars = admin 3
+- P-codes are **not** globally standardised across all countries — some countries use different length patterns
+
+### P-Code Sources
+
+| Source | Description | URL |
+|---|---|---|
+| **COD Administrative Boundaries** | Official shapefiles + gazetteers per country | https://data.humdata.org/search?q=cod-ab |
+| **Global P-Code List** | Master list maintained by OCHA | Via HAPI metadata endpoints |
+| **ITOS Service** | OCHA Information Technology and Operations Section manages COD production | https://cod.unocha.org/ |
+
+### P-Code Matching Challenges
+
+- Country-specific variations in format (some use 3 characters per level instead of 2)
+- P-codes can change when administrative boundaries are redrawn
+- Multiple COD versions may exist for a country — HAPI tracks the reference period
+- WFP, IPC, and other organisations sometimes use their own admin codes that must be crosswalked to COD p-codes (HAPI's `provider_admin1_code` fields handle this)
+
+### Using P-Codes in Python
+
+```python
+def parse_pcode(pcode):
+    """Parse a p-code into its hierarchical components."""
+    if len(pcode) <= 3:
+        return {'country': pcode, 'admin_level': 0}
+    country = pcode[:2]
+    levels = {'country_iso2': country, 'admin_level': 0}
+    remaining = pcode[2:]
+    level = 1
+    while remaining:
+        chunk = remaining[:2]
+        levels[f'admin{level}_code'] = pcode[:2 + level * 2]
+        levels['admin_level'] = level
+        remaining = remaining[2:]
+        level += 1
+    return levels
+
+# Example:
+# parse_pcode('AF0101') → {'country_iso2': 'AF', 'admin_level': 2, 'admin1_code': 'AF01', 'admin2_code': 'AF0101'}
+```
+
+---
+
+## 14. IPC/CH Food Security Phase Classification — Detailed Reference
+
+The IPC (Integrated Food Security Phase Classification) data in HAPI is one of the most valuable themes for Causal Atlas. Here is a detailed reference.
+
+### The Five IPC Acute Food Insecurity Phases
+
+| Phase | Area Classification | Household Classification | Key Indicators | Typical Response |
+|---|---|---|---|---|
+| **Phase 1** | Minimal | None | Food consumption adequate, stable livelihoods, minimal food assistance | No action required |
+| **Phase 2** | Stressed | Stressed | Minimally adequate food consumption, cannot afford some non-food expenditures, employing stress-level livelihood coping | Disaster risk reduction, livelihood protection |
+| **Phase 3** | Crisis | Crisis | Food consumption gaps, acute malnutrition above normal, accelerated depletion of livelihood assets, employing crisis-level coping | Urgent action to protect livelihoods, prevent mortality |
+| **Phase 4** | Emergency | Emergency | Large food consumption gaps, very high acute malnutrition, excess mortality, irreversible livelihood asset liquidation | Emergency food assistance, save lives |
+| **Phase 5** | Famine | Catastrophe | Extreme food consumption gaps, mass starvation and death, complete collapse of livelihoods | Immediate large-scale humanitarian response |
+
+### Phase 3+ Aggregation
+
+HAPI provides a `3+` phase code that sums populations in Phases 3, 4, and 5. This represents the total population "in need of action" — the standard headline figure used in humanitarian planning.
+
+### IPC Type Codes
+
+| Code | Meaning | Description |
+|---|---|---|
+| `current` | Current situation | Analysis of the present food security situation |
+| `first_projection` | Near-term projection | Typically 3-4 months ahead |
+| `second_projection` | Medium-term projection | Typically 6-8 months ahead |
+
+### Cadre Harmonisé (CH)
+
+The Cadre Harmonisé is the West and Central African adaptation of IPC, used in 17 Sahel and coastal countries. CH uses the same 5-phase scale and is harmonised with IPC standards. In HAPI, CH data appears alongside IPC data under the food security endpoint.
+
+### Analysis Cycle
+
+IPC/CH analyses are not published on a fixed schedule — they follow country-specific analysis cycles, typically:
+- **Twice per year** for most countries (lean season and post-harvest)
+- **More frequently** for acute crises (e.g., Somalia, South Sudan, Yemen may have 3-4 analyses per year)
+- **Less frequently** for stable countries
+
+### Key Analytical Caveats
+
+1. **Phase classifications are consensus-based:** Analysts from multiple organisations agree on classifications through a facilitated process. This adds credibility but also subjectivity.
+2. **Area vs household classification:** Phase 1 is "None" for households but "Minimal" for areas. Phase 5 is "Catastrophe" for households but "Famine" for areas. The Famine classification requires that ≥20% of households are in Phase 5, plus GAM ≥30% and CDR ≥2/10,000/day.
+3. **Population estimates are not additive across phases within a single analysis** — use the `all` population total as the denominator.
+4. **Coverage gaps:** Not all countries have IPC/CH analyses. Coverage is concentrated in food-insecure regions of sub-Saharan Africa, Middle East, and parts of Asia.
+
+---
+
+## 15. API Response Examples (JSON)
+
+### Example: Food Security (IPC) Response
+
+```json
+{
+  "data": [
+    {
+      "resource_hdx_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "ipc_phase": "3+",
+      "ipc_type": "current",
+      "population_in_phase": 4200000,
+      "population_fraction_in_phase": 0.28,
+      "reference_period_start": "2024-10-01",
+      "reference_period_end": "2025-01-31",
+      "location_code": "YEM",
+      "location_name": "Yemen",
+      "admin1_code": "YE17",
+      "admin1_name": "Al Hudaydah",
+      "admin2_code": null,
+      "admin2_name": null,
+      "admin_level": 1
+    }
+  ]
+}
+```
+
+### Example: Conflict Events Response
+
+```json
+{
+  "data": [
+    {
+      "resource_hdx_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "event_type": "political_violence",
+      "events": 47,
+      "fatalities": 132,
+      "reference_period_start": "2024-11-01",
+      "reference_period_end": "2024-11-30",
+      "location_code": "SOM",
+      "location_name": "Somalia",
+      "admin1_code": "SO18",
+      "admin1_name": "Banadir",
+      "admin2_code": "SO1801",
+      "admin2_name": "Mogadishu",
+      "admin_level": 2
+    }
+  ]
+}
+```
+
+### Example: Population Response
+
+```json
+{
+  "data": [
+    {
+      "resource_hdx_id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+      "gender": "all",
+      "age_range": "all",
+      "min_age": null,
+      "max_age": null,
+      "population": 1250000,
+      "reference_period_start": "2023-01-01",
+      "reference_period_end": "2023-12-31",
+      "location_code": "ETH",
+      "location_name": "Ethiopia",
+      "admin1_code": "ET04",
+      "admin1_name": "Oromia",
+      "admin2_code": "ET0405",
+      "admin2_name": "West Arsi",
+      "admin_level": 2
+    }
+  ]
+}
+```
+
+### Example: Rainfall Response
+
+```json
+{
+  "data": [
+    {
+      "resource_hdx_id": "d4e5f6a7-b8c9-0123-defa-234567890123",
+      "provider_admin1_code": "ET04",
+      "provider_admin2_code": null,
+      "aggregation_period": "dekad",
+      "rainfall": 42.5,
+      "rainfall_long_term_average": 55.3,
+      "rainfall_anomaly_pct": -23.1,
+      "number_pixels": 8432,
+      "version": "FINAL",
+      "reference_period_start": "2024-10-01",
+      "reference_period_end": "2024-10-10",
+      "location_code": "ETH",
+      "location_name": "Ethiopia",
+      "admin1_code": "ET04",
+      "admin1_name": "Oromia",
+      "admin2_code": null,
+      "admin2_name": null,
+      "admin_level": 1
+    }
+  ]
+}
+```
+
+---
+
+## 16. Complete Python Wrapper for All HAPI Endpoints
+
+```python
+"""
+Comprehensive HAPI Python client for Causal Atlas.
+Covers all v2 endpoints with pagination, rate limiting, and DataFrame output.
+"""
+
+import time
+import base64
+import requests
+import pandas as pd
+from typing import Optional, Dict, List, Any
+
+
+class HAPIClient:
+    """Client for the HDX Humanitarian API (HAPI) v2."""
+
+    BASE_URL = "https://hapi.humdata.org/api/v2"
+    RATE_LIMIT_SECONDS = 1.0
+    MAX_LIMIT = 10_000
+
+    # All available data endpoints
+    ENDPOINTS = {
+        # Affected People
+        'idps': 'affected-people/idps',
+        'refugees': 'affected-people/refugees-persons-of-concern',
+        'returnees': 'affected-people/returnees',
+        'humanitarian_needs': 'affected-people/humanitarian-needs',
+        # Coordination & Context
+        'operational_presence': 'coordination-context/operational-presence',
+        'funding': 'coordination-context/funding',
+        'conflict_events': 'coordination-context/conflict-events',
+        'national_risk': 'coordination-context/national-risk',
+        # Food Security, Nutrition & Poverty
+        'food_security': 'food-security-nutrition-poverty/food-security',
+        'food_prices': 'food-security-nutrition-poverty/food-prices-market-monitor',
+        'poverty_rate': 'food-security-nutrition-poverty/poverty-rate',
+        # Geography & Infrastructure
+        'population': 'geography-infrastructure/population',
+        # Climate
+        'rainfall': 'climate/rainfall',
+        # Metadata
+        'locations': 'metadata/location',
+        'admin1': 'metadata/admin1',
+        'admin2': 'metadata/admin2',
+        'data_availability': 'metadata/data-availability',
+    }
+
+    def __init__(self, app_name: str, email: str):
+        """Initialize with app name and email for identifier generation."""
+        raw = f"{app_name}:{email}"
+        self.app_identifier = base64.b64encode(raw.encode()).decode()
+        self._last_request_time = 0.0
+
+    def _rate_limit(self):
+        """Enforce 1 request per second."""
+        elapsed = time.time() - self._last_request_time
+        if elapsed < self.RATE_LIMIT_SECONDS:
+            time.sleep(self.RATE_LIMIT_SECONDS - elapsed)
+        self._last_request_time = time.time()
+
+    def _fetch_page(self, endpoint: str, params: Dict) -> Dict:
+        """Fetch a single page from the API."""
+        self._rate_limit()
+        params['app_identifier'] = self.app_identifier
+        params['output_format'] = 'json'
+        url = f"{self.BASE_URL}/{endpoint}"
+        resp = requests.get(url, params=params, timeout=60)
+        resp.raise_for_status()
+        return resp.json()
+
+    def fetch(self, theme: str, params: Optional[Dict] = None,
+              limit: int = 10_000) -> pd.DataFrame:
+        """
+        Fetch all pages from a HAPI endpoint into a DataFrame.
+
+        Args:
+            theme: Key from ENDPOINTS dict (e.g., 'conflict_events', 'food_security')
+            params: Query parameters (location_code, start_date, etc.)
+            limit: Records per page (max 10,000)
+
+        Returns:
+            pd.DataFrame with all results
+        """
+        endpoint = self.ENDPOINTS[theme]
+        params = dict(params or {})
+        params['limit'] = min(limit, self.MAX_LIMIT)
+
+        frames = []
+        offset = 0
+
+        while True:
+            params['offset'] = offset
+            result = self._fetch_page(endpoint, params)
+            data = result.get('data', [])
+            if not data:
+                break
+            frames.append(pd.DataFrame(data))
+            if len(data) < params['limit']:
+                break
+            offset += params['limit']
+
+        if not frames:
+            return pd.DataFrame()
+        return pd.concat(frames, ignore_index=True)
+
+    # Convenience methods for each theme
+    def get_idps(self, **kwargs) -> pd.DataFrame:
+        return self.fetch('idps', kwargs)
+
+    def get_refugees(self, **kwargs) -> pd.DataFrame:
+        return self.fetch('refugees', kwargs)
+
+    def get_returnees(self, **kwargs) -> pd.DataFrame:
+        return self.fetch('returnees', kwargs)
+
+    def get_humanitarian_needs(self, **kwargs) -> pd.DataFrame:
+        return self.fetch('humanitarian_needs', kwargs)
+
+    def get_operational_presence(self, **kwargs) -> pd.DataFrame:
+        return self.fetch('operational_presence', kwargs)
+
+    def get_funding(self, **kwargs) -> pd.DataFrame:
+        return self.fetch('funding', kwargs)
+
+    def get_conflict_events(self, **kwargs) -> pd.DataFrame:
+        return self.fetch('conflict_events', kwargs)
+
+    def get_national_risk(self, **kwargs) -> pd.DataFrame:
+        return self.fetch('national_risk', kwargs)
+
+    def get_food_security(self, **kwargs) -> pd.DataFrame:
+        return self.fetch('food_security', kwargs)
+
+    def get_food_prices(self, **kwargs) -> pd.DataFrame:
+        return self.fetch('food_prices', kwargs)
+
+    def get_poverty_rate(self, **kwargs) -> pd.DataFrame:
+        return self.fetch('poverty_rate', kwargs)
+
+    def get_population(self, **kwargs) -> pd.DataFrame:
+        return self.fetch('population', kwargs)
+
+    def get_rainfall(self, **kwargs) -> pd.DataFrame:
+        return self.fetch('rainfall', kwargs)
+
+    def get_locations(self, **kwargs) -> pd.DataFrame:
+        return self.fetch('locations', kwargs)
+
+    def get_admin1(self, **kwargs) -> pd.DataFrame:
+        return self.fetch('admin1', kwargs)
+
+    def get_admin2(self, **kwargs) -> pd.DataFrame:
+        return self.fetch('admin2', kwargs)
+
+    def get_data_availability(self, **kwargs) -> pd.DataFrame:
+        return self.fetch('data_availability', kwargs)
+
+
+# Usage example:
+# client = HAPIClient("causal_atlas", "user@example.com")
+#
+# # Get IPC food security data for Yemen
+# ipc = client.get_food_security(location_code="YEM", ipc_phase="3+")
+#
+# # Get conflict events for Somalia, 2023+
+# conflict = client.get_conflict_events(location_code="SOM", start_date="2023-01-01")
+#
+# # Get all rainfall data for Ethiopia at admin 1
+# rain = client.get_rainfall(location_code="ETH", admin_level=1)
+#
+# # Get data availability across all themes
+# avail = client.get_data_availability()
+```
+
+---
+
+## 17. Sources
+
 | Resource | URL |
 |---|---|
 | HDX HAPI homepage | https://data.humdata.org/hapi |

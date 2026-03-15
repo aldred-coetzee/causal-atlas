@@ -522,3 +522,111 @@ Air quality / environmental health / pollution.
 - MERRA-2 PM2.5: https://gmao.gsfc.nasa.gov/reanalysis/MERRA-2/
 - Copernicus CAMS: https://atmosphere.copernicus.eu/
 - OpenAQ "Why Air Quality" page: https://openaq.org/why-air-quality/
+
+---
+
+## 13. Gridded Air Quality Products — Alternatives to Station Data
+
+OpenAQ's sparse spatial coverage is a fundamental limitation. Gridded products derived from satellites and atmospheric models provide wall-to-wall global coverage.
+
+### Satellite-Derived PM2.5: van Donkelaar et al. (Washington University / SEDAC)
+
+This is the gold-standard global gridded PM2.5 product for research.
+
+| Property | Detail |
+|---|---|
+| **Authors** | Aaron van Donkelaar, Randall V. Martin et al. (Atmospheric Composition Analysis Group, Washington University in St. Louis) |
+| **Product** | Global Annual/Monthly PM2.5 estimates |
+| **Current version** | V5.GL.04 (annual); V5.GL.04.02 (monthly) |
+| **Temporal coverage** | 1998–2022 (annual); 1998–2022 (monthly) |
+| **Spatial resolution** | 0.01° (~1.1 km) — extremely high resolution |
+| **Format** | NetCDF |
+| **Method** | Combines satellite AOD (MODIS, MISR, SeaWiFS, VIIRS) with GEOS-Chem chemical transport model, calibrated to ground stations using Geographically Weighted Regression (GWR) |
+| **Accuracy** | Cross-validated R² ≈ 0.80–0.90 against ground monitors |
+| **URL** | https://sites.wustl.edu/acag/surface-pm2-5/ |
+| **SEDAC distribution** | https://sedac.ciesin.columbia.edu/data/collection/sdei |
+| **Licence** | Free for research, attribution required |
+
+**Key publications:**
+- van Donkelaar et al. (2021), "Monthly Global Estimates of Fine Particulate Matter and Their Uncertainty," *Environmental Science & Technology*, 55(22), 15287–15300. https://doi.org/10.1021/acs.est.1c05309
+- van Donkelaar et al. (2016), "Global Estimates of Fine Particulate Matter using a Combined Geophysical-Statistical Method," *Environmental Science & Technology*, 50(7), 3762–3772.
+
+**Python access:**
+```python
+import xarray as xr
+
+# After downloading from SEDAC or ACAG website:
+ds = xr.open_dataset("V5GL04.HybridPM25.Global.202201-202212.nc")
+pm25 = ds['GWRPM25']  # Annual mean surface PM2.5 (μg/m³)
+print(f"Shape: {pm25.shape}")  # (lat, lon) at 0.01° resolution
+print(f"Global mean: {pm25.mean().values:.1f} μg/m³")
+
+# Aggregate to PRIO-GRID 0.5° cells
+pm25_coarse = pm25.coarsen(lat=50, lon=50, boundary='trim').mean()
+```
+
+### NASA MERRA-2 Aerosol Reanalysis
+
+| Property | Detail |
+|---|---|
+| **Producer** | NASA Global Modeling and Assimilation Office (GMAO) |
+| **Product** | Modern-Era Retrospective analysis for Research and Applications, Version 2 |
+| **PM2.5 calculation** | Sum of organic carbon, black carbon, sulfate, sea salt, and dust surface mass concentrations |
+| **Temporal coverage** | 1980–present (~3 weeks latency) |
+| **Temporal resolution** | Hourly (M2T1NXAER) and monthly (M2TMNXAER) |
+| **Spatial resolution** | 0.5° × 0.625° (lat × lon) — approximately matches PRIO-GRID |
+| **Format** | NetCDF4 / HDF5 |
+| **Access** | NASA GES DISC (https://disc.gsfc.nasa.gov/), Google Earth Engine |
+| **GEE collection** | `NASA/GSFC/MERRA/aer_2` |
+| **Licence** | NASA open data policy (free, unrestricted) |
+
+**Key advantage for Causal Atlas:** The 0.5° × 0.625° resolution nearly matches the PRIO-GRID 0.5° resolution, enabling near-direct comparison without heavy aggregation. Continuous coverage from 1980 provides a long baseline.
+
+**Key limitation:** As a reanalysis product, it may not capture local pollution hotspots accurately. Validation studies show it underestimates PM2.5 in South and East Asia.
+
+### Copernicus CAMS (Atmosphere Monitoring Service)
+
+| Property | Detail |
+|---|---|
+| **Producer** | ECMWF for Copernicus |
+| **Products** | EAC4 global reanalysis (2003–present), CAMS forecasts, CAMS regional (Europe) |
+| **Global resolution** | 0.75° (reanalysis) reducing to ~0.4° in recent versions |
+| **European resolution** | 0.1° × 0.1° (regional ensemble) |
+| **Temporal resolution** | 3-hourly (global), hourly (regional) |
+| **Variables** | PM2.5, PM10, O3, NO2, SO2, CO, dust, pollen |
+| **Format** | GRIB / NetCDF via Copernicus Atmosphere Data Store (ADS) |
+| **Access** | https://ads.atmosphere.copernicus.eu/ |
+| **Licence** | Copernicus licence (free, attribution required) |
+
+### Comparison of Gridded Air Quality Products
+
+| Product | Resolution | Coverage | PM2.5 Quality | Best For |
+|---|---|---|---|---|
+| **van Donkelaar** | 0.01° | 1998–2022, annual/monthly | Highest (satellite+model+GWR) | Research, health burden estimation |
+| **MERRA-2** | 0.5° × 0.625° | 1980–present, hourly | Moderate (reanalysis) | Long-term trends, PRIO-GRID integration |
+| **CAMS EAC4** | 0.75° | 2003–present, 3-hourly | Moderate (reanalysis) | Sub-daily dynamics, forecasting |
+| **CAMS Regional** | 0.1° | Europe only, hourly | High (ensemble) | European analysis |
+| **OpenAQ** | Point stations | 2015–present, hourly | Highest (ground truth) | Validation, local analysis |
+
+### Filling Spatial Gaps — Recommended Strategy for Causal Atlas
+
+1. **Primary gridded product:** Use van Donkelaar annual PM2.5 at 0.01° for the main air quality layer. Aggregate to PRIO-GRID cells.
+2. **Monthly dynamics:** Use MERRA-2 monthly aerosol data for temporal resolution within years.
+3. **Ground truth validation:** Use OpenAQ reference-grade stations (`isMonitor=true`) to validate gridded estimates where available.
+4. **Uncertainty quantification:** The van Donkelaar product includes uncertainty estimates — propagate these through downstream analyses.
+
+```python
+# Strategy: Combine ground stations with gridded product
+import numpy as np
+
+def merge_ground_gridded(ground_pm25, gridded_pm25, ground_weight=0.7):
+    """
+    Merge ground station data with gridded estimate.
+    Where ground data exists, weight toward ground truth.
+    Where no ground data, use gridded estimate entirely.
+    """
+    if np.isnan(ground_pm25):
+        return gridded_pm25
+    else:
+        return ground_weight * ground_pm25 + (1 - ground_weight) * gridded_pm25
+```

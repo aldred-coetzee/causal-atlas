@@ -1,6 +1,6 @@
 # GDELT — Global Database of Events, Language, and Tone
 
-> Deep-dive research for Causal Atlas. Findings as of March 2025.
+> Deep-dive research for Causal Atlas. Findings as of March 2025; significantly expanded March 2026.
 
 ---
 
@@ -904,7 +904,930 @@ GDELT should be used as a **complementary signal**, not a primary ground-truth s
 
 ---
 
-## 12. Sources
+## 12. GDELT 3.0 and Latest Developments
+
+> **Verified:** March 2026. Source: https://blog.gdeltproject.org/gdelt-3-0-coming-soon/
+
+### GDELT 3.0 Infrastructure Transition
+
+GDELT 3.0 represents a major infrastructure upgrade that began rolling out in late 2020. The transition is phased:
+
+| Component | Status (March 2026) |
+|-----------|-------------------|
+| Global Difference Graph | Transitioned to 3.0 |
+| Visual Global Knowledge Graph (VGKG) | Transitioned to 3.0 |
+| Core web monitoring and processing | Transitioning in phases |
+| Event Database | Available in both 2.0 and 3.0 formats |
+| Global Knowledge Graph | Available in both 2.0 and 3.0 formats |
+
+### What's New in 3.0
+
+**1-Minute JSON Updates:**
+- Both Event and GKG datasets now available in **JSON-formatted files updated every minute** (in addition to the existing 15-minute CSV files)
+- This is a major improvement for near-real-time monitoring applications
+
+**Backward Compatibility (Critical):**
+- All GDELT 2.0 datasets **continue indefinitely in their exact present form**
+- No changes to file format, file location, or delivery schedule
+- Existing code requires **no modifications** — GDELT 2.0 users can continue as-is
+- The 2.0 CSV files continue to update every 15 minutes
+
+**Expanded Monitoring:**
+- New outlets added to the monitored source base
+- New supported languages (specific languages not disclosed)
+- Globally distributed infrastructure for improved reliability
+
+**Visual Global Knowledge Graph Upgrade:**
+- The VGKG has been upgraded to the new 3.0 infrastructure
+- Opens possibilities for future image-analysis capabilities as visual content becomes more important to understanding global events
+
+### Implications for Causal Atlas
+
+- The 1-minute JSON updates enable higher-frequency monitoring if needed, though our primary temporal unit is monthly
+- No migration effort required — existing GDELT 2.0 access patterns continue to work
+- JSON format may be easier to parse than tab-delimited CSV for new ingestion pipelines
+- Monitor the GDELT blog for announcements of new capabilities
+
+---
+
+## 13. Complete CAMEO Event Code Taxonomy
+
+The CAMEO (Conflict and Mediation Event Observations) taxonomy defines **310 event codes** organized hierarchically under **20 root categories**. Each event has a 2-digit root code, a 3-digit base code, and an optional 4-digit specific code.
+
+### The 20 Root Categories
+
+| Root Code | Category | QuadClass | Goldstein Range | Description |
+|-----------|----------|-----------|-----------------|-------------|
+| **01** | MAKE PUBLIC STATEMENT | 1 (Verbal Cooperation) | -0.4 to +3.4 | Public remarks, declarations, commentary |
+| **02** | APPEAL | 1 (Verbal Cooperation) | +1.0 to +3.4 | Requests for cooperation, aid, protection |
+| **03** | EXPRESS INTENT TO COOPERATE | 1 (Verbal Cooperation) | +4.0 to +7.4 | Stated intention to engage in cooperation |
+| **04** | CONSULT | 1 (Verbal Cooperation) | +1.0 to +5.2 | Meetings, phone calls, visits, discussions |
+| **05** | ENGAGE IN DIPLOMATIC COOPERATION | 2 (Material Cooperation) | +2.8 to +7.4 | Praise, endorse, defend, mediate |
+| **06** | ENGAGE IN MATERIAL COOPERATION | 2 (Material Cooperation) | +4.0 to +8.3 | Economic, military, judicial cooperation; intelligence sharing |
+| **07** | PROVIDE AID | 2 (Material Cooperation) | +7.0 to +8.3 | Humanitarian, military, economic aid; grant asylum |
+| **08** | YIELD | 2 (Material Cooperation) | +5.0 to +7.4 | Concede, comply, release, ease sanctions |
+| **09** | INVESTIGATE | 3 (Verbal Conflict) | -0.4 to +1.0 | Investigate, inspect, monitor |
+| **10** | DEMAND | 3 (Verbal Conflict) | -3.4 to -5.0 | Demands for cooperation, aid, rights, change |
+| **11** | DISAPPROVE | 3 (Verbal Conflict) | -2.2 to -5.0 | Criticize, denounce, accuse, complain |
+| **12** | REJECT | 3 (Verbal Conflict) | -4.0 to -5.0 | Reject proposals, refuse to cooperate |
+| **13** | THREATEN | 3 (Verbal Conflict) | -5.8 to -7.0 | Threaten with sanctions, force, restrictions |
+| **14** | PROTEST | 4 (Material Conflict) | -6.5 to -6.5 | Demonstrations, strikes, boycotts, obstruction |
+| **15** | EXHIBIT MILITARY POSTURE | 4 (Material Conflict) | -7.2 to -7.2 | Military mobilisation, exercises, fortification |
+| **16** | REDUCE RELATIONS | 4 (Material Conflict) | -4.4 to -7.0 | Reduce diplomatic relations, expel, boycott |
+| **17** | COERCE | 4 (Material Conflict) | -7.0 to -8.3 | Seize, detain, impose sanctions, ban travel |
+| **18** | ASSAULT | 4 (Material Conflict) | -8.3 to -9.2 | Physical assault, sexual violence, torture, kill |
+| **19** | FIGHT | 4 (Material Conflict) | -9.2 to -10.0 | Conventional military force: small arms, artillery, air strikes |
+| **20** | USE UNCONVENTIONAL MASS VIOLENCE | 4 (Material Conflict) | -10.0 | Mass killings, ethnic cleansing, chemical/biological weapons |
+
+### Quad Classification System
+
+The 20 root codes map to 4 "quad classes" used for high-level aggregation:
+
+| QuadClass | Meaning | Root Codes | Goldstein Range |
+|-----------|---------|------------|-----------------|
+| 1 | Verbal Cooperation | 01–04 | Positive (low) |
+| 2 | Material Cooperation | 05–08 | Positive (high) |
+| 3 | Verbal Conflict | 09–13 | Negative (low) |
+| 4 | Material Conflict | 14–20 | Negative (high) |
+
+### Selected Sub-Codes (Conflict-Relevant for Causal Atlas)
+
+| Code | Description | Goldstein |
+|------|-------------|-----------|
+| 1411 | Demonstrate or rally | -6.5 |
+| 1412 | Conduct hunger strike | -6.5 |
+| 1413 | Conduct strike or boycott | -6.5 |
+| 1414 | Obstruct passage or block | -6.5 |
+| 1451 | Demonstrate military or police power | -6.5 |
+| 1711 | Impose restrictions on political freedoms | -7.0 |
+| 1712 | Ban political parties or politicians | -7.0 |
+| 1721 | Impose curfew | -8.3 |
+| 1722 | Impose state of emergency | -8.3 |
+| 1723 | Arrest, detain | -8.3 |
+| 1724 | Expel or deport | -8.3 |
+| 1811 | Abduct, hijack, take hostage | -8.3 |
+| 1812 | Physically assault | -8.3 |
+| 1813 | Conduct torture | -9.0 |
+| 1814 | Kill by physical assault | -9.0 |
+| 1822 | Conduct suicide or car bombing | -9.2 |
+| 1823 | Carry out roadside attack | -9.2 |
+| 1831 | Assassinate | -9.0 |
+| 1911 | Impose blockade | -9.2 |
+| 1912 | Occupy territory | -9.2 |
+| 1931 | Fight with small arms and light weapons | -10.0 |
+| 1932 | Fight with artillery and tanks | -10.0 |
+| 1941 | Conduct air or missile strike | -10.0 |
+| 2001 | Engage in mass expulsion | -10.0 |
+| 2002 | Engage in mass killing | -10.0 |
+| 2003 | Engage in ethnic cleansing | -10.0 |
+
+### Lookup Files
+
+The complete CAMEO code lists are available at:
+- Event codes: `https://www.gdeltproject.org/data/lookups/CAMEO.eventcodes.txt`
+- Goldstein scale: `https://www.gdeltproject.org/data/lookups/CAMEO.goldsteinscale.txt`
+- Machine-readable format: https://github.com/tenthe/CAMEO-Event-Data-Codebook
+
+---
+
+## 14. GKG Themes Taxonomy
+
+### Scale
+
+The GKG theme taxonomy contains **over 2,500 distinct themes** as of 2026, composed of:
+
+| Source | Approximate Count | Description |
+|--------|-------------------|-------------|
+| **World Bank Taxonomy** | ~2,200 themes | Covers agriculture, education, health, governance, social development, urban development, water, etc. |
+| **GDELT Core Themes** | ~150+ themes | Conflict, disaster, health, migration, environment, economy, etc. |
+| **Custom/Emerging Themes** | Growing | Added periodically as new topics emerge (100+ added in a single 2019 update) |
+
+### Themes Relevant to Causal Atlas Domains
+
+| Domain | Key GKG Themes | Notes |
+|--------|---------------|-------|
+| **Conflict** | `CONFLICT`, `ARMED_CONFLICT`, `CIVIL_WAR`, `INSURGENCY`, `TERRORISM`, `PROTEST`, `RIOT` | Direct conflict monitoring |
+| **Food Security** | `FOOD_SECURITY`, `FAMINE`, `FOOD_PRICES`, `HUNGER`, `MALNUTRITION`, `CROP_FAILURE` | Cross-validate with WFP data |
+| **Natural Disasters** | `NATURAL_DISASTER`, `EARTHQUAKE`, `DROUGHT`, `FLOOD`, `CYCLONE`, `TSUNAMI`, `WILDFIRE` | Cross-validate with EM-DAT |
+| **Health** | `HEALTH_PANDEMIC`, `DISEASE`, `EPIDEMIC`, `EBOLA`, `CHOLERA`, `MALARIA`, `COVID19` | Cross-validate with WHO |
+| **Migration** | `DISPLACEMENT`, `REFUGEES`, `MIGRATION`, `INTERNALLY_DISPLACED`, `ASYLUM` | Cross-validate with UNHCR |
+| **Environment** | `ENVIRONMENTAL_POLLUTION`, `AIR_QUALITY`, `DEFORESTATION`, `CLIMATE_CHANGE`, `WATER_SCARCITY` | Cross-validate with OpenAQ |
+| **Economy** | `ECON_*` (multiple), `INFLATION`, `UNEMPLOYMENT`, `POVERTY`, `TRADE`, `SANCTIONS` | Cross-validate with World Bank |
+| **Governance** | `ELECTION`, `CORRUPTION`, `HUMAN_RIGHTS`, `RULE_OF_LAW`, `DEMOCRACY` | Contextual signals |
+
+### Theme Lookup File
+
+The current themes lookup is available at:
+- `http://data.gdeltproject.org/documentation/GDELT-Global_Knowledge_Graph_CategoryList.xlsx`
+- Updated periodically — check https://blog.gdeltproject.org for announcements of new theme additions
+
+### Using Themes in Queries
+
+**BigQuery example — food security media attention by country:**
+```sql
+SELECT
+    DATE(PARSE_TIMESTAMP('%Y%m%d%H%M%S', CAST(DATE AS STRING))) AS date,
+    Locations,
+    COUNT(*) as article_count
+FROM `gdelt-bq.gdeltv2.gkg`
+WHERE Themes LIKE '%FOOD_SECURITY%'
+  AND DATE > 20240101000000
+GROUP BY date, Locations
+ORDER BY article_count DESC
+LIMIT 100
+```
+
+---
+
+## 15. GCAM (Global Content Analysis Measures) — Deep Dive
+
+### Overview
+
+GCAM is the emotional and thematic content analysis component of GDELT. It runs **18 content analysis systems** totaling **over 2,230 latent dimensions** on every news article monitored by GDELT, in near-real-time.
+
+GCAM represents the "Language and Tone" portions of the GDELT acronym (Global Database of Events, Language, and Tone).
+
+### The 18 Content Analysis Systems
+
+| # | System | Dimensions | Focus |
+|---|--------|------------|-------|
+| 1 | **WordNet Affect 1.0** | ~280 | Emotion categories (anger, joy, fear, surprise, etc.) |
+| 2 | **WordNet Affect 1.1** | ~280 | Extended emotion taxonomy |
+| 3 | **Linguistic Inquiry and Word Count (LIWC)** | ~80 | Psycholinguistic categories (anxiety, certainty, power, etc.) |
+| 4 | **General Inquirer V1.02** (Harvard IV-4) | ~180 | Psychosocial categories (positive, negative, strong, weak, etc.) |
+| 5 | **Lexicoder Sentiment Dictionary** | ~2 | Positive and negative sentiment |
+| 6 | **Lexicoder Topic Dictionaries** | ~50 | Policy topics (economy, health, immigration, etc.) |
+| 7 | **Loughran & McDonald Financial Sentiment** | ~6 | Financial text sentiment (positive, negative, uncertainty, litigious, etc.) |
+| 8 | **Opinion Observer** | ~4 | Polarity detection |
+| 9 | **Regressive Imagery Dictionary** | ~43 | Primary/secondary process thinking, emotions |
+| 10 | **Roget's Thesaurus (1911)** | ~1,000 | 1,000 semantic categories |
+| 11 | **SentiWordNet 3.0** | ~3 | Positivity, negativity, objectivity scores |
+| 12 | **SentiWords** | ~1 | Continuous sentiment score |
+| 13 | **Subjectivity Lexicon** | ~4 | Strong/weak subjective, positive/negative |
+| 14 | **Body Boundary Dictionary** | ~20 | Body-related imagery |
+| 15 | **WordNet Domains 3.2** | ~170 | Domain categorization (sport, medicine, law, etc.) |
+| 16 | **WordNet 3.1 Lexical Categories** | ~26 | Lexical categorization (noun types, verb types, etc.) |
+| 17 | **Forest Values** | ~10 | Environmental/forest values |
+| 18 | **GDELT GKG Themes** | Varies | GDELT's own thematic extraction |
+
+### Multilingual Support
+
+GCAM natively assesses emotions in **15 languages** without requiring machine translation:
+Arabic, Basque, Catalan, Chinese, French, Galician, German, Hindi, Indonesian, Korean, Pashto, Portuguese, Russian, Spanish, and Urdu.
+
+Articles in other languages are processed after machine translation to English.
+
+### GCAM Code Structure
+
+Each GCAM dimension is identified by a code in the format `cXX.YY`:
+- `XX` = content analysis system number (e.g., `c5` = Lexicoder Sentiment)
+- `YY` = dimension number within that system
+
+**Examples:**
+| GCAM Code | System | Dimension |
+|-----------|--------|-----------|
+| `c1.1` | WordNet Affect 1.0 | Joy |
+| `c1.4` | WordNet Affect 1.0 | Anger |
+| `c5.1` | Lexicoder Sentiment | Positive |
+| `c5.2` | Lexicoder Sentiment | Negative |
+| `c6.4` | LIWC | Anxiety |
+| `c6.5` | LIWC | Anger |
+| `c6.6` | LIWC | Sadness |
+| `c9.1` | General Inquirer | Positive |
+| `c9.2` | General Inquirer | Negative |
+
+### Score Types
+
+Each GCAM dimension reports two values:
+- **Word Count**: Number of words in the article matching the dimension's dictionary
+- **Score/Density**: Proportion of total words matching (word count / total article words)
+
+### Data Access
+
+GCAM scores are embedded in the **GKG 2.0** data stream. In the GKG tab-delimited files, GCAM occupies column V2.1GCAM (column 18 in 0-indexed format), containing semicolon-separated `code:count:score` triplets.
+
+### The GCAM Master Codebook
+
+Complete reference for all 2,230+ dimensions:
+`http://data.gdeltproject.org/documentation/GCAM-MASTER-CODEBOOK.TXT`
+
+### Relevance for Causal Atlas
+
+GCAM provides a unique capability: measuring the **emotional temperature** of media coverage at planetary scale. Potential applications:
+
+- Track anxiety/fear in coverage of a region before conflict events (leading indicator?)
+- Measure shifts in tone around food security or health crises
+- Compare emotional intensity of coverage across regions for the same event type
+- Use GCAM sentiment as a control variable when analysing GDELT event counts
+
+---
+
+## 16. Tone Measurement Methodology
+
+### AvgTone Field
+
+The `AvgTone` field in the GDELT Event Database measures the **average tone** of all documents mentioning an event in the first 15-minute update interval when the event was first detected.
+
+### Score Range
+
+| Range | Interpretation |
+|-------|---------------|
+| -100 to -10 | Extremely negative (rare) |
+| -10 to -5 | Very negative |
+| -5 to -1 | Moderately negative |
+| -1 to +1 | Neutral |
+| +1 to +5 | Moderately positive |
+| +5 to +10 | Very positive |
+| +10 to +100 | Extremely positive (rare) |
+
+**Typical range:** Most events fall between **-10 and +10**, with 0 as neutral.
+
+### Computation
+
+The exact NLP algorithm for computing individual document tone scores is **not publicly disclosed**. What is known:
+- Each article mentioning the event receives a tone score based on sentiment analysis of the article text
+- The `AvgTone` for the event is the arithmetic mean of all document-level tone scores
+- The computation runs in the first 15-minute update cycle when the event appears
+
+### Interpreting Tone
+
+Tone is a measure of **media framing**, not objective severity. GDELT suggests:
+- A riot event with slightly negative tone (~-2) likely reflects a minor occurrence
+- The same event type with extremely negative tone (~-8) suggests far greater perceived severity
+- Tone acts as a proxy for the **perceived impact** or **salience** of an event
+
+### Tone in the GKG
+
+The GKG provides a richer tone measurement via the `V1.5Tone` field (column 16), containing 6 comma-separated values:
+1. Average tone
+2. Positive score
+3. Negative score
+4. Polarity (positive - negative)
+5. Activity Reference Density
+6. Self/Group Reference Density
+
+### Limitations
+
+- Tone is biased by the source's editorial position — the same event gets different tone scores from different outlets
+- English-language bias: tone computation works best on English text
+- Machine-translated articles may have distorted tone scores
+- Tone measures media perception, not ground truth severity
+
+---
+
+## 17. Visual Global Knowledge Graph (VGKG)
+
+> Source: https://blog.gdeltproject.org/announcing-the-new-gdelt-visual-global-knowledge-graph-vgkg/
+
+### Overview
+
+The VGKG extends GDELT's analysis from text to **images**, applying deep learning via the **Google Cloud Vision API** to categorize news imagery at scale.
+
+### Processing Scale
+
+- **500,000 to 1,000,000 images processed daily** from news sources worldwide
+- Updated every **15 minutes** (CSV files released at ~0–5, ~15–20, ~30–35, ~40–45 minutes past each hour)
+- Covers nearly every event type and topic from almost every corner of the earth
+
+### Annotations Produced
+
+Each image undergoes multiple analysis passes:
+
+| Annotation Type | Description | Example Output |
+|----------------|-------------|----------------|
+| **Object/Activity Tagging** | Identifies objects, activities, and backgrounds | "military vehicle", "crowd", "fire", "building" |
+| **OCR (Text Recognition)** | Reads text in images (signs, banners, documents) | Reads handwritten Arabic on protest signs |
+| **Facial Sentiment** | Detects emotional expressions in faces | Joy, sorrow, anger, surprise (per face detected) |
+| **Landmark Detection** | Identifies famous locations | "Eiffel Tower", "Tahrir Square" |
+| **Content-Based Geolocation** | Estimates image location from visual cues | Coordinates inferred from landmarks/scenery |
+| **Logo Detection** | Identifies organizational logos | "Red Cross", "United Nations" |
+| **SafeSearch** | Content moderation flags | Violence, adult content, medical imagery flags |
+
+### Data Access
+
+| Method | Detail |
+|--------|--------|
+| **BigQuery** | Table: `gdelt-bq:gdeltv2.cloudvision` |
+| **CSV files** | Tab-delimited, gzip-compressed, updated every 15 minutes |
+| **File format** | Documented in VGKG V1.0 Alpha codebook |
+
+### Limitations
+
+- Labeled as **"alpha/experimental"** — GDELT explicitly states that "mistaken categorizations represent computer algorithm errors, NOT editorial statements"
+- Deep learning image recognition has inherent error rates, particularly for:
+  - Images from unfamiliar cultural contexts
+  - Low-quality news imagery
+  - Ambiguous scenes
+- Not suitable as ground truth — best used as a supplementary signal
+
+### Relevance for Causal Atlas
+
+The VGKG could provide:
+- Visual evidence tracking (e.g., satellite imagery of destruction, protest crowd sizes)
+- Cross-validation of text-based event detection with visual confirmation
+- However, the alpha status and error rates suggest it should be a low-priority integration
+
+---
+
+## 18. BigQuery Cost Estimates for Causal Atlas Queries
+
+### GDELT Dataset Sizes in BigQuery
+
+| Dataset | Table | Approximate Size |
+|---------|-------|-----------------|
+| GDELT 2.0 Events | `gdelt-bq.gdeltv2.events` | ~1.5 TB (growing) |
+| GDELT 2.0 Event Mentions | `gdelt-bq.gdeltv2.eventmentions` | ~3 TB (growing) |
+| GDELT 2.0 GKG | `gdelt-bq.gdeltv2.gkg` | ~2.65 TB per year (growing) |
+| GDELT 1.0 Events | `gdelt-bq.full.events` | ~500 GB |
+| GDELT VGKG | `gdelt-bq.gdeltv2.cloudvision` | ~1 TB (growing) |
+
+### BigQuery Pricing (as of 2026)
+
+- **On-demand:** $6.25 per TB of data scanned
+- **First 1 TB per month:** Free
+- **Storage:** $0.02/GB/month (active), $0.01/GB/month (long-term)
+- Charges are rounded up to the nearest MB, with a 10 MB minimum per table referenced
+
+### Cost Estimates for Typical Causal Atlas Queries
+
+| Query Type | Data Scanned | Estimated Cost | Notes |
+|-----------|-------------|----------------|-------|
+| Monthly conflict events by country, 1 year | ~1.5 TB (full events table scan) | ~$9.38 | Full table scan if not using partitioned tables |
+| Same query with partitioned table (1 year) | ~150 GB | ~$0.94 | Use `_PARTITIONTIME` filter |
+| Same query with partitioned table (1 month) | ~12 GB | Free (under 1 TB) | |
+| GKG food security themes, 1 month | ~220 GB | ~$1.38 | GKG table is much larger |
+| GKG food security themes, 7 days with table decorator | ~54 GB | Free (under 1 TB) | Table decorators dramatically reduce scan |
+| Full GKG scan, 1 year | ~2.65 TB | ~$16.56 | Avoid this — use filters |
+
+### Cost Optimization Strategies
+
+1. **Use partitioned tables:** GDELT provides partitioned BigQuery tables (`gdelt-bq.gdeltv2.events_partitioned`). Filtering by `_PARTITIONTIME` restricts scans to relevant date ranges.
+
+2. **Table decorators:** Limit scans to recent data using BigQuery's snapshot decorators. A 7-day GKG decorator reduces 2.65 TB to ~54 GB.
+
+3. **Column selection:** Always `SELECT` only needed columns rather than `SELECT *`.
+
+4. **Dry runs:** Use `bq query --dry_run` to estimate cost before running.
+
+5. **Caching:** BigQuery caches query results for 24 hours — re-running the same query is free.
+
+6. **Materialized views:** For repeated analyses, create materialized views of filtered/aggregated data.
+
+### Performance Benchmarks
+
+| Operation | Time | Data Processed |
+|-----------|------|----------------|
+| Query 423 GB of event data | ~8.6 seconds | 423 GB |
+| Query 15 GB via partitioned table (15 days) | ~2 seconds | 15 GB |
+| Count unique URLs across 35 billion rows | ~4 minutes | Multiple TB |
+| Complex georeferencing on multi-TB dataset | ~tens of seconds | Multi-TB |
+| Parse 8.9 TB JSON archive into 321 billion values | ~2.5 minutes | 8.9 TB |
+
+---
+
+## 19. GDELT's Systematic Biases — Detailed Analysis
+
+### 19.1 English-Language and Western Bias
+
+**The core problem:** Despite monitoring 100+ languages and machine-translating 65 languages, GDELT's source monitoring density is heavily weighted toward English-language and Western media.
+
+**Quantified evidence:**
+- US media is disproportionately overrepresented in GDELT's source base
+- A comparative study found that GDELT's top news sources and those of the Event Registry platform "did not overlap at all" — suggesting GDELT's source selection is not representative of the global media landscape (ONS, 2023)
+- Western reporting perspective introduces systematic bias in how events are framed, which actors are named, and which events are deemed newsworthy
+
+**Implications:**
+- Events in countries with limited English-language media presence are under-represented
+- The same real-world event magnitude produces fewer GDELT records in non-Western countries
+- Tone scores are biased by Western editorial perspectives
+- Countries with lower press freedom scores have systematically lower event counts
+
+### 19.2 Geocoding Accuracy
+
+**Country centroid problem:**
+- Estimated 20–30% of events are geocoded only to country level (`Geo_Type=1`), placing them at the country's geometric centroid
+- This creates **false hotspots** at country centroids. Example: Kaduna (near Nigeria's centroid) appears as a kidnapping hotspot in GDELT data, but this reflects geocoding default behavior, not actual event concentration (Source: OpenNews/Simpson, 2014)
+- For a country like Nigeria, events that mention "Nigeria" but no specific city will all cluster at the centroid coordinates
+
+**Place name ambiguity:**
+- "Springfield" exists in dozens of US states
+- "Georgia" is both a US state and a Caucasus country
+- Gazetteer-based matching cannot resolve novel or informal references ("near the border," "in the north")
+
+**Quantified accuracy:**
+- One analysis found the overall accuracy rate of key GDELT fields to be **approximately 55%** (Solvang et al., 2025, via MDPI Data journal)
+- Sub-national geocoding reliability varies enormously by country and data density
+
+### 19.3 The "Echo Chamber" / Duplication Problem
+
+This is GDELT's most fundamental quality issue for event-level analysis.
+
+**How it works:**
+- A single real-world event reported by 50 news outlets generates **multiple GDELT event records** — potentially 50+ records for one actual event
+- The Chibok schoolgirl kidnapping (a single event) produced **151 simultaneous GDELT records** on April 14, 2014
+- FiveThirtyEight reported 2,285 kidnappings in Nigeria's first 4 months of 2014 based on GDELT — but this counted **news stories about kidnappings**, not actual kidnapping events
+- GDELT is fundamentally a **repository of media reports, not discrete events** (Simpson, 2014)
+
+**Why it matters:**
+- Raw event counts are meaningless without deduplication
+- Trend analysis on raw counts conflates media attention changes with actual event frequency changes
+- The echo chamber effect is amplified for high-profile events that receive sustained media coverage
+
+**Partial mitigations built into GDELT:**
+- `NumMentions` — count of mentions in the first 15-minute window (higher = more coverage = potentially more significant event, but also potentially more duplication)
+- `NumSources` — count of unique source domains
+- `NumArticles` — count of unique articles
+- `IsRootEvent` — flag indicating the "root" version of an event (filtering on `IsRootEvent=1` reduces but does not eliminate duplication)
+- The Mentions table in GDELT 2.0 provides full traceability from events to individual article mentions
+
+### 19.4 Event Coding Errors
+
+- **False positives:** Hypothetical events ("if war breaks out"), historical references ("the 2003 invasion"), and fictional narratives can be incorrectly coded as new events
+- **Actor misidentification:** Automated actor coding confuses entities with similar names
+- **Temporal displacement:** Articles published today about last month's events may be coded with today's date
+- **Category errors:** The automated CAMEO coding has inherent error rates — exact error rates are not publicly disclosed but academic studies suggest significant misclassification
+- Data redundancy measured at approximately **20%** across the dataset
+
+### 19.5 Source Expansion Artifact
+
+GDELT's monitored source base has expanded dramatically over time. This creates a **fundamental confound** for longitudinal analysis:
+
+- An increase in GDELT event counts from 2005 to 2025 partly reflects real changes in global events
+- But it **largely reflects** the expansion of monitored news sources and languages
+- Raw event counts are **not directly comparable across time periods**
+
+**Normalization files** (critical for any time-series use):
+- Daily: `http://data.gdeltproject.org/normfiles/daily.csv`
+- Monthly: `http://data.gdeltproject.org/normfiles/monthly.csv`
+- Yearly: `http://data.gdeltproject.org/normfiles/yearly.csv`
+- Country-level variants also available (daily_country, monthly_country, yearly_country)
+
+**Correct approach:** Always compute event **proportions** (event count / total events) rather than raw counts for trend analysis.
+
+### 19.6 Algorithmic Transparency
+
+The UK Office for National Statistics assessed GDELT and noted: "Only one of the algorithms that extract and compile the data is described in detail, making it impossible to reconstruct the process." The events database involves "aggregation of individual news articles into events, adding a further layer of unexplained complexity" (ONS, 2023).
+
+---
+
+## 20. Deduplication Strategies for GDELT
+
+### Why Deduplication Is Essential
+
+GDELT's data redundancy is approximately **20%**, and for high-profile events, duplication can be vastly higher (100+ records for a single event). Any analytical use of GDELT requires a deduplication strategy.
+
+### Published Deduplication Strategies (DDS)
+
+Recent academic research (Solvang et al., 2025; Oswald et al., 2025) has proposed five deduplication strategies of increasing strictness:
+
+| Strategy | Method | Fields Matched | Strictness |
+|----------|--------|---------------|------------|
+| **DDS1** | Baseline | No deduplication | None |
+| **DDS2** | Same-URL + Location + Date | URL, Date, Latitude, Longitude, EventRootCode | Moderate |
+| **DDS3** | Same-URL + Location within year | URL, Latitude, Longitude, EventRootCode (within same year) | Moderate-High |
+| **DDS4** | DDS3 + Actor matching | Apply DDS3 first, then merge rows with same Actor1, Actor2, Date, Location, EventRootCode | High |
+| **DDS5** | DDS3 + Actor matching (date-relaxed) | Apply DDS3 first, then merge rows with same Actor1, Actor2, Location, EventRootCode (date-relaxed) | Very High |
+
+### Practical Deduplication Approach for Causal Atlas
+
+```python
+"""
+GDELT deduplication pipeline for Causal Atlas.
+Uses a multi-step approach combining built-in fields and custom deduplication.
+"""
+import pandas as pd
+import numpy as np
+
+
+def deduplicate_gdelt(df: pd.DataFrame, strategy: str = "moderate") -> pd.DataFrame:
+    """
+    Deduplicate GDELT events using a tiered approach.
+
+    Parameters:
+        df: Raw GDELT events DataFrame
+        strategy: "light", "moderate", or "strict"
+    """
+    df = df.copy()
+    original_count = len(df)
+
+    # Step 1: Filter to root events only (built-in GDELT dedup)
+    df = df[df["IsRootEvent"].astype(int) == 1]
+    print(f"After IsRootEvent filter: {len(df)} ({len(df)/original_count:.1%})")
+
+    if strategy == "light":
+        return df
+
+    # Step 2: Remove events with same SOURCEURL, date, location, and event code
+    df["dedup_key_2"] = (
+        df["SOURCEURL"].fillna("")
+        + "|" + df["SQLDATE"].astype(str)
+        + "|" + df["ActionGeo_Lat"].fillna("").astype(str)
+        + "|" + df["ActionGeo_Long"].fillna("").astype(str)
+        + "|" + df["EventRootCode"].fillna("").astype(str)
+    )
+    df = df.drop_duplicates(subset=["dedup_key_2"], keep="first")
+    print(f"After URL+date+location dedup: {len(df)} ({len(df)/original_count:.1%})")
+
+    if strategy == "moderate":
+        return df.drop(columns=["dedup_key_2"])
+
+    # Step 3 (strict): Also merge by actor pair + location + event code
+    df["dedup_key_3"] = (
+        df["Actor1Code"].fillna("")
+        + "|" + df["Actor2Code"].fillna("")
+        + "|" + df["SQLDATE"].astype(str)
+        + "|" + df["ActionGeo_Lat"].fillna("").astype(str)
+        + "|" + df["ActionGeo_Long"].fillna("").astype(str)
+        + "|" + df["EventRootCode"].fillna("").astype(str)
+    )
+    # Keep the record with the most mentions (likely most reliable)
+    df["NumMentions"] = pd.to_numeric(df["NumMentions"], errors="coerce").fillna(0)
+    df = df.sort_values("NumMentions", ascending=False).drop_duplicates(
+        subset=["dedup_key_3"], keep="first"
+    )
+    print(f"After actor+date+location dedup: {len(df)} ({len(df)/original_count:.1%})")
+
+    return df.drop(columns=["dedup_key_2", "dedup_key_3"])
+```
+
+### Validation
+
+Deduplication effectiveness should be validated by comparing GDELT event counts against a reference dataset (ACLED or ICEWS) for the same region/time period. After deduplication, GDELT and ACLED conflict event counts should be in the same order of magnitude (though GDELT will still be higher due to broader event scope).
+
+---
+
+## 21. GDELT vs ACLED: Side-by-Side Case Studies
+
+### Case Study 1: Nigeria Kidnapping Data (2014)
+
+This is the most extensively documented example of GDELT-ACLED divergence.
+
+| Metric | GDELT | ACLED | Ground Truth |
+|--------|-------|-------|--------------|
+| Kidnapping events, Nigeria, Jan–Apr 2014 | 2,285 (per FiveThirtyEight) | ~50–80 (estimated) | Unknown |
+| Events on April 14, 2014 (Chibok kidnapping) | 151 | 1 | 1 |
+| What it actually measured | News stories about kidnappings | Distinct kidnapping events | — |
+
+**Root cause:** GDELT counted media reports, not discrete events. The Chibok schoolgirl abduction was one event that generated massive global media coverage. GDELT recorded each article as a separate "event."
+
+**Geocoding issue:** GDELT showed Kaduna state as a kidnapping hotspot. But Kaduna is near Nigeria's geographic centroid — it was the default geocode when NLP could not extract a specific location from the article text.
+
+**Lesson:** For event-level conflict analysis at sub-national resolution, ACLED is reliable; GDELT requires extensive deduplication and geocoding quality filters before it can be used for event counting.
+
+### Case Study 2: General Conflict Event Comparison
+
+From ACLED's own comparison working paper (2019):
+
+| Dimension | GDELT | ACLED |
+|-----------|-------|-------|
+| Event identification | Automated NLP — identifies "who did what to whom" from article text | Human researcher reads article and codes discrete event |
+| Actor coding | Automated extraction — frequent misidentification | Expert-coded with regional knowledge |
+| Location precision | Gazetteer lookup — often country-level | Human geocoding — typically settlement-level |
+| Fatalities | Not coded as a field | Conservatively estimated, explicitly recorded |
+| Duplicates | Inherent — one event = many records | Merged — multiple reports coded as one event |
+| Source languages | 100+ (machine-translated) | 20+ (human multilingual researchers) |
+
+### When to Use Which
+
+| Use Case | Recommended Dataset | Rationale |
+|----------|-------------------|-----------|
+| Rigorous conflict event counting | ACLED | Human-coded, deduplicated, geocoded |
+| Sub-national spatial analysis | ACLED | Higher geocoding precision |
+| Fatality estimation | ACLED (or UCDP-GED) | Explicitly coded field |
+| High-frequency trend detection | GDELT | 15-minute updates vs weekly |
+| Media attention measurement | GDELT | This is what GDELT actually measures well |
+| Cross-domain thematic monitoring | GDELT (GKG) | 2,500+ themes across all domains |
+| Emotional/sentiment analysis | GDELT (GCAM) | 2,230+ sentiment dimensions — unique capability |
+| Broad geographic scanning | GDELT | Global, real-time, no access restrictions |
+| Academic publication on conflict | ACLED or UCDP-GED | Peer-reviewed methodology, accepted by journals |
+
+---
+
+## 22. Dataset Size and Performance Reference
+
+### Full GDELT Dataset Size (2026 Estimates)
+
+| Component | Records | Uncompressed Size | BigQuery Size |
+|-----------|---------|-------------------|---------------|
+| Event Database (1979–2026) | ~700+ million records | ~30+ TB | ~1.5 TB |
+| Event Mentions (2015–2026) | ~5+ billion records | ~50+ TB | ~3+ TB |
+| GKG (2015–2026) | ~1+ billion records | ~25+ TB (2.5 TB/year) | ~2.65 TB/year |
+| GKG (2013–2015, v1) | ~300 million records | ~5 TB | ~2 TB |
+| VGKG (2016–2026) | ~3+ billion images | ~10+ TB | ~1+ TB |
+| **Total** | — | **~120+ TB** | **~10+ TB** |
+
+### Daily Data Volume
+
+| Stream | Daily Records | Daily Size (compressed) |
+|--------|---------------|------------------------|
+| Events | ~500K–1M records | ~500 MB |
+| GKG | ~500K–1M articles | ~2–3 GB |
+| Mentions | ~5M+ mentions | ~1–2 GB |
+| VGKG | ~500K–1M images | ~1 GB |
+
+### Query Time Benchmarks (BigQuery)
+
+| Query | Data Scanned | Time |
+|-------|-------------|------|
+| Full events table scan (1 year) | ~150 GB (partitioned) | ~5–10 seconds |
+| Filtered events (1 country, 1 year) | ~15 GB | ~2 seconds |
+| GKG theme search (7 days) | ~54 GB | ~3–5 seconds |
+| Full GKG scan (1 year) | ~2.65 TB | ~30–60 seconds |
+| Complex aggregation on multi-TB data | Multi-TB | ~tens of seconds |
+
+---
+
+## 23. Worked Example: Region Filtering, Deduplication, PRIO-GRID Aggregation
+
+```python
+"""
+Complete GDELT pipeline for Causal Atlas:
+  1. Download GDELT 2.0 events for a date range
+  2. Filter to a specific region and conflict events
+  3. Deduplicate
+  4. Filter to sub-national geocoding quality
+  5. Assign PRIO-GRID cells
+  6. Aggregate to monthly grid-cell summaries
+  7. Save as Parquet
+"""
+
+import requests
+import pandas as pd
+import numpy as np
+import zipfile
+import io
+from pathlib import Path
+from datetime import datetime, timedelta
+
+
+# --- Column definitions ---
+
+EVENT_COLUMNS = [
+    'GLOBALEVENTID', 'SQLDATE', 'MonthYear', 'Year', 'FractionDate',
+    'Actor1Code', 'Actor1Name', 'Actor1CountryCode', 'Actor1KnownGroupCode',
+    'Actor1EthnicCode', 'Actor1Religion1Code', 'Actor1Religion2Code',
+    'Actor1Type1Code', 'Actor1Type2Code', 'Actor1Type3Code',
+    'Actor2Code', 'Actor2Name', 'Actor2CountryCode', 'Actor2KnownGroupCode',
+    'Actor2EthnicCode', 'Actor2Religion1Code', 'Actor2Religion2Code',
+    'Actor2Type1Code', 'Actor2Type2Code', 'Actor2Type3Code',
+    'IsRootEvent', 'EventCode', 'EventBaseCode', 'EventRootCode',
+    'QuadClass', 'GoldsteinScale', 'NumMentions', 'NumSources',
+    'NumArticles', 'AvgTone',
+    'Actor1Geo_Type', 'Actor1Geo_FullName', 'Actor1Geo_CountryCode',
+    'Actor1Geo_ADM1Code', 'Actor1Geo_Lat', 'Actor1Geo_Long',
+    'Actor1Geo_FeatureID',
+    'Actor2Geo_Type', 'Actor2Geo_FullName', 'Actor2Geo_CountryCode',
+    'Actor2Geo_ADM1Code', 'Actor2Geo_Lat', 'Actor2Geo_Long',
+    'Actor2Geo_FeatureID',
+    'ActionGeo_Type', 'ActionGeo_FullName', 'ActionGeo_CountryCode',
+    'ActionGeo_ADM1Code', 'ActionGeo_Lat', 'ActionGeo_Long',
+    'ActionGeo_FeatureID',
+    'DATEADDED', 'SOURCEURL'
+]
+
+
+# --- FIPS to ISO country code mapping (subset) ---
+
+FIPS_TO_ISO = {
+    'NI': 'NGA', 'ET': 'ETH', 'SO': 'SOM', 'SU': 'SDN', 'OD': 'SSD',
+    'CG': 'COD', 'CF': 'COG', 'KE': 'KEN', 'UG': 'UGA', 'BY': 'BDI',
+    'RW': 'RWA', 'BC': 'BWA', 'SF': 'ZAF', 'SY': 'SYR', 'YM': 'YEM',
+    'IZ': 'IRQ', 'AF': 'AFG', 'PK': 'PAK', 'UP': 'UKR', 'RS': 'RUS',
+    'ML': 'MLI', 'UV': 'BFA', 'NG': 'NER', 'CD': 'TCD', 'CM': 'CMR',
+    # Add more as needed from CAMEO.country.txt
+}
+
+
+# --- Step 1: Download events ---
+
+def download_gdelt_day(date_str: str) -> pd.DataFrame:
+    """Download all GDELT 2.0 event files for a date (YYYYMMDD)."""
+    master_url = "http://data.gdeltproject.org/gdeltv2/masterfilelist.txt"
+    resp = requests.get(master_url, timeout=60)
+    urls = []
+    for line in resp.text.strip().split('\n'):
+        parts = line.split()
+        if len(parts) == 3 and date_str in parts[2] and '.export.CSV.zip' in parts[2]:
+            urls.append(parts[2])
+
+    frames = []
+    for url in urls:
+        try:
+            r = requests.get(url, timeout=60)
+            with zipfile.ZipFile(io.BytesIO(r.content)) as z:
+                csv_name = z.namelist()[0]
+                with z.open(csv_name) as f:
+                    df = pd.read_csv(f, sep='\t', header=None,
+                                     names=EVENT_COLUMNS, dtype=str,
+                                     low_memory=False)
+            frames.append(df)
+        except Exception as e:
+            print(f"  Error downloading {url}: {e}")
+
+    if not frames:
+        return pd.DataFrame(columns=EVENT_COLUMNS)
+
+    return pd.concat(frames, ignore_index=True)
+
+
+def download_gdelt_range(start: str, end: str) -> pd.DataFrame:
+    """Download GDELT events for a date range (YYYYMMDD format)."""
+    start_dt = datetime.strptime(start, '%Y%m%d')
+    end_dt = datetime.strptime(end, '%Y%m%d')
+    frames = []
+    current = start_dt
+    while current <= end_dt:
+        date_str = current.strftime('%Y%m%d')
+        print(f"Downloading {date_str}...")
+        day_df = download_gdelt_day(date_str)
+        frames.append(day_df)
+        current += timedelta(days=1)
+
+    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+
+
+# --- Step 2: Filter to region and conflict ---
+
+def filter_conflict_events(
+    df: pd.DataFrame,
+    country_fips: str | None = None,
+    lat_range: tuple | None = None,
+    lon_range: tuple | None = None,
+) -> pd.DataFrame:
+    """Filter to conflict events (QuadClass 4) in a specific region."""
+    df = df.copy()
+
+    # Convert types
+    df['QuadClass'] = pd.to_numeric(df['QuadClass'], errors='coerce')
+    df['ActionGeo_Type'] = pd.to_numeric(df['ActionGeo_Type'], errors='coerce')
+    df['ActionGeo_Lat'] = pd.to_numeric(df['ActionGeo_Lat'], errors='coerce')
+    df['ActionGeo_Long'] = pd.to_numeric(df['ActionGeo_Long'], errors='coerce')
+    df['IsRootEvent'] = pd.to_numeric(df['IsRootEvent'], errors='coerce')
+    df['GoldsteinScale'] = pd.to_numeric(df['GoldsteinScale'], errors='coerce')
+    df['AvgTone'] = pd.to_numeric(df['AvgTone'], errors='coerce')
+    df['NumMentions'] = pd.to_numeric(df['NumMentions'], errors='coerce')
+
+    # Filter to material conflict events
+    df = df[df['QuadClass'] == 4]
+
+    # Filter to sub-national geocoding (Geo_Type >= 3 for non-US, >= 4 for world cities)
+    df = df[df['ActionGeo_Type'] >= 3]
+
+    # Filter by country if specified
+    if country_fips:
+        df = df[df['ActionGeo_CountryCode'] == country_fips]
+
+    # Filter by lat/lon bounding box if specified
+    if lat_range:
+        df = df[(df['ActionGeo_Lat'] >= lat_range[0]) & (df['ActionGeo_Lat'] <= lat_range[1])]
+    if lon_range:
+        df = df[(df['ActionGeo_Long'] >= lon_range[0]) & (df['ActionGeo_Long'] <= lon_range[1])]
+
+    return df.dropna(subset=['ActionGeo_Lat', 'ActionGeo_Long'])
+
+
+# --- Step 3: Deduplicate ---
+
+def deduplicate(df: pd.DataFrame) -> pd.DataFrame:
+    """Apply moderate deduplication strategy."""
+    original = len(df)
+
+    # Keep root events only
+    df = df[df['IsRootEvent'] == 1]
+
+    # Deduplicate by source URL + date + location + event code
+    df['_dedup'] = (
+        df['SOURCEURL'].fillna('')
+        + '|' + df['SQLDATE'].astype(str)
+        + '|' + df['ActionGeo_Lat'].astype(str)
+        + '|' + df['ActionGeo_Long'].astype(str)
+        + '|' + df['EventRootCode'].fillna('').astype(str)
+    )
+    df = df.drop_duplicates(subset=['_dedup'], keep='first')
+    df = df.drop(columns=['_dedup'])
+
+    print(f"Deduplication: {original} -> {len(df)} ({len(df)/original:.1%} retained)")
+    return df
+
+
+# --- Step 4: Assign PRIO-GRID cells ---
+
+def assign_grid(df: pd.DataFrame, resolution: float = 0.5) -> pd.DataFrame:
+    """Assign events to 0.5-degree PRIO-GRID cells."""
+    df = df.copy()
+    ncols = int(360 / resolution)
+    df['grid_row'] = np.floor((df['ActionGeo_Lat'] + 90) / resolution).astype(int)
+    df['grid_col'] = np.floor((df['ActionGeo_Long'] + 180) / resolution).astype(int)
+    df['prio_gid'] = df['grid_row'] * ncols + df['grid_col']
+    return df
+
+
+# --- Step 5: Monthly aggregation ---
+
+def aggregate_monthly_grid(df: pd.DataFrame) -> pd.DataFrame:
+    """Aggregate to monthly grid-cell summaries."""
+    return df.groupby(['MonthYear', 'prio_gid']).agg(
+        event_count=('GLOBALEVENTID', 'count'),
+        conflict_events=('QuadClass', lambda x: (x == 4).sum()),
+        protest_events=('EventRootCode', lambda x: (x == '14').sum()),
+        fight_events=('EventRootCode', lambda x: (x == '19').sum()),
+        assault_events=('EventRootCode', lambda x: (x == '18').sum()),
+        avg_goldstein=('GoldsteinScale', 'mean'),
+        avg_tone=('AvgTone', 'mean'),
+        total_mentions=('NumMentions', 'sum'),
+        unique_sources=('SOURCEURL', 'nunique'),
+        grid_lat=('ActionGeo_Lat', 'mean'),
+        grid_lon=('ActionGeo_Long', 'mean'),
+    ).reset_index()
+
+
+# --- Step 6: Save ---
+
+def save_parquet(df: pd.DataFrame, path: str):
+    """Save to Parquet."""
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    df.to_parquet(path, engine='pyarrow', compression='snappy', index=False)
+    print(f"Saved {len(df)} rows to {path}")
+
+
+# --- Full pipeline ---
+
+def run_gdelt_pipeline(
+    start_date: str,
+    end_date: str,
+    country_fips: str = 'NI',  # Nigeria
+    output_dir: str = './data/gdelt',
+):
+    """Run the complete GDELT conflict pipeline."""
+    print(f"=== GDELT Pipeline: {country_fips} from {start_date} to {end_date} ===")
+
+    raw = download_gdelt_range(start_date, end_date)
+    print(f"Downloaded {len(raw)} raw events")
+
+    filtered = filter_conflict_events(raw, country_fips=country_fips)
+    print(f"Filtered to {len(filtered)} conflict events")
+
+    deduped = deduplicate(filtered)
+    gridded = assign_grid(deduped)
+    monthly = aggregate_monthly_grid(gridded)
+
+    iso = FIPS_TO_ISO.get(country_fips, country_fips)
+    output = f"{output_dir}/{iso.lower()}_{start_date}_{end_date}_gdelt_monthly.parquet"
+    save_parquet(monthly, output)
+
+    print(f"\nSummary:")
+    print(f"  Grid cells: {monthly['prio_gid'].nunique()}")
+    print(f"  Months: {monthly['MonthYear'].nunique()}")
+    print(f"  Total events: {monthly['event_count'].sum()}")
+
+
+# Usage:
+# run_gdelt_pipeline('20240101', '20240131', country_fips='NI')
+```
+
+---
+
+## 24. Sources
 
 ### Official Documentation
 
@@ -914,11 +1837,23 @@ GDELT should be used as a **complementary signal**, not a primary ground-truth s
 | GDELT Blog (primary documentation) | https://blog.gdeltproject.org |
 | Data access page | https://www.gdeltproject.org/data.html |
 | GDELT 2.0 overview | https://blog.gdeltproject.org/gdelt-2-0-our-global-world-in-realtime/ |
+| GDELT 3.0 announcement | https://blog.gdeltproject.org/gdelt-3-0-coming-soon/ |
+| VGKG upgrade to 3.0 | https://blog.gdeltproject.org/visual-global-knowledge-graph-upgrading-to-gdelt-3-0-infrastructure/ |
 | Event Codebook V2.0 (PDF) | http://data.gdeltproject.org/documentation/GDELT-Event_Codebook-V2.0.pdf |
 | GKG Codebook V2.1 (PDF) | http://data.gdeltproject.org/documentation/GDELT-Global_Knowledge_Graph_Codebook-V2.1.pdf |
 | GCAM Master Codebook | http://data.gdeltproject.org/documentation/GCAM-MASTER-CODEBOOK.TXT |
-| CAMEO Manual | http://data.gdeltproject.org/documentation/CAMEO.Manual.1.1b3.pdf |
+| GCAM introduction blog | https://blog.gdeltproject.org/introducing-the-global-content-analysis-measures-gcam/ |
+| CAMEO Manual v1.1b3 | http://data.gdeltproject.org/documentation/CAMEO.Manual.1.1b3.pdf |
+| CAMEO codes (machine-readable) | https://github.com/tenthe/CAMEO-Event-Data-Codebook |
+| VGKG V1.0 Alpha codebook | http://data.gdeltproject.org/documentation/GDELT-Visual_Global_Knowledge_Graph-V1.0Alpha.pdf |
+| VGKG announcement blog | https://blog.gdeltproject.org/announcing-the-new-gdelt-visual-global-knowledge-graph-vgkg/ |
 | Datasets overview (Feb 2016) | https://blog.gdeltproject.org/the-datasets-of-gdelt-as-of-february-2016/ |
+| GKG themes lookup (Nov 2021) | https://blog.gdeltproject.org/new-november-2021-gkg-2-0-themes-lookup/ |
+| World Bank taxonomy in GKG | https://blog.gdeltproject.org/world-bank-group-topical-taxonomy-now-in-gkg/ |
+| BigQuery table decorators (cost) | https://blog.gdeltproject.org/using-bigquery-table-decorators-to-lower-query-cost/ |
+| Partitioned BigQuery tables | https://blog.gdeltproject.org/announcing-partitioned-gdelt-bigquery-tables/ |
+| BigQuery demos compilation | https://blog.gdeltproject.org/a-compilation-of-gdelt-bigquery-demos/ |
+| GDELT dataset size analysis | https://blog.gdeltproject.org/creating-a-planetary-scale-open-dataset-just-how-big-is-gdelt/ |
 
 ### API Documentation
 
@@ -930,6 +1865,7 @@ GDELT should be used as a **complementary signal**, not a primary ground-truth s
 | Context 2.0 API | https://blog.gdeltproject.org/announcing-the-gdelt-context-2-0-api/ |
 | GDELT Summary (web UI) | https://summary.gdeltproject.org |
 | GDELT Analysis Service | http://analysis.gdeltproject.org/ |
+| TV News Visual Explorer | https://api.gdeltproject.org/api/v2/tvv/tvv |
 
 ### BigQuery
 
@@ -938,7 +1874,9 @@ GDELT should be used as a **complementary signal**, not a primary ground-truth s
 | Project ID | `gdelt-bq` |
 | GDELT 2.0 dataset | `gdeltv2` |
 | GDELT 1.0 dataset | `full` |
-| Key tables | `gdeltv2.events`, `gdeltv2.eventmentions`, `gdeltv2.gkg` |
+| Key tables | `gdeltv2.events`, `gdeltv2.eventmentions`, `gdeltv2.gkg`, `gdeltv2.cloudvision` |
+| Partitioned events | `gdeltv2.events_partitioned` |
+| BigQuery pricing | $6.25/TB scanned (first 1 TB/month free) |
 
 ### Python Libraries
 
@@ -946,6 +1884,7 @@ GDELT should be used as a **complementary signal**, not a primary ground-truth s
 |---|---|
 | gdeltPyR (pip: `gdelt`) | https://github.com/linwoodc3/gdeltPyR |
 | google-cloud-bigquery | https://pypi.org/project/google-cloud-bigquery/ |
+| GDELT HuggingFace datasets | https://huggingface.co/datasets/dwb2023/gdelt-mentions-2025-v2 |
 
 ### Academic References
 
@@ -956,6 +1895,11 @@ GDELT should be used as a **complementary signal**, not a primary ground-truth s
 | Ward, M.D. et al. (2013). Comparison of GDELT and ICEWS for conflict prediction. | Quality comparison with ICEWS |
 | Steinert-Threlkeld, Z.C. (2018). Validation of GDELT protest data. | Protest event validation |
 | Schrodt, P.A. (2012). "CAMEO: Conflict and Mediation Event Observations Event and Actor Codebook." | CAMEO taxonomy documentation |
+| Simpson, E. (2014). "GDELT and the Problem of Decontextualized Data." *Source: An OpenNews Project*. https://source.opennews.org/articles/gdelt-decontextualized-data/ | Nigeria kidnapping case study; reports-vs-events problem |
+| ONS (2023). "GDELT Data Quality Note." UK Office for National Statistics. https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/methodologies/globaldatabaseofeventslanguageandtonegdeltdataqualitynote | Algorithmic transparency, source coverage, quality assessment |
+| Solvang et al. (2025). "Research on the Development and Application of the GDELT Event Database." *Data* (MDPI), 10(10), 158. https://www.mdpi.com/2306-5729/10/10/158 | 55% accuracy rate, 20% redundancy, deduplication strategies |
+| Oswald et al. (2025). "Deduplication of the media-based event databases." *Journal of Computational Social Science*. https://link.springer.com/article/10.1007/s42001-025-00409-4 | DDS1-DDS5 deduplication strategies; comparison with ACLED/ICEWS |
+| Weidmann & Rød (2019). *The Internet and Political Protest in Autocracies.* Oxford University Press. | GDELT bias in non-democratic contexts |
 
 ### Lookup Files
 
@@ -967,6 +1911,11 @@ All available at `https://www.gdeltproject.org/data/lookups/`:
 Available at `http://data.gdeltproject.org/normfiles/`:
 - `daily.csv`, `daily_country.csv`, `monthly.csv`, `monthly_country.csv`, `yearly.csv`, `yearly_country.csv`
 
+### GKG Theme Lists
+
+- Full theme list: `http://data.gdeltproject.org/documentation/GDELT-Global_Knowledge_Graph_CategoryList.xlsx`
+- GitHub community list: https://github.com/CatoMinor/GDELT-GKG-Themes
+
 ---
 
-*Last verified: March 2025*
+*Last verified: March 2026*

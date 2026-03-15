@@ -14,6 +14,7 @@ This folder contains the deep research that underpins the Causal Atlas project. 
 | 06 | [data-integration.md](06-data-integration.md) | Spatial/temporal alignment techniques | 🟢 Complete (first pass) |
 | 07 | [similar-projects.md](07-similar-projects.md) | Prior art, GitHub repos, academic papers | 🟢 Complete (first pass) |
 | 08 | [architecture-notes.md](08-architecture-notes.md) | Emerging architecture decisions from research | 🟢 Complete (first pass) |
+| 09 | [machine-specifications.md](09-machine-specifications.md) | Linux hardware specs, cloud vs self-hosted, software stack | 🟢 Complete (first pass) |
 
 ## Status Key
 

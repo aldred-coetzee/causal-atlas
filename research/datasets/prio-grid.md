@@ -844,3 +844,431 @@ The v3 `pgsources` data frame catalogues 37 data sources relevant to quantitativ
 - Li et al. nighttime lights
 
 New sources can be proposed via GitHub issues: https://github.com/prio-data/priogrid/issues/new/choose
+
+---
+
+## 16. Grid Cell ID Numbering Algorithm — Full Mathematical Specification
+
+Understanding the exact algorithm for PRIO-GRID cell numbering is essential for reproducibility. Here is the complete formal specification:
+
+### Definitions
+
+- **Resolution:** `r = 0.5` degrees
+- **Number of columns:** `C = 360 / r = 720` (west to east)
+- **Number of rows:** `R = 180 / r = 360` (south to north)
+- **Total cells:** `N = C × R = 259,200`
+
+### Forward Mapping: (longitude, latitude) → pgid
+
+Given a point at `(lon, lat)` where `-180 ≤ lon < 180` and `-90 ≤ lat < 90`:
+
+```
+col = floor((lon + 180) / r) + 1          # range: 1 to 720
+row = floor((lat + 90) / r) + 1           # range: 1 to 360
+pgid = (row - 1) × C + col               # range: 1 to 259,200
+```
+
+**Edge cases:**
+- `lon = 180.0` maps to `col = 720` (wrap to last column)
+- `lat = 90.0` maps to `row = 360` (clamp to last row)
+- Values exactly on a cell boundary map to the cell to the east/north
+
+### Reverse Mapping: pgid → (centroid_lon, centroid_lat)
+
+Given a `pgid` in range `[1, 259200]`:
+
+```
+col = ((pgid - 1) mod C) + 1
+row = ((pgid - 1) div C) + 1
+
+centroid_lon = -180.0 + (col - 1) × r + r/2    # = -180.0 + (col - 0.5) × r
+centroid_lat = -90.0 + (row - 1) × r + r/2     # = -90.0 + (row - 0.5) × r
+
+# Cell bounding box:
+west  = -180.0 + (col - 1) × r
+east  = west + r
+south = -90.0 + (row - 1) × r
+north = south + r
+```
+
+### Verification Against v3 R Source
+
+The v3 R source (`create_pg_indices()`) produces the same numbering through a matrix rotation trick:
+
+```r
+# R code (from priogrid/R/utility.R)
+rotate <- function(x) t(apply(x, 2, rev))
+pg <- rotate(matrix(rev(1:(720*360)), nrow=720, ncol=360))
+# Result: pg[row, col] gives the pgid for that grid position
+# pg[1, 1] = 1 (bottom-left, SW corner)
+# pg[1, 720] = 720 (bottom-right, SE corner)
+# pg[360, 720] = 259200 (top-right, NE corner)
+```
+
+This is mathematically equivalent to the formula `pgid = (row-1)*720 + col` after the rotation normalises the matrix to row-major south-to-north, west-to-east ordering.
+
+### Neighbour Identification
+
+For spatial analysis, identifying cell neighbours is critical:
+
+```
+# Queen neighbours (8-connected): cells sharing an edge or corner
+queen_neighbours(pgid) = {
+    pgid - 721, pgid - 720, pgid - 719,    # row below
+    pgid - 1,               pgid + 1,       # same row
+    pgid + 719, pgid + 720, pgid + 721      # row above
+}
+
+# Rook neighbours (4-connected): cells sharing an edge only
+rook_neighbours(pgid) = {
+    pgid - 720,                              # south
+    pgid - 1,               pgid + 1,       # west, east
+    pgid + 720                               # north
+}
+```
+
+**Boundary corrections required:**
+- Column 1 (western edge): no western neighbours (pgid-1, pgid-719, pgid+721 are invalid or wrap)
+- Column 720 (eastern edge): no eastern neighbours
+- Row 1 (southern edge): no southern neighbours
+- Row 360 (northern edge): no northern neighbours
+- For a toroidal (wrapping) grid, column 1 and 720 can be connected
+
+---
+
+## 17. Creating Spatial Weights Matrices for PRIO-GRID Cells
+
+Spatial weights matrices are fundamental for spatial econometric analysis (spatial lag models, Moran's I, spatial error models). Here is how to create them for PRIO-GRID:
+
+### Python Implementation (Queen and Rook Contiguity)
+
+```python
+import numpy as np
+from scipy import sparse
+
+def create_priogrid_weights(contiguity='queen', ncol=720, nrow=360):
+    """
+    Create a sparse spatial weights matrix for the PRIO-GRID.
+
+    Args:
+        contiguity: 'queen' (8 neighbours) or 'rook' (4 neighbours)
+        ncol: number of columns (720 for standard grid)
+        nrow: number of rows (360 for standard grid)
+
+    Returns:
+        scipy.sparse.csr_matrix of shape (ncol*nrow, ncol*nrow)
+        Row-standardised weights (each row sums to 1).
+    """
+    n = ncol * nrow
+    rows, cols = [], []
+
+    for pgid in range(n):
+        r = pgid // ncol  # 0-indexed row
+        c = pgid % ncol   # 0-indexed col
+
+        # Rook neighbours (N, S, E, W)
+        if r > 0:        rows.append(pgid); cols.append(pgid - ncol)   # south
+        if r < nrow - 1: rows.append(pgid); cols.append(pgid + ncol)   # north
+        if c > 0:        rows.append(pgid); cols.append(pgid - 1)      # west
+        if c < ncol - 1: rows.append(pgid); cols.append(pgid + 1)      # east
+
+        # Queen additions (diagonal neighbours)
+        if contiguity == 'queen':
+            if r > 0 and c > 0:            rows.append(pgid); cols.append(pgid - ncol - 1)  # SW
+            if r > 0 and c < ncol - 1:     rows.append(pgid); cols.append(pgid - ncol + 1)  # SE
+            if r < nrow - 1 and c > 0:     rows.append(pgid); cols.append(pgid + ncol - 1)  # NW
+            if r < nrow - 1 and c < ncol - 1: rows.append(pgid); cols.append(pgid + ncol + 1) # NE
+
+    data = np.ones(len(rows), dtype=float)
+    W = sparse.csr_matrix((data, (rows, cols)), shape=(n, n))
+
+    # Row-standardise
+    row_sums = np.array(W.sum(axis=1)).flatten()
+    row_sums[row_sums == 0] = 1  # avoid division by zero for isolated cells
+    W = W.multiply(1.0 / row_sums[:, np.newaxis])
+
+    return W
+
+# Usage:
+# W_queen = create_priogrid_weights('queen')
+# W_rook = create_priogrid_weights('rook')
+# For spatial lag: Wy = W_queen.dot(y)  where y is a vector of values per cell
+```
+
+### Using `libpysal` (PySAL Library)
+
+For production use, PySAL's `libpysal` provides optimised weights matrix construction:
+
+```python
+import libpysal
+import geopandas as gpd
+
+# If you have a PRIO-GRID GeoDataFrame:
+pg = gpd.read_file("priogrid_cells.shp")
+
+# Queen contiguity
+w_queen = libpysal.weights.Queen.from_dataframe(pg)
+
+# Rook contiguity
+w_rook = libpysal.weights.Rook.from_dataframe(pg)
+
+# Row standardise
+w_queen.transform = 'r'
+w_rook.transform = 'r'
+
+# Access neighbours for a specific cell
+print(w_queen.neighbors[12345])  # list of neighbour cell indices
+```
+
+### R Implementation (using `spdep`)
+
+```r
+library(spdep)
+library(sf)
+
+# Load PRIO-GRID as sf object
+pg <- st_read("priogrid_cells.shp")
+
+# Create neighbour list
+nb_queen <- poly2nb(pg, queen = TRUE)   # 8-connected
+nb_rook  <- poly2nb(pg, queen = FALSE)  # 4-connected
+
+# Convert to spatial weights matrix
+w_queen <- nb2listw(nb_queen, style = "W")  # row-standardised
+w_rook  <- nb2listw(nb_rook, style = "W")
+
+# For regular grids, lctools provides a faster alternative:
+library(lctools)
+W <- lat2w(nrow = 360, ncol = 720, queen = TRUE)
+```
+
+### Higher-Order Weights
+
+For second-order contiguity (neighbours of neighbours), useful for spatial diffusion analysis:
+
+```python
+# Second-order queen contiguity
+W2 = W_queen.dot(W_queen)
+# Zero out self-connections
+W2.setdiag(0)
+# Remove first-order neighbours to get pure second-order
+W2_pure = W2 - W_queen
+W2_pure[W2_pure < 0] = 0
+```
+
+---
+
+## 18. VIEWS Forecasting System — How It Uses PRIO-GRID
+
+The **VIEWS (Violence & Impacts Early-Warning System)** is the most prominent operational system built on PRIO-GRID. Understanding how VIEWS extends and uses PRIO-GRID is directly relevant to Causal Atlas's design.
+
+### VIEWS Architecture
+
+VIEWS is a collaborative project between PRIO (Oslo) and Uppsala University that generates monthly forecasts of armed conflict fatalities at two spatial levels:
+
+1. **PRIO-GRID-month (pgm):** Sub-national forecasts at the 0.5° × 0.5° grid cell level, monthly cadence
+2. **Country-month (cm):** National-level forecasts, monthly cadence
+
+Forecasts are produced for horizons of **1 to 36 months ahead**, updated monthly.
+
+**Source:** https://viewsforecasting.org/ and https://github.com/prio-data/views_pipeline
+
+### VIEWS Pipeline Components
+
+The VIEWS pipeline (open-source on GitHub) consists of:
+
+- **`views-pipeline-core`:** Data ingestion, preprocessing, model training, evaluation, experiment tracking
+- **`views-models`:** All implemented models at both pgm and cm levels
+- **`views-data`:** Data management and feature engineering
+
+### Variables VIEWS Adds to PRIO-GRID
+
+VIEWS extends the base PRIO-GRID variables with:
+
+| Variable Category | Examples | Source |
+|---|---|---|
+| **Conflict history** | UCDP GED fatality counts (lagged 1-12 months), decay functions of past conflict | UCDP GED |
+| **Spatial lags** | Conflict in neighbouring cells (queen contiguity spatial lag of fatalities) | Computed from UCDP GED + PRIO-GRID |
+| **Temporal features** | Months since last conflict event, conflict onset/offset indicators | Computed |
+| **Climate** | Temperature, precipitation, drought indices (SPEI) | CRU TS, SPEIbase |
+| **Population** | Cell population, population density | GHSL GHS-POP |
+| **Terrain** | Ruggedness, distance to border, distance to capital | PRIO-GRID static |
+| **Political** | Country codes, excluded ethnic groups | cShapes, GeoEPR |
+| **Economic proxies** | Nighttime lights | VIIRS |
+| **Peacekeeping** | UN peacekeeping troop presence | GeoPKO |
+
+### VIEWS Model Architecture
+
+VIEWS uses an ensemble of machine learning models:
+
+- **XGBoost** gradient boosted trees (primary model family)
+- **LightGBM** as alternative tree-based models
+- **Hurdle models** combining a binary (any conflict?) and a count (how many fatalities?) component
+- **Ensemble averaging** across multiple model specifications
+
+The ensemble produces probabilistic forecasts with uncertainty quantification.
+
+### Key Lessons for Causal Atlas
+
+1. **Monthly PRIO-GRID analysis is feasible and operational.** VIEWS processes ~64,000 land cells × 36 months of forecasts every month.
+2. **Spatial lag variables are essential.** Conflict in neighbouring cells is among the strongest predictors.
+3. **Temporal decay functions** capture conflict persistence better than raw lagged values.
+4. **The VIEWS data pipeline** demonstrates how to engineer features from raw UCDP GED + PRIO-GRID data at scale.
+5. **The 2023/24 Prediction Challenge** attracted 13 research institutions globally, demonstrating community engagement.
+
+### VIEWS Data Access
+
+- VIEWS forecasts: https://viewsforecasting.org/ (downloadable, updated monthly)
+- VIEWS pipeline code: https://github.com/prio-data/views_pipeline
+- GIS resources: https://viewsforecasting.org/gis-resources/
+- VIEWS was awarded the **Kluz Prize for PeaceTech** Special Distinction
+
+---
+
+## 19. v3 R Package Function Reference
+
+The `priogrid` R package (v3.0.1) provides the following key functions, grouped by purpose:
+
+### Grid Management
+
+| Function | Description |
+|---|---|
+| `prio_blank_grid()` | Generate a blank SpatRaster with PRIO-GRID cell IDs |
+| `create_pg_indices()` | Create the cell ID matrix (720×360) |
+| `download_priogrid()` | Download the pre-built official release |
+| `read_pg_static()` | Load static variables as data.table |
+| `read_pg_timevarying()` | Load time-varying variables as data.table |
+| `load_pgvariable()` | Load a single variable as SpatRaster |
+
+### Configuration
+
+| Function / Object | Description |
+|---|---|
+| `pgoptions$set_rawfolder()` | Set the data storage directory |
+| `pgoptions$set_start_date()` | Set the temporal range start |
+| `pgoptions$set_end_date()` | Set the temporal range end |
+| `pgoptions$set_temporal_resolution()` | Set resolution: "1 year", "1 month", "1 quarter" |
+| `pgoptions$set_spatial_resolution()` | Set grid cell size (default 0.5 degrees) |
+| `pgoptions$set_crs()` | Set coordinate reference system |
+
+### Data Generators (Static)
+
+| Function | Variable | Source Dataset |
+|---|---|---|
+| `gen_ne_disputed_area_share()` | Disputed territory share | Natural Earth |
+| `gen_ruggedterrain()` | Terrain ruggedness index | SRTM 90m DEM |
+| `gen_cshapes_gwcode()` | Country assignment (static snapshot) | cShapes 2.0 |
+
+### Data Generators (Time-Varying)
+
+| Function | Variable | Source | Default Resolution |
+|---|---|---|---|
+| `gen_ucdp_ged()` | Battle-related deaths by type of violence | UCDP GED v24.1 | Yearly |
+| `gen_ghsl_population_grid()` | Population count | GHSL GHS-POP R2023A | 5-year intervals |
+| `gen_cru_tmp()` | Mean temperature (°C) | CRU TS v4.09 | Monthly |
+| `gen_cru_pre()` | Precipitation (mm) | CRU TS v4.09 | Monthly |
+| `gen_cru_pet()` | Potential evapotranspiration (mm) | CRU TS v4.09 | Monthly |
+| `gen_spei6()` | SPEI-6 drought index | SPEIbase v2.10 | Monthly |
+| `gen_hilda_cropland()` | Cropland fraction | HILDA+ | Yearly |
+| `gen_hilda_forest()` | Forest fraction | HILDA+ | Yearly |
+| `gen_hilda_pasture()` | Pasture fraction | HILDA+ | Yearly |
+| `gen_hilda_urban()` | Urban fraction | HILDA+ | Yearly |
+| `gen_hilda_water()` | Water body fraction | HILDA+ | Yearly |
+| `gen_linight()` | Nighttime light intensity | Harmonised NTL | Yearly |
+| `gen_geoEPR_groups_count()` | Count of ethnic groups | GeoEPR | Yearly |
+| `gen_geoEPR_excluded_groups_count()` | Count of excluded ethnic groups | GeoEPR | Yearly |
+| `gen_geopko_troops()` | Peacekeeping troop presence | GeoPKO | Yearly |
+| `gen_bdist1()` | Distance to nearest land-border neighbour | cShapes | Yearly |
+| `gen_bdist2()` | Distance to nearest border (incl. water) | cShapes | Yearly |
+| `gen_bdist3()` | Distance to own country border | cShapes | Yearly |
+| `calc_traveltime()` | Travel time to nearest city | Accessibility maps | Static/periodic |
+
+### Utility Functions
+
+| Function | Description |
+|---|---|
+| `pgcitations()` | Generate citations for variables used |
+| `pgsources` | Data frame listing all 37 catalogued source datasets |
+| `crossection()` | Extract a spatial cross-section at a given date |
+| `timeseries()` | Extract a time series for a given cell or set of cells |
+
+### Writing Custom Generators
+
+Users can extend v3 by writing custom `gen_*()` functions. The pattern is:
+
+```r
+gen_my_variable <- function() {
+    # 1. Download or locate raw source data
+    # 2. Process to a SpatRaster matching the PRIO-GRID resolution
+    # 3. Return the SpatRaster with temporal layers
+    # The priogrid framework handles caching, hashing, and integration
+}
+```
+
+---
+
+## 20. Cell Area Correction
+
+Because PRIO-GRID uses an equirectangular projection (WGS84), cells at different latitudes cover different actual areas on the ground. This must be corrected for any area-dependent analysis.
+
+### Area Formula
+
+The area of a PRIO-GRID cell at latitude `φ` (in radians):
+
+```
+area_km2 = R² × Δλ × (sin(φ + Δφ/2) - sin(φ - Δφ/2))
+```
+
+Where:
+- `R = 6371 km` (mean Earth radius)
+- `Δλ = 0.5°` = `π/360` radians (cell width in longitude)
+- `Δφ = 0.5°` = `π/360` radians (cell height in latitude)
+- `φ` = cell centroid latitude in radians
+
+### Simplified Approximation
+
+For quick calculations:
+
+```
+area_km2 ≈ 3080 × cos(latitude_degrees × π / 180)
+```
+
+This gives:
+- **Equator (0°):** ~3,080 km²
+- **30° latitude:** ~2,668 km²
+- **45° latitude:** ~2,178 km²
+- **60° latitude:** ~1,540 km²
+
+### Python Implementation
+
+```python
+import numpy as np
+
+def cell_area_km2(lat_centroid, resolution=0.5):
+    """Compute the actual area (km²) of a PRIO-GRID cell at a given latitude."""
+    R = 6371.0  # Earth's mean radius in km
+    lat_rad = np.radians(lat_centroid)
+    dlat = np.radians(resolution)
+    dlon = np.radians(resolution)
+
+    area = R**2 * dlon * (np.sin(lat_rad + dlat/2) - np.sin(lat_rad - dlat/2))
+    return abs(area)
+
+# Pre-compute for all PRIO-GRID rows
+areas = np.array([cell_area_km2(-89.75 + i * 0.5) for i in range(360)])
+# areas[0]  → ~0.24 km² (near south pole)
+# areas[180] → ~3080 km² (equator)
+# areas[359] → ~0.24 km² (near north pole)
+```
+
+### When to Apply Area Correction
+
+| Analysis Type | Correction Needed? | Method |
+|---|---|---|
+| Event counts per cell | No | Counts are counts |
+| Event density (events per km²) | Yes | Divide by cell area |
+| Population density | Yes | Divide by cell area |
+| Precipitation totals | No (if already in mm) | mm is per unit area |
+| Temperature means | No | Temperature is intensive |
+| Sum-of-lights (NTL) | Depends | If comparing radiance sums across latitudes, weight by area |
+| Spatial aggregation | Yes | Weight cells by area when computing regional means |

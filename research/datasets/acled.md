@@ -1,6 +1,6 @@
 # ACLED — Armed Conflict Location & Event Data
 
-> **Last reviewed:** March 2025
+> **Last reviewed:** March 2026 (significantly expanded)
 > **Status:** Active, weekly updates
 > **Website:** https://acleddata.com
 
@@ -801,18 +801,807 @@ ACLED data, combined with other Causal Atlas sources, can test hypotheses about:
 
 ---
 
-## 12. Sources
+## 12. ACLED API (Current Architecture — Post-Migration)
+
+> **Last verified:** March 2026. ACLED migrated away from the legacy `api.acleddata.com/acled/read` endpoint. The current API is hosted at `acleddata.com/api/`.
+
+### Base URL
+
+```
+https://acleddata.com/api/acled/read
+```
+
+Response format is controlled by `_format` query parameter: `csv`, `json`, `xml`, or `txt`. JSON is the default.
+
+### Authentication
+
+ACLED now uses **OAuth 2.0 password-grant flow** (replacing the legacy email + key query parameter approach):
+
+**Step 1 — Obtain an access token:**
+```bash
+curl -X POST https://acleddata.com/oauth/token \
+  -d "grant_type=password" \
+  -d "client_id=acled" \
+  -d "username=YOUR_EMAIL" \
+  -d "password=YOUR_PASSWORD"
+```
+
+**Response:**
+```json
+{
+  "token_type": "Bearer",
+  "expires_in": 86400,
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOi...",
+  "refresh_token": "def50200a1b2c3d4..."
+}
+```
+
+- **Access token validity:** 24 hours
+- **Refresh token validity:** 14 days
+- Refresh via POST to the same endpoint with `grant_type=refresh_token` and the refresh token
+
+**Step 2 — Use the token in requests:**
+```bash
+curl -H "Authorization: Bearer ACCESS_TOKEN" \
+  "https://acleddata.com/api/acled/read?_format=json&country=Somalia&year=2024&limit=100"
+```
+
+**Alternative: Cookie-based authentication** — For browser or Postman-based access, POST credentials to `https://acleddata.com/user/login?_format=json` to get a session cookie and CSRF token.
+
+### Available Endpoints
+
+| Endpoint Path | Purpose |
+|---------------|---------|
+| `/api/acled/read` | Core event data (political violence, demonstrations, strategic developments) |
+| `/api/acled/deleted/read` | Deleted/removed events |
+| `/api/cast/read` | CAST conflict forecasts (monthly predictions, up to 6 months ahead) |
+
+### Query Filters (Complete List)
+
+| Filter | Type | Default Operator | Description |
+|--------|------|-----------------|-------------|
+| `event_id_cnty` | string | LIKE | Event ID (e.g., `SOM12345`) |
+| `event_date` | date | = | YYYY-MM-DD; supports `_where=BETWEEN` with pipe-separated range |
+| `year` | integer | = | Year filter; supports `_where=>` etc. |
+| `time_precision` | integer | = | 1=exact, 2=~week, 3=~month |
+| `disorder_type` | string | LIKE | `Political violence`, `Demonstrations`, `Strategic developments` |
+| `event_type` | string | LIKE | Main event classification |
+| `sub_event_type` | string | LIKE | Sub-classification |
+| `actor1` / `actor2` | string | LIKE | Actor name |
+| `assoc_actor_1` / `assoc_actor_2` | string | LIKE | Associated actors |
+| `inter1` / `inter2` | integer | = | Actor type codes |
+| `interaction` | integer | = | Two-digit interaction code |
+| `civilian_targeting` | string | LIKE | `"Civilian targeting"` or empty |
+| `iso` | integer | = | ISO 3166-1 numeric country code |
+| `region` | integer | = | ACLED region code (1–20) |
+| `country` | string | = | Country name |
+| `admin1` / `admin2` / `admin3` | string | LIKE | Administrative divisions |
+| `location` | string | LIKE | Named place |
+| `latitude` / `longitude` | float | = | Coordinates (supports `_where`) |
+| `geo_precision` | integer | = | 1–3 |
+| `source` / `source_scale` | string | LIKE | Source metadata |
+| `notes` / `tags` | string | LIKE | Free text / tags |
+| `fatalities` | integer | = | Fatality count (supports `_where=>`) |
+| `timestamp` | integer | = | Unix timestamp of last update |
+
+**Filter modifiers:**
+- `_where` suffix: `=`, `>`, `<`, `>=`, `<=`, `BETWEEN`, `LIKE`
+- Multiple values: pipe (`|`) or `:OR:` syntax — e.g., `country=Argentina|Georgia|Brazil`
+- URL-encoded operators: `%3E` for `>`, `%3C` for `<`, etc.
+
+**Additional parameters:**
+- `export_type`: `dyadic` (default, one row per event) or `monadic` (one row per actor)
+- `population`: `TRUE` for best population estimate, `"full"` for 1km/2km/5km/best estimates
+- `fields`: pipe-separated list of fields to return (e.g., `fields=event_date|event_type|fatalities`)
+- `limit`: max rows per page (default: **5000**)
+- `page`: pagination page number (1-indexed)
+- `inter_num`: `1` for numeric actor codes, `0` for text labels (default)
+
+### Pagination Model
+
+The API defaults to returning a maximum of **5,000 rows** per request. To retrieve larger datasets:
+
+```python
+import requests
+
+BASE = "https://acleddata.com/api/acled/read"
+TOKEN = "your_access_token"
+headers = {"Authorization": f"Bearer {TOKEN}"}
+
+page = 1
+all_data = []
+
+while True:
+    params = {
+        "_format": "json",
+        "country": "Ethiopia",
+        "year": 2024,
+        "limit": 5000,
+        "page": page
+    }
+    resp = requests.get(BASE, headers=headers, params=params, timeout=60)
+    result = resp.json()
+
+    if not result.get("success") or not result.get("data"):
+        break
+
+    all_data.extend(result["data"])
+
+    if len(result["data"]) < 5000:
+        break  # last page
+
+    page += 1
+
+print(f"Total events retrieved: {len(all_data)}")
+```
+
+**Important:** Pagination calls do **not** count against API rate limits.
+
+### Response Format (JSON Example)
+
+```json
+{
+  "status": 200,
+  "success": true,
+  "last_update": 12,
+  "count": 2,
+  "messages": [],
+  "data": [
+    {
+      "event_id_cnty": "SOM56789",
+      "event_date": "2024-03-15",
+      "year": "2024",
+      "time_precision": "1",
+      "disorder_type": "Political violence",
+      "event_type": "Battles",
+      "sub_event_type": "Armed clash",
+      "actor1": "Military Forces of Somalia (2012-)",
+      "assoc_actor_1": "",
+      "inter1": "1",
+      "actor2": "Al Shabaab",
+      "assoc_actor_2": "",
+      "inter2": "2",
+      "interaction": "12",
+      "civilian_targeting": "",
+      "iso": "706",
+      "region": "Eastern Africa",
+      "country": "Somalia",
+      "admin1": "Hiiraan",
+      "admin2": "Belet Weyne",
+      "admin3": "",
+      "location": "Belet Weyne",
+      "latitude": "4.7356",
+      "longitude": "45.2037",
+      "geo_precision": "1",
+      "source": "Garowe Online; Halgan Media",
+      "source_scale": "Subnational",
+      "notes": "On 15 March 2024, Somali military forces clashed with Al Shabaab militants near Belet Weyne...",
+      "fatalities": "3",
+      "tags": "",
+      "timestamp": "1710720000"
+    }
+  ],
+  "data_query_restrictions": {
+    "country": "Somalia"
+  }
+}
+```
+
+### Rate Limits
+
+ACLED does **not** publicly document specific per-minute or per-hour rate limits. In practice:
+
+- The default 5,000-row limit per page acts as a bandwidth constraint
+- Pagination calls are explicitly excluded from rate limit counting
+- Excessive automated scraping is prohibited by the EULA
+- For very large downloads (e.g., full country histories), ACLED recommends using the **bulk download files** rather than repeated API calls
+- The unofficial `acled` Python package uses: 3 retries, 0.5s backoff factor, 30s timeout as reasonable defaults
+- Token-based auth avoids the overhead of re-authenticating on every request (24h token validity)
+
+### ACLED Access Tool vs API
+
+| Feature | Data Export Tool (Web) | API (Programmatic) |
+|---------|----------------------|-------------------|
+| **Interface** | Web form with dropdown filters | HTTP GET requests with query parameters |
+| **Authentication** | Browser login session | OAuth token or cookie-based |
+| **Output formats** | CSV, Excel | JSON (default), CSV, XML, TXT |
+| **Row limits** | Determined by export filters | 5,000 per page (paginate for more) |
+| **Filtering** | Dropdown menus, date pickers | Query parameters with operators (`_where`) |
+| **Best for** | Quick manual downloads, non-technical users | Automated pipelines, reproducible workflows |
+| **Pagination** | N/A (single export) | `page` parameter, increment until done |
+| **Population data** | Not available | Available via `population=TRUE` parameter |
+| **Bulk download files** | Available for download by region/year | Not applicable (use API for filtered queries) |
+
+---
+
+## 13. ACLED Conflict Index
+
+> Source: https://acleddata.com/general-guide/about-conflict-index (verified March 2026)
+
+### What It Measures
+
+The ACLED Conflict Index is a composite measure of conflict intensity for every country and territory in the world. It provides a single score enabling cross-country comparison and temporal tracking of conflict trends.
+
+### The Four Indicators
+
+| Indicator | Question | Measurement |
+|-----------|----------|-------------|
+| **Deadliness** | How fatal are political violence events? | Total reported fatalities from political violence over 12 months |
+| **Danger to Civilians** | How much violence targets civilians? | Count of violent events specifically targeting civilians |
+| **Geographic Diffusion** | How widespread is violence? | Proportion of 10km × 10km grid cells in a country experiencing ≥10 political violence events per year |
+| **Armed Group Fragmentation** | How many armed groups are active? | Count of distinct rebel groups and political militias operating in the last 12 months (excluding unidentified groups) |
+
+### Calculation Methodology
+
+1. **Compute raw values** for each indicator per country
+2. **Scale** — the square root of each indicator value is taken to reduce the dominance of extreme outliers
+3. **Weight** — the square root is raised to the power of the indicator's weight. For the weekly index, danger and deadliness carry slightly more weight than diffusion and fragmentation
+4. **Sum** — the weighted values are added to form a single composite score
+5. **Rank** — countries are ranked by their composite score
+
+The score has a **minimum of 0** and **no theoretical maximum**, since there is no pre-assumed ceiling on conflict intensity.
+
+### Classification Tiers
+
+| Tier | Criteria |
+|------|----------|
+| **Extreme** | Top 10 countries |
+| **High** | Next 20 countries |
+| **Turbulent** | Next 20 countries |
+| **Low/Inactive** | Remainder |
+
+### Update Cadence
+
+| Version | Frequency | Period Covered |
+|---------|-----------|---------------|
+| **Annual Conflict Index** | Released in December | Previous December through November |
+| **Weekly Conflict Index** | Updated every Wednesday | Rolling window |
+
+### Data Scope
+
+The Index uses only events under the **"Political violence"** disorder type. This excludes protests (unless involving excessive force) and strategic developments. Coverage spans more than 240 countries and territories.
+
+### Relevance for Causal Atlas
+
+The Conflict Index provides a pre-computed severity score per country per time period. This could serve as a higher-level dependent variable or contextual control in cross-domain causal analyses, supplementing raw event counts with a measure of conflict intensity.
+
+---
+
+## 14. Coding Methodology In Detail
+
+### Coder Recruitment and Training
+
+ACLED employs **experienced researchers with knowledge of local contexts and languages**. Coders are typically regional specialists who understand the political landscape, actor networks, and media environment of the countries they cover. Specific formal training protocols are not publicly detailed, but ACLED states that all coders apply guidelines from the Codebook and supplemental documentation.
+
+### Source Materials
+
+ACLED coders work from **structured and regularly reviewed lists of secondary sources**, accessed through a proprietary **sourcing platform** that ensures the same sources are checked every week in a consistent manner. Source types include:
+
+- **National media** — state and private outlets in local languages
+- **International wire services** — AFP, AP, Reuters, Xinhua
+- **Subnational and ethnic media** — e.g., Kachinland News for Myanmar, Oromiya Media Network for Ethiopia
+- **Diaspora media** — for countries with restricted press freedom (e.g., ESAT, Zehabesha for Ethiopia)
+- **NGO and human rights reports** — Amnesty International, Human Rights Watch
+- **Social media** — used cautiously as supplementary verification
+- **Governmental and UN sources** — official statements, OCHA sitreps
+- **New media** — journalist accounts, monitoring groups
+
+### The Three-Stage Review Process
+
+ACLED uses a **weekly coding and review cycle** with three hierarchical review stages:
+
+**Stage 1: Intra-Coder Reliability**
+- Individual researchers code events for their assigned countries
+- They self-review for internal consistency (e.g., same actor coded the same way, same event type applied to similar situations)
+- Difficult decisions are flagged and discussed with team members and Research Managers
+
+**Stage 2: Inter-Coder Reliability (Regional)**
+- A **Regional Research Manager** reviews all coded data from their region
+- Cross-checks coding decisions across different country researchers within the same region
+- Ensures consistent application of the methodology (e.g., "armed clash" vs "government regains territory" coded consistently across Nigeria and Niger)
+
+**Stage 3: Global Consistency**
+- A **global methodology team** conducts a final review
+- Ensures inter-region consistency (e.g., protest coding in Latin America matches protest coding in Africa)
+- Validates that the methodology is applied consistently worldwide
+
+### Disagreement Resolution
+
+- Researchers pose questions to team members and Research Managers daily
+- Difficult coding decisions are escalated through the regional and global hierarchy
+- No formal external arbitration process is documented — resolution is internal and hierarchical
+- New methodological insights trigger **systematic quality assurance reviews** of previously coded data
+
+### Automated Data Cleaning
+
+After manual review, data are sent to the **Data Management team** for:
+- Automated data cleaning and formatting checks
+- Validation of field values against allowed ranges
+- Consistency checks (e.g., coordinates match country, actor types match interaction codes)
+
+### Source Transparency
+
+ACLED records sources in the `source` field (semicolon-separated) and tags them by geographic scope in `source_scale`. This enables users to assess the provenance and potential biases of individual event records.
+
+---
+
+## 15. Complete Sub-Event Type Reference
+
+> Based on the ACLED Codebook (October 2024 edition). The dataset records **6 event types** and **25 sub-event types**, classified under **3 disorder types**.
+
+### Disorder Type: Political Violence
+
+#### Event Type: Battles (3 sub-event types)
+| Sub-Event Type | Description | Example |
+|---------------|-------------|---------|
+| **Armed clash** | Confrontation between armed groups without clear territorial outcome | Al Shabaab and Somali military exchange fire near a checkpoint in Hiiraan |
+| **Government regains territory** | State forces recapture an area from non-state actors | Nigerian army retakes village from ISWAP fighters in Borno state |
+| **Non-state actor overtakes territory** | Rebel group or militia seizes and holds territory | Taliban captures district centre in Helmand province |
+
+#### Event Type: Explosions/Remote violence (6 sub-event types)
+| Sub-Event Type | Description | Example |
+|---------------|-------------|---------|
+| **Air/drone strike** | Aerial bombardment by manned aircraft or unmanned drones | US drone strike targets Al Qaeda leader in Yemen |
+| **Suicide bomb** | Self-detonating explosive attack | ISIS suicide bomber detonates at market in Baghdad |
+| **Shelling/artillery/missile attack** | Indirect fire using heavy weapons | Russian artillery shells residential area in Kharkiv |
+| **Remote explosive/landmine/IED** | Pre-placed explosive device | Roadside IED detonates against military convoy in Mali |
+| **Grenade** | Hand-thrown explosive device | Grenade thrown at police station in Burundi |
+| **Chemical weapon** | Use of chemical agents | Chlorine gas attack on rebel-held area in Syria |
+
+#### Event Type: Violence against civilians (3 sub-event types)
+| Sub-Event Type | Description | Example |
+|---------------|-------------|---------|
+| **Attack** | Direct physical violence against civilians by an organised group | Militia attacks village, killing 12 civilians in Ituri, DRC |
+| **Abduction/forced disappearance** | Kidnapping or enforced disappearance | Boko Haram abducts 43 people from rural community in Adamawa |
+| **Sexual violence** | Rape, sexual assault, or other sexual violence as a tactic | Armed group systematically commits sexual violence in South Kivu |
+
+### Disorder Type: Demonstrations
+
+#### Event Type: Protests (3 sub-event types)
+| Sub-Event Type | Description | Example |
+|---------------|-------------|---------|
+| **Peaceful protest** | Non-violent demonstration by 3+ people | Thousands march against corruption in Nairobi |
+| **Protest with intervention** | Authorities intervene to disperse but without excessive force | Police use tear gas to disperse anti-government protesters in Beirut |
+| **Excessive force against protesters** | State forces use lethal or disproportionate force | Security forces open fire on protesters, killing 5 in Khartoum |
+
+#### Event Type: Riots (2 sub-event types)
+| Sub-Event Type | Description | Example |
+|---------------|-------------|---------|
+| **Violent demonstration** | Protesters engage in violence (arson, vandalism, clashes with police) | Rioters burn government buildings during anti-austerity protests in Santiago |
+| **Mob violence** | Spontaneous communal violence by unorganised crowd | Mob attacks suspected thieves in Lagos market |
+
+### Disorder Type: Strategic Developments
+
+#### Event Type: Strategic developments (8 sub-event types)
+| Sub-Event Type | Description | Example |
+|---------------|-------------|---------|
+| **Agreement** | Ceasefire, peace deal, or negotiated settlement | Government and rebel group sign ceasefire in Juba |
+| **Arrests** | Detention of political actors, activists, or armed group members | Security forces arrest opposition leader in Minsk |
+| **Change to group/activity** | Mergers, splits, name changes, operational shifts by armed groups | AQIM faction splits to form new group in northern Mali |
+| **Disrupted weapons use** | Interception or defusing of weapons before use | Security forces defuse IED on highway in Kabul |
+| **Headquarters or base established** | Creation of new military or armed group base | Rebel group establishes new camp in Beni territory |
+| **Looting/property destruction** | Deliberate destruction or seizure of property | Armed group loots medical facilities in Tigray |
+| **Non-violent transfer of territory** | Territory changes hands without combat (withdrawal, handover) | Rebel group withdraws from town under ceasefire terms |
+| **Other** | Events not fitting other sub-types | Military announces new deployment to border region |
+
+---
+
+## 16. ACLED-UCDP Crosswalk and Dataset Comparisons
+
+### ACLED vs UCDP-GED: Detailed Comparison
+
+The two most widely used disaggregated conflict event datasets are ACLED and UCDP-GED (Uppsala Conflict Data Program Georeferenced Event Dataset). They have fundamental differences in scope, methodology, and resulting data.
+
+| Dimension | ACLED | UCDP-GED |
+|-----------|-------|----------|
+| **Fatality threshold** | None — records events with 0 fatalities | Minimum 1 direct battle death required |
+| **Event scope** | Political violence, demonstrations, strategic developments | Organised violence only (state-based, non-state, one-sided) |
+| **Conflict definition** | Any politically motivated event | Must be part of a conflict with 25+ battle deaths/year (state-based) |
+| **Coding method** | Human coders using multiple source types | Human coders primarily using news sources |
+| **Typical event counts** | ~500–2,000+ events/week globally | ~15,000–20,000 events/year globally |
+| **Temporal coverage** | 1997–present (Africa), 2010–2018+ (others) | 1989–present (global) |
+| **Spatial precision** | 4 decimal places with 3-level precision coding | 6 decimal places with 7-level precision coding |
+| **Update frequency** | Weekly | Annual (with some delay) |
+| **Protests included** | Yes (3 sub-event types) | No |
+| **Strategic developments** | Yes (8 sub-event types) | No |
+| **Actor taxonomy** | 8 actor types | Organised actors only (state, rebel, communal militia) |
+| **Fatality methodology** | Conservative (lowest credible figure) | "Best estimate" with low/high bounds |
+| **Licence** | Non-commercial free; commercial requires licence; AI/ML training prohibited | CC-BY 4.0 (fully open) |
+
+### Key Findings from Comparative Studies
+
+**Eck (2012)** — The foundational comparison study:
+- Found that ACLED and UCDP-GED agree on the occurrence of large, highly visible events but diverge significantly on smaller events
+- Event counts differ substantially: ACLED records many more events because of its broader scope
+- Fatality estimates diverge even for the same events — different source triangulation leads to different figures
+- Warned that "those interested in subnational analyses of conflict should be wary of ACLED's data because of uneven quality-control issues"
+
+**Raleigh, Kishi & Linke (2023)** — ACLED's own comparison:
+- Demonstrated that analytical conclusions about conflict patterns change materially depending on which dataset is used
+- Argued that UCDP's fatality threshold obscures patterns of political instability that fall below the 1-death threshold
+- Showed that scope conditions (what counts as an "event") drive divergences more than coding errors
+
+**Donnay et al. (2019)** — Integration methodology:
+- Proposed methods for reconciling ACLED and UCDP-GED at the event level
+- Found that fuzzy matching on date, location, and actors can link ~40–60% of UCDP events to ACLED events
+- Remaining divergences stem from genuinely different coding decisions, not just matching failures
+
+### No Formal Crosswalk Exists
+
+There is **no published formal crosswalk table** that maps individual ACLED events to UCDP-GED events. Event-level linking requires fuzzy matching on:
+- Date (±3 days to account for temporal precision differences)
+- Location (within ~50km to account for different geocoding approaches)
+- Actors (string similarity matching)
+- Event type (conceptual mapping, not 1:1)
+
+### Multi-Dataset Comparison Table
+
+| Feature | ACLED | UCDP-GED | SCAD | GTD | GDELT |
+|---------|-------|----------|------|-----|-------|
+| **Type** | Human-coded | Human-coded | Human-coded | Human-coded | Machine-coded |
+| **Focus** | Political violence & protests | Organised violence | Social conflict (excl. civil war) | Terrorism | All media-reported events |
+| **Temporal range** | 1997–present | 1989–present | 1990–2015 | 1970–2020 | 1979–present |
+| **Geographic scope** | Global (since 2022) | Global | Africa, Latin America, Middle East | Global | Global |
+| **Fatality threshold** | None | ≥1 battle death | None | None | N/A |
+| **Update frequency** | Weekly | Annual | Discontinued | Discontinued (2020) | Every 15 minutes |
+| **Typical events/year** | ~100,000+ | ~15,000–20,000 | ~3,000–5,000 | ~8,000–15,000 | Millions |
+| **Source methodology** | Multi-source, multilingual | Primarily news media | AP and AFP wire services | Multiple open sources | Automated NLP on news |
+| **Status (2026)** | Active | Active | Inactive (last update 2016) | Inactive (ended 2020) | Active |
+| **Licence** | Restrictive EULA | CC-BY 4.0 | Open for research | Open for research | Fully open |
+| **Primary citation** | Raleigh et al. (2023) | Sundberg & Melander (2013) | Salehyan et al. (2012) | START (2021) | Leetaru & Schrodt (2013) |
+
+**Notes on inactive datasets:**
+- **SCAD** (Social Conflict Analysis Database): Created by Cullen Hendrix and Idean Salehyan. Covers Africa (1990–2015), Latin America and select Middle East countries. Uses only AP and AFP wire services. Explicitly excludes events that are part of organized armed conflicts as defined by UCDP. 10% double-coding for reliability. Last updated 2016.
+- **GTD** (Global Terrorism Database): Created by START at University of Maryland. 200,000+ incidents 1970–2020 (data from 1993 excluded due to loss). Data collection evolved across multiple organizations (Pinkerton 1970–1997, CETIS 1998–2008, ISVG 2008–2011, START 2012–2020). Uses ML/data mining to identify candidate articles. Ended in 2020.
+- **PITF** (Political Instability Task Force): Country-level dataset of instability events (ethnic wars, revolutionary wars, adverse regime changes, genocides). Not event-level disaggregated — operates at country-year level. Maintained by CIA-funded research program since 1994. Data availability is restricted.
+
+---
+
+## 17. Country-Specific Coding Challenges
+
+### Myanmar
+
+Myanmar presents some of the most complex coding challenges in the ACLED dataset due to actor proliferation, geographic ambiguity, and source constraints.
+
+**Actor identification:**
+- Dozens of Ethnic Armed Organizations (EAOs) operate simultaneously, many with political and armed wings coded together (e.g., "KIO/KIA" for the Kachin Independence Organisation/Army)
+- Splintered factions are distinguished using years (e.g., three distinct DKBA iterations)
+- Post-February 2021 coup: massive proliferation of new resistance forces, requiring three new coding categories:
+  - **PDF** — People's Defense Force, NUG-directed, coded only when sources explicitly reference NUG command
+  - **PDF – [Location]** — Autonomous local defense forces incorporating geography into formal names
+  - **Unidentified Anti-Coup Armed Groups** — unnamed or unaffiliated resistance forces
+- Alliance coding: the Northern Alliance (NA-B) and Brotherhood Alliance are coded as primary actors only when all members fight jointly
+
+**Geographic coding:**
+- Village names vary significantly between Shan and Burmese transliterations (e.g., "Mong" vs "Mine" for the same place)
+- Multiple villages share identical names — disambiguation requires cross-referencing with armed group battalion locations and known conflict areas
+- Kayin state sources reference traditional Kayin nation boundaries that diverge from Myanmar's official administrative divisions
+- ACLED standardises names using English transliteration of Burmese names, consulting MIMU (Myanmar Information Management Unit) boundary data
+
+**Source challenges:**
+- Journalists face imprisonment for conflict reporting; two Reuters journalists were detained after reporting the Inn Din mass killing
+- Since the coup, the military has directly targeted journalists, forcing outlets underground or into exile
+- ACLED prioritises subnational ethnic media (Kachinland News, Shan Herald Agency) over national outlets for battlefield reporting
+- Facebook prevalence of disinformation restricts social media utility as a source
+- "Peopleless protests" (objects arranged as protest symbols) are excluded from protest coding because ACLED requires 3+ people physically present — coded as "Strategic developments" instead
+
+**Fatality coding:**
+- Post-coup fatality increases were validated with external experts rather than automatically discounted
+- Unknown fatalities are conservatively coded as 3
+- ACLED acknowledges that "fatality numbers are frequently the most biased and poorly reported component of conflict data"
+
+**Rakhine State (2017):**
+- Documenting Rohingya mass violence required innovative approaches due to military access restrictions
+- Human rights organizations documented abuses through refugee interviews in Bangladesh, but lacked precise time/location detail
+- ACLED only coded events with sufficient date, actor, and location specificity, resulting in incomplete documentation despite known large-scale atrocities
+
+### Ethiopia
+
+Ethiopia's primary challenge is its **tightly controlled media environment**.
+
+**Sourcing structure:**
+- Approximately **one-third** of Ethiopian events contain information from diaspora media sources
+- Diaspora sources (e.g., Oromiya Media Network, ESAT, Zehabesha) provide coverage of events that in-country sources cannot or will not report
+- International wire services (AFP, AP, Xinhua) account for ~13% of events since 2018
+- National sources account for ~20% (Ethiopian Broadcasting Corporation, Addis Standard)
+- Human rights organizations and new media collectively represent ~10%
+
+**Known biases:**
+- Diaspora media have acknowledged political biases — they are not neutral observers
+- ACLED triangulates diaspora reports with other source types before coding
+- Government internet shutdowns during security crises (e.g., Tigray conflict 2020–2022) create significant information blackouts
+- Rural and remote areas, particularly where insurgencies are active, have the weakest source coverage
+
+**Historical context:**
+- Decades of state persecution of journalists created weak journalistic institutions
+- PM Abiy Ahmed's 2018 reforms improved but did not fully solve the media freedom deficit
+- The 2020–2022 Tigray conflict exposed extreme sourcing challenges when communications were cut to an entire region for months
+
+### Democratic Republic of Congo (DRC)
+
+The DRC presents challenges due to:
+- **Geographic vastness and inaccessibility** — eastern DRC conflict zones are among the most remote on earth
+- **Extreme actor fragmentation** — dozens of armed groups, many unnamed or ephemeral
+- **Multiple simultaneous conflicts** — ADF, M23, Mai-Mai groups, and intercommunal violence operating in overlapping territories
+- **Low source density** — limited media presence in active conflict areas, especially Ituri, North Kivu, and South Kivu provinces
+- **Historical depth** — DRC coverage extends back to 1997, but earlier coding relied on fewer sources and less standardised methodology
+- Over 200,000 individual events coded since 1997, with approximately 11,000+ events for DRC specifically
+
+---
+
+## 18. ACLED's Use of Automation and NLP
+
+### ACLED's Sourcing Platform
+
+ACLED uses a proprietary **sourcing platform** to systematically monitor and review news sources. This platform ensures:
+- The same sources are checked every week in a consistent manner
+- New sources can be added and integrated into the review workflow
+- Source coverage is tracked by country and region
+
+### NLP and Machine Learning for Analysis
+
+ACLED has published guidance on using NLP techniques to analyse the free-text `notes` column in their data. Two primary approaches are recommended:
+
+**1. Keyword-Based Search:**
+- Useful for quick filtering (e.g., finding events mentioning "drone" or "IED")
+- Limitations: misses synonyms, requires manual refinement, not scalable
+
+**2. Classification Models (SetFit / Few-Shot Learning):**
+- ACLED recommends **SetFit** (Sentence Transformer Fine-tuning) models for classifying events from the notes column
+- Few-shot models achieve high accuracy with minimal training data (10–20 labeled examples)
+- Can be used to identify sub-patterns not captured by the standard coding taxonomy (e.g., distinguishing kidnap-for-ransom from political kidnapping)
+
+### ACLED's Internal Automation
+
+ACLED has not published detailed information about its internal NLP pipeline. What is known:
+- The core coding remains **human-driven** — ACLED distinguishes itself from machine-coded datasets (like GDELT) precisely through expert human judgment
+- Automated **data cleaning and formatting checks** are applied after manual review
+- The sourcing platform likely uses automated source monitoring and alerting
+- ACLED has progressively incorporated automated tools to support (not replace) human coders
+
+This is fundamentally different from GDELT's fully automated NLP pipeline. ACLED uses technology to support human coders; GDELT replaces them entirely.
+
+---
+
+## 19. Access Tiers and Cost
+
+### Current Access Model (as of 2026)
+
+| Tier | Cost | Access |
+|------|------|--------|
+| **Free (myACLED)** | Free | Dashboards, aggregated data, Data Export Tool, API with standard limits |
+| **Academic/Research** | Free | Full disaggregated event data for non-commercial academic research |
+| **Humanitarian/NGO** | Free | Full access for humanitarian organisations |
+| **Public Sector** | Requires licence | Government departments need a public-sector licence — contact sales@acleddata.com |
+| **Commercial/Corporate** | Requires licence | Corporate entities must obtain a commercial licence before accessing data |
+
+### Commercial Licence
+
+ACLED does not publicly list commercial pricing. The commercial licence:
+- Is negotiated on a case-by-case basis — contact sales@acleddata.com
+- Pricing is not disclosed on the website (common for data vendors)
+- Covers use of ACLED data in commercial products, consulting, or revenue-generating applications
+
+### Embargo Period
+
+When ACLED expands to new regions, there is typically:
+- An initial **back-coding period** where historical events are coded retroactively
+- A **launch date** after which real-time weekly updates begin
+- No formal "embargo" in the journal-publishing sense — data for new regions are released as soon as back-coding and quality review are complete
+- The most recent major expansion (February 2022) brought ACLED to full global coverage by adding Canada, Oceania, Antarctica, and remaining small states with data back to 2021
+
+---
+
+## 20. Worked Python Pipeline: API → DataFrame → PRIO-GRID → Parquet
+
+```python
+"""
+Complete ACLED data pipeline:
+  1. Authenticate via OAuth
+  2. Fetch all events for a country-year
+  3. Convert to pandas DataFrame
+  4. Assign PRIO-GRID cell IDs
+  5. Aggregate to monthly time series per grid cell
+  6. Write to Parquet
+"""
+
+import requests
+import pandas as pd
+import numpy as np
+from pathlib import Path
+
+
+# --- Step 1: Authenticate ---
+
+def get_acled_token(username: str, password: str) -> str:
+    """Obtain OAuth access token from ACLED API."""
+    resp = requests.post(
+        "https://acleddata.com/oauth/token",
+        data={
+            "grant_type": "password",
+            "client_id": "acled",
+            "username": username,
+            "password": password,
+        },
+        timeout=30,
+    )
+    resp.raise_for_status()
+    return resp.json()["access_token"]
+
+
+# --- Step 2: Fetch all events with pagination ---
+
+def fetch_acled_events(
+    token: str,
+    country: str,
+    year: int,
+    page_size: int = 5000,
+) -> pd.DataFrame:
+    """Fetch all ACLED events for a country-year, handling pagination."""
+    base_url = "https://acleddata.com/api/acled/read"
+    headers = {"Authorization": f"Bearer {token}"}
+    all_records = []
+    page = 1
+
+    while True:
+        params = {
+            "_format": "json",
+            "country": country,
+            "year": year,
+            "limit": page_size,
+            "page": page,
+        }
+        resp = requests.get(base_url, headers=headers, params=params, timeout=60)
+        resp.raise_for_status()
+        result = resp.json()
+
+        if not result.get("success") or not result.get("data"):
+            break
+
+        all_records.extend(result["data"])
+        print(f"  Page {page}: {len(result['data'])} events")
+
+        if len(result["data"]) < page_size:
+            break
+        page += 1
+
+    df = pd.DataFrame(all_records)
+    print(f"Total: {len(df)} events for {country} in {year}")
+    return df
+
+
+# --- Step 3: Type conversion ---
+
+def clean_acled_df(df: pd.DataFrame) -> pd.DataFrame:
+    """Convert string fields to appropriate types."""
+    df = df.copy()
+    df["event_date"] = pd.to_datetime(df["event_date"])
+    df["year"] = df["year"].astype(int)
+    df["latitude"] = pd.to_numeric(df["latitude"], errors="coerce")
+    df["longitude"] = pd.to_numeric(df["longitude"], errors="coerce")
+    df["fatalities"] = pd.to_numeric(df["fatalities"], errors="coerce").fillna(0).astype(int)
+    df["geo_precision"] = pd.to_numeric(df["geo_precision"], errors="coerce").fillna(3).astype(int)
+    df["time_precision"] = pd.to_numeric(df["time_precision"], errors="coerce").fillna(3).astype(int)
+    return df
+
+
+# --- Step 4: PRIO-GRID assignment ---
+
+def assign_prio_grid(df: pd.DataFrame, resolution: float = 0.5) -> pd.DataFrame:
+    """Assign PRIO-GRID cell IDs based on lat/lon coordinates."""
+    df = df.copy()
+    df = df.dropna(subset=["latitude", "longitude"])
+    ncols = int(360 / resolution)  # 720 columns at 0.5°
+    df["grid_row"] = np.floor((df["latitude"] + 90) / resolution).astype(int)
+    df["grid_col"] = np.floor((df["longitude"] + 180) / resolution).astype(int)
+    df["prio_gid"] = df["grid_row"] * ncols + df["grid_col"]
+    return df
+
+
+# --- Step 5: Monthly aggregation ---
+
+def aggregate_monthly(df: pd.DataFrame) -> pd.DataFrame:
+    """Aggregate events to monthly counts per PRIO-GRID cell."""
+    df = df.copy()
+    df["year_month"] = df["event_date"].dt.to_period("M")
+
+    agg = df.groupby(["prio_gid", "year_month"]).agg(
+        total_events=("event_id_cnty", "count"),
+        total_fatalities=("fatalities", "sum"),
+        battles=("event_type", lambda x: (x == "Battles").sum()),
+        explosions=("event_type", lambda x: (x == "Explosions/Remote violence").sum()),
+        violence_against_civilians=("event_type", lambda x: (x == "Violence against civilians").sum()),
+        protests=("event_type", lambda x: (x == "Protests").sum()),
+        riots=("event_type", lambda x: (x == "Riots").sum()),
+        strategic_developments=("event_type", lambda x: (x == "Strategic developments").sum()),
+        mean_geo_precision=("geo_precision", "mean"),
+        low_precision_pct=("geo_precision", lambda x: (x >= 2).mean()),
+        low_time_precision_pct=("time_precision", lambda x: (x >= 2).mean()),
+    ).reset_index()
+
+    # Convert Period to string for Parquet compatibility
+    agg["year_month"] = agg["year_month"].astype(str)
+    return agg
+
+
+# --- Step 6: Write to Parquet ---
+
+def save_to_parquet(df: pd.DataFrame, output_path: str) -> None:
+    """Save DataFrame to Parquet with compression."""
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+    df.to_parquet(output_path, engine="pyarrow", compression="snappy", index=False)
+    print(f"Saved {len(df)} rows to {output_path}")
+
+
+# --- Full pipeline ---
+
+def run_pipeline(
+    username: str,
+    password: str,
+    country: str,
+    year: int,
+    output_dir: str = "./data/acled",
+):
+    """Run the complete ACLED → PRIO-GRID → Parquet pipeline."""
+    print(f"=== ACLED Pipeline: {country} {year} ===")
+
+    token = get_acled_token(username, password)
+    raw_df = fetch_acled_events(token, country, year)
+
+    if raw_df.empty:
+        print("No events found.")
+        return
+
+    clean_df = clean_acled_df(raw_df)
+    gridded_df = assign_prio_grid(clean_df)
+    monthly_df = aggregate_monthly(gridded_df)
+
+    output_path = f"{output_dir}/{country.lower().replace(' ', '_')}_{year}_monthly_grid.parquet"
+    save_to_parquet(monthly_df, output_path)
+
+    # Summary statistics
+    print(f"\nSummary:")
+    print(f"  Raw events: {len(raw_df)}")
+    print(f"  Grid cells with events: {monthly_df['prio_gid'].nunique()}")
+    print(f"  Months covered: {monthly_df['year_month'].nunique()}")
+    print(f"  Total fatalities: {monthly_df['total_fatalities'].sum()}")
+    print(f"  Mean geo precision: {gridded_df['geo_precision'].mean():.2f}")
+
+
+# Usage:
+# run_pipeline("your@email.com", "your_password", "Somalia", 2024)
+```
+
+---
+
+## 21. Sources
 
 ### Official ACLED resources
 
 - **Website:** https://acleddata.com
-- **Codebook (2024):** https://acleddata.com/knowledge-base/codebook/
+- **Codebook (October 2024):** https://acleddata.com/methodology/acled-codebook
+- **Codebook PDF (October 2024):** https://acleddata.com/sites/default/files/wp-content-archive/uploads/dlm_uploads/2024/10/ACLED-Codebook-2024-7-Oct.-2024.pdf
 - **API documentation hub:** https://acleddata.com/acled-api-documentation/
+- **API Getting Started:** https://acleddata.com/api-documentation/getting-started
+- **ACLED Endpoint reference:** https://acleddata.com/api-documentation/acled-endpoint
+- **API Elements guide:** https://acleddata.com/api-documentation/elements-acleds-api
+- **CAST Endpoint:** https://acleddata.com/api-documentation/cast-endpoint
 - **Knowledge Base:** https://acleddata.com/knowledge-base/
+- **Coding & Review Process:** https://acleddata.com/methodology/how-does-acled-code-and-review-data-ensure-quality
+- **Quality Assurance FAQ:** https://acleddata.com/faq/how-quality-acled-data-ensured
 - **EULA:** https://acleddata.com/eula/
 - **Attribution Policy:** https://acleddata.com/attributionpolicy/
-- **Data Export Tool:** https://acleddata.com/data-export-tool/
+- **Data Export Tool:** https://acleddata.com/conflict-data/data-export-tool
 - **Curated data files:** https://acleddata.com/curated-data-files/
+- **Conflict Index:** https://acleddata.com/general-guide/about-conflict-index
+- **Weekly Conflict Index:** https://acleddata.com/platform/weekly-conflict-index
+- **Country/time-period coverage:** https://acleddata.com/methodology/countrytime-period-coverage
+- **Myanmar methodology:** https://acleddata.com/knowledge-base/acled-methodology-and-coding-decisions-around-political-violence-and-demonstrations-in-myanmar/
+- **Ethiopia sourcing:** https://acleddata.com/methodology/how-does-acled-source-events-ethiopia
+- **NLP analysis guide:** https://acleddata.com/methodology/how-analyze-acleds-notes-column-using-natural-language-processing-nlp
+- **Coding Review Process PDF (v2, 2020):** https://acleddata.com/sites/default/files/wp-content-archive/uploads/2021/11/ACLED_Coding-Review-Process_v2_September-2020.pdf
+- **Comparing Conflict Data (working paper):** https://acleddata.com/sites/default/files/wp-content-archive/uploads/2022/02/ACLED_WorkingPaper_ComparisonAnalysis_2019.pdf
+- **myACLED FAQs:** https://acleddata.com/myacled-faqs
 
 ### Academic references
 
@@ -821,11 +1610,16 @@ ACLED data, combined with other Causal Atlas sources, can test hypotheses about:
 - Eck, K. (2012). "In data we trust? A comparison of UCDP GED and ACLED conflict events datasets." *Cooperation and Conflict*, 47(1), 124–141. — **Systematic comparison of ACLED vs. UCDP**
 - Donnay, K., Dunford, E.T., McGrath, E.C., Backer, D., & Cunningham, D.E. (2019). "Integrating conflict event data." *Journal of Conflict Resolution*, 63(5), 1337–1364. — **Methods for reconciling conflict datasets**
 - Hammond, J. & Weidmann, N.B. (2014). "Using machine-coded event data for the micro-level study of political violence." *Research & Politics*, 1(2). — **Hand-coded vs. machine-coded quality comparison**
+- Salehyan, I., Hendrix, C.S., Hamner, J., Case, C., Linebarger, C., Stull, E., & Williams, J. (2012). "Social Conflict in Africa: A New Database." *International Interactions*, 38(4), 503–511. — **SCAD methodology**
+- Sundberg, R. & Melander, E. (2013). "Introducing the UCDP Georeferenced Event Dataset." *Journal of Peace Research*, 50(4), 523–532. — **UCDP-GED founding paper**
+- START (2021). "Global Terrorism Database Codebook." University of Maryland. — **GTD methodology**
 
 ### Python tools
 
 - `acled` PyPI package: https://pypi.org/project/acled/ (unofficial, v0.2.4)
 - GitHub: https://github.com/blazeiburgess/acled
+- `acledR` R package: https://dtacled.github.io/acledR/
+- `acled.api` R package: https://cran.r-project.org/web/packages/acled.api/
 - ACLED data pipeline example: https://github.com/19Vermouth/ACLED-data-pipeline
 
 ### Related Causal Atlas research files
@@ -835,3 +1629,7 @@ ACLED data, combined with other Causal Atlas sources, can test hypotheses about:
 - `research/datasets/hdx-hapi.md` — Humanitarian data API
 - `research/03-causal-chains.md` — Cross-domain causality literature
 - `research/04-statistical-methods.md` — Analytical methods
+
+---
+
+*Last updated: March 2026*

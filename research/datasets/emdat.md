@@ -752,3 +752,464 @@ EM-DAT spans multiple domains critical to Causal Atlas:
 
 ### Wikipedia
 - Centre for Research on the Epidemiology of Disasters: [https://en.wikipedia.org/wiki/Centre_for_Research_on_the_Epidemiology_of_Disasters](https://en.wikipedia.org/wiki/Centre_for_Research_on_the_Epidemiology_of_Disasters)
+
+---
+
+## 13. EM-DAT 2024–2025 Methodology Changes
+
+> **Last checked:** March 2025
+
+### 13.1 Epidemic Classification Update (2024)
+
+In June 2024, the EM-DAT Scientific Committee convened to address a major gap: the **inconsistent coverage of epidemics** in the database. Historically, EM-DAT lacked a standardised methodology for defining when an epidemic qualifies as a "disaster" and how to record it.
+
+#### Key Decisions
+
+| Area | Decision |
+|---|---|
+| **Inclusion criteria** | Existing thresholds upheld (10+ deaths or 100+ affected), but with detailed documentation of limitations for diseases where these thresholds are insufficient |
+| **Core indicators** | Confirmed cases and deaths reaffirmed as the primary indicators |
+| **Data aggregation** | For epidemics with extended durations (e.g., COVID-19, cholera outbreaks lasting years), data should be aggregated to align with WHO/ECDC reporting methodologies |
+| **Subnational data** | Emphasized including subnational location data and accurate start/end dates for each epidemic event |
+| **Testing capacity** | Recommended tracking the proportion of tested individuals to capture potential underreporting and testing capacity limitations |
+| **Sub-classification** | EM-DAT will omit detailed pathogen subcategories in the main database, but users can subclassify based on pathogen type for their own analyses |
+
+**Reference:** van Loenhout, J.A.F., et al. (2024). "What makes an epidemic a disaster: the future of epidemics within the EM-DAT International Disaster Database." *BMC Public Health*. <https://pmc.ncbi.nlm.nih.gov/articles/PMC11697923/>
+
+### 13.2 Administrative Boundary Migration (2025)
+
+- **From:** FAO GAUL 2015 (used since 2014)
+- **To:** GADM v4.1 (transition completed 2025)
+- As of January 2026, approximately **90% of GAUL 2015 footprints** have been successfully mapped to GADM 4.1
+- The remaining 10% include historical/dissolved administrative units and ambiguous boundary matches
+- Both GAUL and GADM codes are retained in the database during the transition period
+
+### 13.3 Descriptor Paper (2025)
+
+The first comprehensive methodological paper for EM-DAT was published in 2025:
+
+> Delforge, D., et al. (2025). "EM-DAT: the Emergency Events Database." *International Journal of Disaster Risk Reduction*, 105509. DOI: [10.1016/j.ijdrr.2025.105509](https://doi.org/10.1016/j.ijdrr.2025.105509)
+
+This paper is now the definitive methodological reference for EM-DAT and should be cited in all scientific publications using the database.
+
+### 13.4 USAID Funding Change (2025)
+
+USAID Bureau for Humanitarian Assistance (BHA) — formerly OFDA — had been a major funder of EM-DAT since 1999. As of early 2025, there are reports of potential changes to USAID funding. The Belgian Government remains a core funder. The `OFDA/BHA Response` field has been deprecated as of 2025.
+
+---
+
+## 14. GDIS (Geocoded Disasters Dataset) — Deep Dive
+
+> **Last checked:** March 2025
+
+### 14.1 Overview
+
+GDIS is the essential companion dataset for anyone needing **sub-national spatial detail** from EM-DAT records. Without GDIS, EM-DAT is fundamentally country-level only.
+
+| Attribute | Detail |
+|---|---|
+| **Full name** | Geocoded Disasters (GDIS) Dataset |
+| **Version** | v1.0 |
+| **Authors** | Rosvold, E.L. & Buhaug, H. (PRIO) |
+| **Published** | 2021, *Scientific Data* |
+| **Records** | 39,953 individual locations for 9,924 unique disaster events |
+| **Temporal coverage** | 1960–2018 |
+| **Spatial resolution** | Admin-1 (majority), Admin-2, and some Admin-3 |
+| **Disaster types covered** | Floods, storms, earthquakes, landslides, droughts, volcanic activity, extreme temperatures |
+| **Not covered** | Epidemics, technological disasters |
+| **Geocoding success rate** | 89.5% of eligible EM-DAT records were geocoded |
+| **Coordinate system** | WGS84 (EPSG:4326) |
+
+### 14.2 Data Structure
+
+GDIS provides two linked files:
+
+**1. GDIS main table (CSV/Shapefile)**
+
+| Field | Type | Description |
+|---|---|---|
+| `disno` | string | EM-DAT disaster number (foreign key to EM-DAT) |
+| `country` | string | Country name |
+| `iso3` | string | ISO 3166-1 alpha-3 code |
+| `geo_id` | integer | Unique geocoded location ID |
+| `level` | integer | Administrative level (0=country, 1=state, 2=district, 3=commune) |
+| `name_1` | string | Admin-1 name |
+| `name_2` | string | Admin-2 name (if available) |
+| `name_3` | string | Admin-3 name (if available) |
+| `centroid_lat` | float | Latitude of polygon centroid |
+| `centroid_lon` | float | Longitude of polygon centroid |
+| `geometry` | polygon | GIS polygon of affected administrative unit |
+
+**2. GDIS-EM-DAT lookup table**
+
+Maps each `disno` to one or more `geo_id` entries, enabling a many-to-many join between EM-DAT events and affected administrative units.
+
+### 14.3 How to Join GDIS with EM-DAT
+
+```python
+import pandas as pd
+import geopandas as gpd
+
+# Load EM-DAT (downloaded from public.emdat.be)
+emdat = pd.read_excel('public_emdat_2025-03-01.xlsx')
+
+# Load GDIS (downloaded from NASA SEDAC)
+gdis = gpd.read_file('pend-gdis-1960-2018-disasterlocations.shp')
+
+# Join on disaster number
+# GDIS uses 'disno' format like '2005-0001'
+# EM-DAT uses 'DisNo.' format like '2005-0001-BGD'
+# Need to strip the country suffix from EM-DAT's DisNo.
+emdat['disno_short'] = emdat['DisNo.'].str.slice(0, 9)
+
+merged = gdis.merge(
+    emdat,
+    left_on='disno',
+    right_on='disno_short',
+    how='inner'
+)
+
+print(f"GDIS records matched to EM-DAT: {len(merged):,}")
+print(f"Unique disasters with spatial data: {merged['disno'].nunique():,}")
+```
+
+### 14.4 Mapping GDIS to PRIO-GRID
+
+```python
+import geopandas as gpd
+import numpy as np
+from shapely.geometry import box
+
+def create_priogrid_cells(lat_min, lat_max, lon_min, lon_max, cell_size=0.5):
+    """Create a GeoDataFrame of PRIO-GRID cells for a region."""
+    cells = []
+    for lat in np.arange(lat_min, lat_max, cell_size):
+        for lon in np.arange(lon_min, lon_max, cell_size):
+            gid_row = int((lat + 90) / cell_size)
+            gid_col = int((lon + 180) / cell_size)
+            gid = gid_row * 720 + gid_col + 1
+
+            cells.append({
+                'prio_gid': gid,
+                'geometry': box(lon, lat, lon + cell_size, lat + cell_size),
+                'lat_center': lat + cell_size / 2,
+                'lon_center': lon + cell_size / 2,
+            })
+
+    return gpd.GeoDataFrame(cells, crs='EPSG:4326')
+
+# Create PRIO-GRID for East Africa
+priogrid = create_priogrid_cells(-12, 15, 28, 52)
+
+# Spatial join: which disasters affected which PRIO-GRID cells?
+gdis_priogrid = gpd.sjoin(gdis, priogrid, how='inner', predicate='intersects')
+
+# Result: each row = one GDIS location × one PRIO-GRID cell overlap
+print(f"Disaster-cell intersections: {len(gdis_priogrid):,}")
+```
+
+### 14.5 Worked Example: Flood Exposure by PRIO-GRID Cell
+
+```python
+# Filter to floods in East Africa
+floods_ea = gdis_priogrid[
+    (gdis_priogrid['disastertype'] == 'Flood') &
+    (gdis_priogrid['iso3'].isin(['KEN', 'ETH', 'SOM', 'UGA', 'TZA', 'SSD']))
+].copy()
+
+# Extract year from disaster number (format: YYYY-NNNN)
+floods_ea['year'] = floods_ea['disno'].str[:4].astype(int)
+
+# Count flood events per PRIO-GRID cell per year
+flood_exposure = floods_ea.groupby(['prio_gid', 'year']).agg(
+    flood_count=('disno', 'nunique'),
+    affected_admin_units=('geo_id', 'nunique'),
+).reset_index()
+
+# Join back to get cell coordinates
+flood_exposure = flood_exposure.merge(
+    priogrid[['prio_gid', 'lat_center', 'lon_center']],
+    on='prio_gid',
+    how='left'
+)
+
+# Save as Parquet for Causal Atlas
+flood_exposure.to_parquet('emdat_flood_exposure_priogrid_eastafrica.parquet', index=False)
+print(f"PRIO-GRID cells with flood data: {flood_exposure['prio_gid'].nunique()}")
+```
+
+### 14.6 GDIS Limitations
+
+- **Temporal coverage ends in 2018** — newer events must use EM-DAT's GADM admin units directly
+- **No impact disaggregation** — deaths, affected, and damage are still country-level in EM-DAT; GDIS only tells you *where* a disaster occurred, not how impacts were distributed across locations
+- **Administrative boundary changes** — GDIS uses GADM 2018 boundaries, which may not match current administrative divisions in some countries
+- **Drought spatial extent** — droughts are particularly difficult to geocode because they affect broad regions gradually; GDIS drought polygons may underrepresent actual extent
+
+### 14.7 Access
+
+- **NASA SEDAC:** <https://sedac.ciesin.columbia.edu/data/set/pend-gdis-1960-2018>
+- **NASA Open Data Portal:** <https://data.nasa.gov/dataset/geocoded-disasters-gdis-dataset>
+- **Google Earth Engine Community Catalog:** <https://gee-community-catalog.org/projects/gdis/>
+- **Open access** — no registration required
+
+---
+
+## 15. DesInventar Comparison
+
+> **Last checked:** March 2025
+
+### 15.1 What DesInventar Captures That EM-DAT Does Not
+
+| Aspect | EM-DAT | DesInventar |
+|---|---|---|
+| **Threshold** | 10+ deaths or 100+ affected | Any event causing 1+ unit of damage (death, injury, house destroyed) |
+| **Spatial unit** | Country level | **Sub-national** (municipality, district) |
+| **Event count** | ~27,000 global | **Much higher** per country (e.g., Colombia alone has >30,000 records) |
+| **Coverage** | Global, standardised | Country-by-country (heterogeneous coverage, ~90 countries) |
+| **Maintainer** | CRED (centralised) | National disaster management agencies (decentralised) |
+| **Small-scale disasters** | Excluded by threshold | **Included** — captures cumulative impact of frequent small events |
+| **Sendai Framework** | Used as reference but not primary reporting tool | **DesInventar Sendai** is the official Sendai Framework monitoring tool |
+
+### 15.2 Key Findings from Panwar & Sen (2020)
+
+Comparing EM-DAT and DesInventar for 70 countries (1995–2013):
+
+1. **DesInventar records far more events** due to its lower threshold
+2. **For hand-matched events**, EM-DAT reports **larger mean disaster damages** and a higher statistical range — suggesting EM-DAT may capture major events more completely while DesInventar captures the long tail
+3. **Cumulative mortality from low-mortality events (excluded by EM-DAT) exceeded that from higher-mortality events** — validating the importance of small-scale disaster tracking
+4. **Different methodologies influence recorded damage magnitude** — direct comparison of dollar figures between databases is unreliable
+
+### 15.3 DesInventar Sendai
+
+DesInventar has been designated as the official **Sendai Framework loss data collection tool**:
+
+- **URL:** <https://www.desinventar.net/whatisDISendai.html>
+- Maintained by UNDRR (United Nations Office for Disaster Risk Reduction)
+- Countries use DesInventar Sendai to report on Sendai Framework global targets A–D
+- Data feeds into the **Sendai Framework Monitor** (<https://sendaimonitor.undrr.org/>)
+
+### 15.4 Implications for Causal Atlas
+
+- **DesInventar captures more local-scale events** that may be relevant for sub-national causal analysis (e.g., a flash flood destroying 50 houses in a single municipality wouldn't appear in EM-DAT)
+- **However**, DesInventar is not globally standardised — each country's database has different quality, completeness, and temporal coverage
+- **Recommended approach:** Use EM-DAT as the primary global disaster dataset, supplement with DesInventar for countries with high-quality national databases (Colombia, Costa Rica, India, Mozambique, Nepal)
+- For the Sendai Framework alignment, consider using DesInventar Sendai data as a complement
+
+---
+
+## 16. Sendai Framework Monitoring Indicators and EM-DAT
+
+> **Last checked:** March 2025
+
+### 16.1 Seven Global Targets
+
+| Target | Description | Metrics | EM-DAT mapping |
+|---|---|---|---|
+| **A** | Substantially reduce global disaster **mortality** | Deaths per 100,000 population | `Total Deaths` field |
+| **B** | Substantially reduce number of **affected people** | Affected per 100,000 population | `Total Affected` field |
+| **C** | Reduce direct disaster **economic loss** relative to GDP | Damage as % of GDP | `Total Damage ('000 US$)` field + WDI GDP |
+| **D** | Reduce disaster damage to **critical infrastructure** | Destroyed/damaged health/education facilities | Not captured in EM-DAT |
+| **E** | Increase number of countries with **DRR strategies** | National strategies count | Not data-related |
+| **F** | Enhance **international cooperation** | Aid flows for DRR | `AID Contribution` (deprecated) |
+| **G** | Increase availability of multi-hazard **early warning systems** | Population with access to early warning | Not captured in EM-DAT |
+
+### 16.2 EM-DAT → Sendai Framework Data Pipeline
+
+The 38 Sendai Framework indicators require data at the **national** level, which aligns with EM-DAT's primary spatial unit. The mapping is:
+
+```
+EM-DAT data → Sendai Indicators:
+
+Total Deaths → Target A indicators (A-1: total deaths, A-2: missing persons, A-3: per 100K)
+Total Affected → Target B indicators (B-1: total affected, B-2: injured, B-3: homeless)
+Total Damage → Target C indicators (C-1: direct economic loss, C-2: agricultural loss)
+```
+
+However, EM-DAT data alone is insufficient for several indicators:
+- Target D requires damage to specific infrastructure types (hospitals, schools) — not recorded in EM-DAT
+- Targets E, F, G are institutional/policy indicators
+- DesInventar Sendai is the designated tool for sub-national reporting
+
+### 16.3 Using EM-DAT for Sendai Framework Baseline
+
+```python
+import pandas as pd
+
+# Load EM-DAT
+emdat = pd.read_excel('public_emdat_2025-03-01.xlsx')
+
+# Sendai Framework baseline period: 2005-2015
+baseline = emdat[
+    (emdat['Start Year'] >= 2005) &
+    (emdat['Start Year'] <= 2015) &
+    (emdat['Disaster Group'] == 'Natural')
+]
+
+# Target A: Average annual disaster mortality by country
+target_a = baseline.groupby(['ISO', 'Start Year']).agg(
+    annual_deaths=('Total Deaths', 'sum')
+).reset_index()
+
+baseline_mortality = target_a.groupby('ISO').agg(
+    avg_annual_deaths=('annual_deaths', 'mean')
+).reset_index()
+
+# Target B: Average annual affected people by country
+target_b = baseline.groupby(['ISO', 'Start Year']).agg(
+    annual_affected=('Total Affected', 'sum')
+).reset_index()
+
+baseline_affected = target_b.groupby('ISO').agg(
+    avg_annual_affected=('annual_affected', 'mean')
+).reset_index()
+
+# Compare with 2020-2030 period for progress assessment
+```
+
+---
+
+## 17. Academic Critiques of EM-DAT
+
+> **Last checked:** March 2025
+
+### 17.1 Wirtz et al. (2014) — Under-Reporting and Database Needs
+
+**Reference:** Wirtz, A., Kron, W., Löw, P. & Steuer, M. (2014). "The need for data: natural disasters and the challenges of database management." *Natural Hazards*, 70, 135–157.
+
+Key findings:
+- **Upward trends in reported disasters are strongly biased** by progressively improving reporting infrastructure, media coverage, and institutional capacity — not necessarily reflecting actual increases in disaster frequency
+- **Economic loss data is particularly problematic** — estimates vary by 2–10× between different databases for the same event
+- **Low-magnitude events** are systematically under-recorded, especially in developing countries with limited reporting infrastructure
+- **Recommended:** Use EM-DAT primarily for mortality data (most reliable) and treat economic data with great caution
+
+### 17.2 Gall et al. (2009) — Six Fallacies of Loss Data
+
+**Reference:** Gall, M., Borden, K.A. & Cutter, S.L. (2009). "When do losses count? Six fallacies of natural hazards loss data." *Bulletin of the American Meteorological Society*, 90(6), 799–809.
+
+The six fallacies:
+1. **Completeness fallacy** — assuming the database captures all events
+2. **Threshold fallacy** — arbitrary thresholds create artificial boundaries
+3. **Accounting fallacy** — different databases use different loss accounting methods
+4. **Temporal fallacy** — reporting improvements inflate apparent trends
+5. **Spatial fallacy** — geographic biases in reporting capacity
+6. **Proxy fallacy** — using loss data as a proxy for hazard intensity
+
+### 17.3 Klomp & Valckx (2014) — Under-Reporting of Natural Disasters
+
+Key findings from their systematic analysis:
+- Countries with **lower press freedom** report fewer disaster events to EM-DAT
+- Countries with **lower GDP per capita** have higher rates of missing impact data
+- **Small island developing states** are disproportionately under-reported
+
+### 17.4 Hoyois & Below (2022) — Human and Economic Impacts
+
+**Reference:** Hoyois, P. & Below, R. (2022). "Human and economic impacts of natural disasters: can we trust the global data?" *Scientific Data*, 9, 572. <https://www.nature.com/articles/s41597-022-01667-x>
+
+Analysis of EM-DAT data quality:
+- **Year, income classification, and disaster type** are all significant predictors of data missingness
+- **Economic losses** have the highest missingness rate — far worse than mortality data
+- **Biological disasters** and **extreme temperatures** have the worst data completeness
+- Missing data is **not random** — it correlates with the characteristics that make analysis most needed (poorest countries, most complex disasters)
+
+### 17.5 Implications for Causal Atlas
+
+1. **Use mortality data** as the primary outcome variable — it is the most reliable field
+2. **Treat economic damage data with extreme caution** — missing not at random, biased toward insured losses in developed countries
+3. **Do not interpret trends in event counts** as real changes in disaster frequency — control for reporting improvements
+4. **Cross-validate** with national disaster databases (DesInventar) where available
+5. **Apply country/year fixed effects** in any regression analysis to control for systematic reporting differences
+6. **Document which EM-DAT version** was used — the database is continuously updated, and event records can be revised
+
+---
+
+## 18. Handling Temporal Imprecision
+
+> **Last checked:** March 2025
+
+### 18.1 The Problem
+
+Many EM-DAT events lack exact start/end dates:
+
+| Disaster type | Typical date precision | Example |
+|---|---|---|
+| Earthquake | Day (often hour) | Start: 2023-02-06 |
+| Tropical cyclone | Day | Start: 2023-03-14, End: 2023-03-17 |
+| Flash flood | Day to week | Start: 2023-07-01 |
+| Drought | Month to season | Start Month: 3, End Month: 9 (no day) |
+| Epidemic | Month (often no day) | Start: 2023-04, End: 2024-02 |
+| Famine | Year only | Start Year: 2011 |
+| Slow-onset flood | Month | Start: 2023-06, End: 2023-09 |
+
+### 18.2 Strategies for Monthly Aggregation
+
+For Causal Atlas's monthly temporal resolution, the following approach handles the imprecision:
+
+```python
+import pandas as pd
+import numpy as np
+
+def assign_disaster_to_months(row):
+    """
+    Expand a single EM-DAT event into month-level records.
+
+    Returns a list of (year, month) tuples.
+    """
+    start_year = row['Start Year']
+    start_month = row.get('Start Month', np.nan)
+    end_year = row.get('End Year', np.nan)
+    end_month = row.get('End Month', np.nan)
+
+    # Handle missing values
+    if pd.isna(start_month):
+        start_month = 1  # Default to January if unknown
+    if pd.isna(end_year):
+        end_year = start_year
+    if pd.isna(end_month):
+        end_month = start_month  # Single-month event if unknown
+
+    start_month = int(start_month)
+    end_year = int(end_year)
+    end_month = int(end_month)
+
+    # Generate all year-month pairs
+    start_date = pd.Timestamp(year=int(start_year), month=start_month, day=1)
+    end_date = pd.Timestamp(year=end_year, month=end_month, day=1)
+
+    months = pd.date_range(start_date, end_date, freq='MS')
+
+    return [(d.year, d.month) for d in months]
+
+def expand_emdat_to_monthly(emdat_df):
+    """
+    Expand EM-DAT events to monthly records.
+    Distributes impact evenly across affected months.
+    """
+    records = []
+    for _, row in emdat_df.iterrows():
+        months = assign_disaster_to_months(row)
+        n_months = len(months) if months else 1
+
+        for year, month in months:
+            records.append({
+                'disno': row['DisNo.'],
+                'iso': row['ISO'],
+                'type': row['Disaster Type'],
+                'subtype': row.get('Disaster Subtype', ''),
+                'year': year,
+                'month': month,
+                'deaths_share': (row.get('Total Deaths', 0) or 0) / n_months,
+                'affected_share': (row.get('Total Affected', 0) or 0) / n_months,
+                'damage_share': (row.get("Total Damage ('000 US$)", 0) or 0) / n_months,
+                'event_count': 1 / n_months,  # Fractional event count
+            })
+
+    return pd.DataFrame(records)
+```
+
+### 18.3 Caveats
+
+- **Even distribution of impact across months is a strong assumption** — most disaster mortality occurs in the first days/weeks, not evenly spread
+- For sudden-onset events (earthquake, cyclone), assign 100% of impact to the start month
+- For slow-onset events (drought, epidemic), even distribution is more defensible
+- **Alternative:** Weight impact using a decay function (e.g., 60% first month, 25% second, 15% remaining)
+- **Always flag** the temporal precision used in your analysis — distinguish "known month" from "imputed month"

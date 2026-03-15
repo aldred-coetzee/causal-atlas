@@ -17,7 +17,17 @@
 8. [CrisisMappers, Ushahidi, and Crowdsourced Crisis Platforms](#8-crisismappers-ushahidi-and-crowdsourced-crisis-platforms)
 9. [GDELT Analysis Tools and Dashboards](#9-gdelt-analysis-tools-and-dashboards)
 10. [Conflict Forecasting Systems](#10-conflict-forecasting-systems)
-11. [Synthesis: Gaps and Opportunities for Causal Atlas](#11-synthesis-gaps-and-opportunities-for-causal-atlas)
+11. [GitHub Repository Survey: Cross-Domain Spatiotemporal Analysis](#11-github-repository-survey-cross-domain-spatiotemporal-analysis)
+12. [FEWS NET Data Pipeline](#12-fews-net-data-pipeline)
+13. [UN Global Pulse](#13-un-global-pulse)
+14. [Flowminder](#14-flowminder)
+15. [GRID3](#15-grid3)
+16. [Alan Turing Institute -- Humanitarian AI](#16-alan-turing-institute----humanitarian-ai)
+17. [Data-Driven Humanitarian Response -- Platform Survey](#17-data-driven-humanitarian-response----platform-survey)
+18. [The "Causal Search Engine" Concept](#18-the-causal-search-engine-concept)
+19. [PyWhy Ecosystem -- Causal Inference in Python](#19-pywhy-ecosystem----causal-inference-in-python)
+20. [World Bank DIME and ImpactAI](#20-world-bank-dime-and-impactai)
+21. [Synthesis: Gaps and Opportunities for Causal Atlas](#21-synthesis-gaps-and-opportunities-for-causal-atlas)
 
 ---
 
@@ -950,9 +960,439 @@ Several community-built tools exist for ACLED data:
 
 ---
 
-## 11. Synthesis: Gaps and Opportunities for Causal Atlas
+## 11. GitHub Repository Survey: Cross-Domain Spatiotemporal Analysis
 
-### 11.1 What Already Exists
+> **Methodology:** Searched GitHub for repositories matching terms: "spatiotemporal causal", "climate conflict analysis", "humanitarian data pipeline", "geospatial event correlation", "multi-hazard risk", "food security forecasting", "conflict prediction model", "causal discovery spatial". Findings dated March 2025.
+
+### 11.1 Spatiotemporal Causal Discovery
+
+| Repository | Stars | Language | Last Active | Description |
+|---|---|---|---|---|
+| [jakobrunge/tigramite](https://github.com/jakobrunge/tigramite) | ~1,600 | Python | Active | PCMCI family of algorithms for time series causal discovery. De facto standard. |
+| [py-why/causal-learn](https://github.com/py-why/causal-learn) | ~1,000+ | Python | Active | Python translation/extension of Tetrad. PC, GES, LINGAM, FCI, and more. Part of the PyWhy ecosystem. Published in JMLR 2024. |
+| [Rose-STL-Lab/SPACY](https://github.com/Rose-STL-Lab/SPACY) | New | Python | 2024 | **Highly relevant.** Discovers latent causal graphs from spatiotemporal data. Uses variational inference with spatial kernel functions to map observational time series to latent representations. ICML 2025 paper. Outperforms baselines on synthetic data and identifies key phenomena from real-world climate data. |
+| [yutong-xia/CausalST_Papers](https://github.com/yutong-xia/CausalST_Papers) | ~100 | -- | Active | Curated paper collection on causality in spatiotemporal data. Covers causal inference, discovery, and applications. |
+| [paras2612/STREAMS](https://github.com/paras2612/STREAMS) | ~10 | Python | 2024 | Reinforcement learning for causal discovery in spatiotemporal data. LSTM-GCN autoencoder for streamflow prediction. |
+| [zlxy9892/ST-CausalConvNet](https://github.com/zlxy9892/ST-CausalConvNet) | ~30 | Python | 2022 | Spatiotemporal causal convolutional network for PM2.5 prediction. |
+| [semvijverberg/RGCPD](https://github.com/semvijverberg/RGCPD) | ~50 | Python | Active | Response-Guided Causal Precursor Detection. Two-step pipeline: spatial correlation mapping then PCMCI causal testing. Uses Tigramite internally. |
+| [IPL-UV/Causal4Migrations](https://github.com/IPL-UV/Causal4Migrations) | 1 | Python | 2022 | PCMCI applied to drought-displacement causal chains in Somalia. Closest prior art to Causal Atlas at small scale. |
+| [runesen/spatio_temporal_causality](https://github.com/runesen/spatio_temporal_causality) | 25 | R/Python | 2020 | Conflict-deforestation causality in Colombia. Block-permutation for spatial autocorrelation. |
+| [mmukaigawara/geocausal](https://github.com/mmukaigawara/geocausal) | 63 | R | Active | Spatiotemporal causal inference for point-process data. Handles spillover and carryover effects. Harvard/Yale/Dartmouth. |
+
+**Key finding: SPACY** (Rose-STL-Lab) is the most methodologically advanced new project. Its approach of discovering causal structures in a latent space -- reducing the high-dimensional grid-cell data to a lower-dimensional representation -- directly addresses the scalability challenge Causal Atlas will face. We should study this closely.
+
+### 11.2 Climate-Conflict Analysis
+
+| Repository | Stars | Language | Last Active | Description |
+|---|---|---|---|---|
+| [prio-data/climate_extremes](https://github.com/prio-data/climate_extremes) | ~5 | Python | Active | ETCCDI climate extremes data for conflict analysis. Quantifies 27 standardised climate extreme indices. Linked to VIEWS pipeline. |
+| [prio-data/FEWSNet_to_PG](https://github.com/prio-data/FEWSNet_to_PG) | ~5 | Python | Active | Translates FEWS NET food insecurity data to PRIO-GRID resolution. Multiple translation procedures with interactive pipeline. |
+| [prio-data/views_pipeline](https://github.com/prio-data/views_pipeline) | ~20 | Python | Migrated | Legacy VIEWS pipeline. Now migrated to views-platform organisation. |
+
+### 11.3 Food Security Forecasting
+
+| Repository | Stars | Language | Last Active | Description |
+|---|---|---|---|---|
+| [pietro-foini/ISI-WFP](https://github.com/pietro-foini/ISI-WFP) | ~20 | Python | 2023 | ML model for WFP food security forecasting. Gradient boosted regression trees. Predicts insufficient food consumption trends up to 30 days ahead in 6 countries. |
+| [zhou100/FoodSecurityPrediction](https://github.com/zhou100/FoodSecurityPrediction) | ~30 | Python | 2022 | ML for food security prediction in sub-Saharan Africa. 55-84% accuracy. Published in AEPP. |
+| [willianck/Predicting-Food-Insecurity](https://github.com/willianck/Predicting-Food-Insecurity) | ~10 | Python | 2022 | Food insecurity prediction with the Alan Turing Institute. Uses RHoMIS survey data. |
+| [VectorInstitute/foodprice-forecasting](https://github.com/VectorInstitute/foodprice-forecasting) | ~15 | Python | Active | Mixed ensembles of ML models for Canada's Food Price Report. |
+
+### 11.4 Conflict Prediction Models
+
+| Repository | Stars | Language | Last Active | Description |
+|---|---|---|---|---|
+| [views-platform](https://github.com/views-platform) | Multiple repos | Python | Active | Full VIEWS 2.0 pipeline. Stepshift, HydraNet, ensemble framework. |
+| [fif911/probabilistic_conflict_modelling](https://github.com/fif911/probabilistic_conflict_modelling) | ~20 | Python | 2023 | First publicly available explainable conflict forecasting model. 95% classification accuracy. Country-month level, 14 months ahead. |
+
+### 11.5 Multi-Hazard Risk Assessment
+
+| Repository | Stars | Language | Last Active | Description |
+|---|---|---|---|---|
+| [BritishGeologicalSurvey/TOMRAP](https://github.com/BritishGeologicalSurvey/TOMRAP) | ~10 | Python | Active | Tool for Multi-hazard Risk Assessment in Python. Combines flood, earthquake, volcanic hazard maps with building data. |
+| [Intellia-SME/scikit-event-correlation](https://github.com/Intellia-SME/scikit-event-correlation) | ~15 | Python | 2022 | Event correlation and forecasting over high-dimensional streaming sensor data. |
+
+### 11.6 Causal Discovery Libraries (General)
+
+| Repository | Stars | Language | Last Active | Description |
+|---|---|---|---|---|
+| [py-why/causal-learn](https://github.com/py-why/causal-learn) | ~1,000+ | Python | Active | Part of PyWhy ecosystem. PC, GES, LINGAM, FCI, GIN, and more. Comprehensive Python causal discovery. |
+| [py-why/dowhy](https://github.com/py-why/dowhy) | ~7,000+ | Python | Active | Causal inference library. Explicit causal modelling and assumption testing. |
+| [FenTechSolutions/CausalDiscoveryToolbox](https://github.com/FenTechSolutions/CausalDiscoveryToolbox) | ~1,000+ | Python | 2023 | Causal inference in graphs and pairwise settings. Graph structure recovery. |
+| [rguo12/awesome-causality-algorithms](https://github.com/rguo12/awesome-causality-algorithms) | ~2,000+ | -- | Active | Comprehensive index of causality algorithms with code. |
+
+---
+
+## 12. FEWS NET Data Pipeline
+
+**What it is:** The Famine Early Warning Systems Network, funded by USAID, provides early warning and analysis on food insecurity in 38+ countries since 1985.
+
+### Open-Source Components
+
+FEWS NET's core analytical pipeline is **not open source**. However, some community-built tools exist:
+
+**prio-data/FEWSNet_to_PG** (https://github.com/prio-data/FEWSNet_to_PG):
+- Translates FEWS NET food insecurity classifications to PRIO-GRID 0.5-degree resolution.
+- Multiple translation procedures available (different mapping approaches for different research needs).
+- Interactive Python pipeline with utility scripts and reusable functions.
+- Demonstrates how to bridge admin-boundary-based food security data with grid-cell-based conflict research.
+
+**FEWS NET Data Explorer:**
+- Hosts 22M+ data points across food security domains.
+- Provides download access (not a REST API).
+- Covers: IPC classifications, price data, production estimates, trade data, weather data.
+
+**FLDAS (FEWS NET Land Data Assimilation System):**
+- Custom instance of the NASA Land Information System.
+- Produces hydrological estimates (soil moisture, evapotranspiration, runoff) for FEWS NET countries.
+- Data available through NASA's GES DISC portal.
+- Not open source as a system, but outputs are freely accessible.
+
+### What We Can Learn
+
+- 40 years of operational experience integrating climate, market, livelihood, and food security data.
+- Their analytical framework (how climate anomalies propagate through food systems) is a model for the causal chains Causal Atlas aims to surface.
+- The FEWSNet_to_PG repo demonstrates the practical challenges of mapping admin-boundary data to grid cells.
+
+---
+
+## 13. UN Global Pulse
+
+**What it is:** The UN Secretary-General's flagship innovation initiative on big data, with a network of Pulse Labs in Jakarta, Kampala, and Helsinki.
+
+**Links:**
+- Website: https://www.unglobalpulse.org/
+- GitHub: (various project-specific repos)
+
+### Published Tools and Methods
+
+| Tool | Purpose | Status |
+|---|---|---|
+| **Haze Gazer** | Crisis analysis and visualisation for forest/peatland fires in Indonesia | Deployed |
+| **Qatalog** | Query, tag, and analyse data from public radio and Facebook posts | Open source platform for UN Country Teams |
+| **DISHA** (Data Insights for Social and Humanitarian Action) | Multi-partner initiative for ethical data access and AI solutions | Active partnership |
+| **Pulse Lab Cookbook** | Best practices for analysis, technology innovation, community engagement | Published guidelines |
+
+### Approach
+
+Global Pulse pursues a three-fold strategy:
+1. **Research** innovative methods for analysing real-time digital data to detect early emerging vulnerabilities.
+2. **Assemble** free and open-source technology toolkits for data sharing and hypothesis testing.
+3. **Establish** an integrated global network of Pulse Labs.
+
+### What We Can Learn
+
+- UN Global Pulse has demonstrated that novel data sources (social media, mobile phone data, satellite imagery) can provide early warning signals.
+- Their open-source tool approach aligns with Causal Atlas's philosophy.
+- The DISHA initiative shows growing institutional support for ethical data-driven humanitarian analysis.
+- However, their tools tend to be project-specific rather than general-purpose platforms.
+
+---
+
+## 14. Flowminder
+
+**What it is:** A non-profit that uses mobile phone data, satellite imagery, and survey data to generate estimates of human mobility and population distribution in low- and middle-income countries.
+
+**Links:**
+- Website: https://www.flowminder.org/
+- GitHub: https://github.com/flowminder
+- FlowKit: https://www.flowminder.org/news/dial-launching-flowkit-an-open-source-tool-to-support-communities-through-mobile-phone-data-analysis
+
+### FlowKit -- Open Source Tool
+
+**Purpose:** Enables humanitarian workers to inform crisis responses using mobile phone Call Detail Record (CDR) data.
+
+**Key Features:**
+- Secure and compliant data access with privacy protections.
+- Processing and analysis of CDR data to estimate population movements.
+- Produces de-identified aggregates for displacement tracking.
+- Released under an open-source licence.
+
+**Applications:**
+- 2010 Haiti Earthquake (population displacement tracking)
+- 2013 Typhoon, Bangladesh
+- 2015 Nepal Earthquake
+- 2016 Haiti Hurricane
+- Ebola response in West Africa
+- COVID-19 mobility monitoring
+
+### What We Can Learn
+
+- **Mobile phone data as a displacement proxy** is highly relevant for Causal Atlas. If we discover that conflict causes displacement, FlowKit-derived mobility data could validate or quantify the displacement.
+- **Privacy-preserving data processing** is essential for any tool handling sensitive movement data.
+- FlowKit's architecture (secure processing within the mobile operator's infrastructure) addresses the key barrier to accessing mobile data.
+
+### Limitations
+
+- Requires partnership agreements with mobile network operators.
+- CDR data availability varies significantly by country.
+- Not real-time -- typically weekly or monthly aggregates.
+- Python/Docker-based infrastructure.
+
+---
+
+## 15. GRID3
+
+**What it is:** Geo-Referenced Infrastructure and Demographic Data for Development. Works with countries in sub-Saharan Africa to generate, validate, and use geospatial data on population, settlements, infrastructure, and boundaries.
+
+**Links:**
+- Website: https://grid3.org/
+- Data Hub: https://data.grid3.org/
+- HDX: https://data.humdata.org/organization/grid3 (71 datasets)
+
+### Data Products
+
+| Product | Description | Coverage |
+|---|---|---|
+| **Population estimates** | High-resolution gridded population (100m x 100m) | Multiple African countries |
+| **Settlement extents** | Built-up area delineation from satellite imagery | Sub-Saharan Africa |
+| **Administrative boundaries** | Validated, standardised boundary datasets | Country-specific |
+| **Health facility locations** | Georeferenced health service points | Country-specific |
+| **School locations** | Georeferenced educational facilities | Country-specific |
+
+### Methodology
+
+- Combines highest-resolution satellite imagery with dynamic population modelling.
+- Uses machine learning for settlement detection and population distribution.
+- Partners with government statistical offices for ground truth validation.
+- Data published on HDX and their own Data Hub under open licences.
+
+### What We Can Reuse
+
+- **High-resolution population data** for exposure calculations (how many people affected by a causal chain).
+- **Health/school facility locations** for infrastructure vulnerability analysis.
+- **71 datasets on HDX** already standardised and accessible.
+- Complementary to PRIO-GRID -- GRID3 provides higher resolution for Africa that can be aggregated to grid cells.
+
+---
+
+## 16. Alan Turing Institute -- Humanitarian AI
+
+**What it is:** The UK's national institute for data science and artificial intelligence, with several projects relevant to humanitarian data and food security forecasting.
+
+**Links:**
+- Website: https://www.turing.ac.uk/
+- AI for Human Rights: https://www.turing.ac.uk/ai-human-rights
+- Digital Aid event: https://www.turing.ac.uk/events/digital-aid-understanding-digital-challenges-facing-humanitarian-assistance
+
+### Relevant Projects
+
+**Food Insecurity Prediction:**
+- Applied data science project predicting food insecurity in developing countries using RHoMIS (Rural Household Multi-Indicator Survey) data.
+- Explores automating the assignment of food insecurity levels to households using machine learning.
+- Code: https://github.com/willianck/Predicting-Food-Insecurity
+
+**Project Cumulus (Climate Resilience + Food Security):**
+- Funded by the Gates Foundation and FCDO.
+- Partners: Turing Institute, University of Cambridge, University of Leeds, with universities and meteorological agencies in Ghana and Senegal.
+- Goal: co-design more accurate, bespoke weather forecasting systems to help farmers improve crop yields and reduce economic losses.
+- Combines AI forecasting with local agricultural knowledge.
+
+**AI for Human Rights:**
+- Explores AI applications for monitoring human rights situations.
+- Relevant for Causal Atlas's potential to identify causal chains leading to human rights violations.
+
+### What We Can Learn
+
+- Turing's food insecurity prediction work demonstrates that ML can predict food security outcomes using survey + remote sensing data.
+- Project Cumulus shows the importance of co-design with local stakeholders -- Causal Atlas should involve domain experts and local researchers.
+- Their academic rigour and publication standards are a model for our research-first approach.
+
+---
+
+## 17. Data-Driven Humanitarian Response -- Platform Survey
+
+> **Findings as of March 2025:** Based on OCHA Centre for Humanitarian Data's annual reports and broader sector survey.
+
+### State of Open Humanitarian Data (2024-2025)
+
+- **74% of relevant crisis data** is available and up-to-date across 22 humanitarian operations (up from 70% in 2024).
+- **HDX** hosts 18,110+ datasets from 254 locations and 2,147 sources.
+- Key gaps remain: sub-national granularity, real-time updates, cross-domain integration.
+
+### Emerging Technologies in Humanitarian Response
+
+| Technology | Application | Examples |
+|---|---|---|
+| **AI/ML** | Predictive analytics, nowcasting, NLP for report analysis | HungerMap LIVE, VIEWS, WFP Conflict Forecast |
+| **LLMs** | Humanitarian data assistant, report summarisation | OCHA's Humanitarian AI Assistant |
+| **Crisis mapping** | Rapid situation assessment | HOT, MapAction, Ushahidi |
+| **Mobile data** | Population mobility, displacement tracking | Flowminder/FlowKit, Meta Data for Good |
+| **Satellite imagery** | Damage assessment, vegetation monitoring, nightlights | GEE, Copernicus, Planet |
+| **Blockchain** | Supply chain tracking, identity management | Emerging; limited deployment |
+
+### Key Challenges (from sector surveys)
+
+1. **Limited data literacy** among humanitarian staff.
+2. **Lack of interoperable data systems** -- each organisation uses different tools and formats.
+3. **Inconsistent data quality** across sources.
+4. **Ethical concerns** -- privacy, consent, data protection.
+5. **No systematic platform for cross-domain data sharing** -- most data remains siloed by sector.
+6. **Gap between data producers and decision-makers** -- analysis often does not reach those who need it.
+
+### Implications for Causal Atlas
+
+- The humanitarian sector has strong demand for cross-domain data integration but lacks the tools.
+- Causal Atlas must be designed for users with varying data literacy -- from researchers to programme managers.
+- Interoperability with existing systems (HDX, HAPI, CKAN) is essential for adoption.
+- Ethical data handling (especially for conflict and displacement data) must be a core design principle.
+
+---
+
+## 18. The "Causal Search Engine" Concept
+
+> **Question:** Is anyone building a searchable database of causal relationships that could be queried like a search engine?
+
+### Existing Projects in This Space
+
+#### 18.1 Csql Causal Database (2026)
+
+| Attribute | Detail |
+|---|---|
+| **Paper** | https://arxiv.org/html/2601.08109v1 |
+| **Status** | Research preprint (Jan 2026) |
+| **Scale** | 295,459 concept strings, 260,777 directed causal edges, 44 publication years |
+| **Method** | NLP extraction from academic literature |
+
+Produces two tables: `atlas_nodes` (concepts) and `atlas_edges` (causal generators). The naming convention is strikingly similar to Causal Atlas. However, their "causality" is text-mined from published papers, not discovered from observational data.
+
+#### 18.2 Causaly (Commercial)
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://www.causaly.com |
+| **Domain** | Biomedical |
+| **Status** | Active, well-funded commercial product |
+| **Method** | Custom NLP + ontologies for biomedical causal knowledge graph |
+
+A "causal search engine" for life sciences R&D. Users can search for causal relationships (e.g., "What causes drug resistance in melanoma?") and get answers sourced from biomedical literature. **This is the closest to the "causal search engine" concept**, but purely in the biomedical domain and based on text, not observational data.
+
+#### 18.3 WikiCausal (IBM Research, 2024)
+
+| Attribute | Detail |
+|---|---|
+| **Paper** | ISWC 2024 |
+| **GitHub** | https://github.com/IBM/wikicausal |
+| **Method** | Corpus and evaluation framework for causal knowledge graph construction from Wikipedia |
+
+Extracts causal relations between event concepts from Wikipedia articles. Uses neural question-answering models and concept linking. Evaluates against existing causal relations in Wikidata. Publicly available corpus and framework.
+
+#### 18.4 CausalRAG (2025)
+
+| Attribute | Detail |
+|---|---|
+| **Paper** | ACL Findings 2025 |
+| **Method** | Integrates causal graphs into Retrieval-Augmented Generation systems |
+
+Improves LLM reasoning by incorporating causal graph structures into the retrieval process. Relevant for Causal Atlas's AI-assisted interpretation layer.
+
+#### 18.5 Dimensions Causal Relationship Search (Digital Science / metaphacts, 2024)
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://blog.metaphacts.com/identifying-causal-relationships-with-knowledge-graphs-and-large-language-models |
+| **Status** | Beta (presented at BioTechX 2024) |
+| **Method** | Knowledge graph (32B+ statements) + LLMs for causal relationship extraction |
+
+Uses the Dimensions Knowledge Graph (built on a unified semantic model) to identify causal relationships. Currently focused on scientific literature. Demonstrates growing commercial interest in causal search.
+
+### Analysis: Where Causal Atlas Fits
+
+| Project | Domain | Data Source | Causality Type | Spatial | Temporal |
+|---|---|---|---|---|---|
+| Csql | General science | Academic papers | Text-mined | No | No |
+| Causaly | Biomedical | Biomedical literature | Text-mined (NLP) | No | No |
+| WikiCausal | General events | Wikipedia | Text-mined (NLP) | No | No |
+| CausalRAG | General | LLM + graphs | Reasoning-enhanced | No | No |
+| **Causal Atlas** | **Multi-domain humanitarian** | **Observational data** | **Statistically discovered** | **Yes (grid cells)** | **Yes (monthly)** |
+
+**Key insight:** All existing "causal search" projects extract causal claims from text. **No one is building a searchable database of statistically validated causal relationships discovered from observational spatiotemporal data.** This is Causal Atlas's unique position -- a "causal search engine" grounded in data, not text.
+
+The vision: a user searches "What causes food insecurity in the Sahel?" and gets back statistically validated causal chains (drought -> crop failure -> food price spike -> food insecurity) with lag structures, confidence intervals, and spatial variation, all derived from observational data rather than literature mining.
+
+---
+
+## 19. PyWhy Ecosystem -- Causal Inference in Python
+
+> **Note:** This ecosystem is important enough to warrant its own section, as it represents the most comprehensive open-source causal inference toolkit available.
+
+**Organisation:** https://www.pywhy.org/
+
+| Package | Stars | Purpose | Relevance to CA |
+|---|---|---|---|
+| **causal-learn** | ~1,000+ | Causal discovery (PC, GES, LINGAM, FCI, GIN, etc.) | Alternative/complement to Tigramite for discovery |
+| **dowhy** | ~7,000+ | Causal inference (explicit modelling, assumption testing, do-calculus) | Validating discovered causal relationships |
+| **EconML** | ~4,000+ | ML-based causal effect estimation (DML, metalearners, instrumental variables) | Estimating treatment effects |
+| **gcm** | Part of dowhy | Graphical causal models | Structural causal modelling |
+| **dodiscover** | ~100 | Causal discovery with pandas-like API | Simplified discovery interface |
+
+### causal-learn Deep Dive
+
+Published in JMLR 2024, causal-learn is a Python translation and extension of the CMU Tetrad project. Key features:
+
+**Algorithm Categories:**
+1. **Constraint-based:** PC, FCI (handles latent confounders), CPC, CDNOD (non-stationary data)
+2. **Score-based:** GES, exact search
+3. **Functional causal models:** LINGAM, ANM (additive noise models)
+4. **Hidden representation learning:** Causal representation learning methods
+5. **Permutation-based:** Methods for causal structure discovery
+6. **Granger causality:** Time series methods
+
+**Utilities:**
+- Multiple conditional independence tests (Fisher-z, Chi-square, KCI, etc.)
+- Score functions (BIC, generalised score)
+- Graph operations and evaluation metrics
+- Visualisation tools
+
+### Comparison: causal-learn vs Tigramite
+
+| Feature | causal-learn | Tigramite |
+|---|---|---|
+| **Focus** | General causal discovery (tabular + some time series) | Time series causal discovery (specialised) |
+| **Algorithms** | Broad (20+ methods) | Deep (PCMCI family, highly optimised) |
+| **Time series** | Granger causality, basic temporal methods | PCMCI, PCMCIplus, LPCMCI, RPCMCI, J-PCMCI+ |
+| **Latent confounders** | FCI | LPCMCI |
+| **Non-linear** | ANM, KCI-based tests | CMIknn, GPDC |
+| **Spatial awareness** | None | None (but RGCPD/SPACY add this) |
+| **Community** | PyWhy ecosystem, active development | Jakob Runge (DLR), climate science community |
+| **Recommendation** | Complement for validation | **Primary engine for Causal Atlas** |
+
+**Decision:** Use Tigramite/PCMCI as the primary causal discovery engine (optimised for our time series use case), with causal-learn as a validation/comparison tool, and dowhy for explicit causal modelling and assumption testing.
+
+---
+
+## 20. World Bank DIME and ImpactAI
+
+**What it is:** The World Bank's Development Impact Evaluation (DIME) unit facilitates impact evaluations within World Bank projects, with a focus on causal evidence for development policy.
+
+**Links:**
+- DIME: https://www.worldbank.org/en/about/unit/unit-dec/impactevaluation
+- ImpactAI: https://www.worldbank.org/en/about/unit/unit-dec/impactevaluation/ai
+
+### ImpactAI
+
+- Uses **LLMs to synthesise quantitative causal research evidence** from impact evaluation literature.
+- Extracts insights from published impact evaluations to support development financing decisions.
+- Delivers aggregated, quantitative research summaries and interactive visualisations.
+- Specialises in **causal evidence** -- only surfaces findings from studies with rigorous identification strategies (RCTs, difference-in-differences, regression discontinuity).
+
+### What We Can Learn
+
+- ImpactAI demonstrates the value of AI-assisted synthesis of causal evidence -- exactly what Causal Atlas's interpretation layer aims to do.
+- However, ImpactAI works from published literature (text), while Causal Atlas works from observational data (statistical discovery).
+- The two approaches are complementary: Causal Atlas discovers causal relationships from data; ImpactAI (or similar) could validate whether those relationships have been confirmed in the literature.
+
+### Limitations
+
+- Literature-based, not data-driven discovery.
+- Focus on micro-level development interventions, not macro-level cross-domain causal chains.
+- Not publicly available as a tool.
+
+---
+
+## 21. Synthesis: Gaps and Opportunities for Causal Atlas
+
+### 21.1 What Already Exists
 
 The landscape is rich but fragmented:
 
@@ -967,7 +1407,7 @@ The landscape is rich but fragmented:
 | **Climate-conflict analysis** | Strata, Causal4Migrations, Sahel PA | Small-scale, one-off projects — no sustained platform. |
 | **Multi-domain data overlay** | HungerMap LIVE, Strata | Overlay/descriptive only — no causal testing. |
 
-### 11.2 The Gap Causal Atlas Fills
+### 21.2 The Gap Causal Atlas Fills
 
 No existing project combines all of these:
 
@@ -985,7 +1425,7 @@ The closest projects are:
 
 Causal Atlas would effectively combine the data integration of AfroGrid, the spatial framework of PRIO-GRID, the causal inference engine of Tigramite, and the visualisation of Kepler.gl into a single, open-source platform.
 
-### 11.3 Key Lessons from Prior Art
+### 21.3 Key Lessons from Prior Art
 
 1. **Use existing data APIs; do not re-host data.** HDX, HAPI, GDELT BigQuery, and ClimateSERV already solve the data access problem. Our value is in alignment and analysis, not storage.
 
@@ -996,6 +1436,58 @@ Causal Atlas would effectively combine the data integration of AfroGrid, the spa
 4. **Kepler.gl is the leading open-source geospatial visualisation library.** GPU-accelerated, supports temporal playback, and is actively maintained.
 
 5. **Cross-domain causal discovery at scale has NOT been done.** Every project we found either (a) works across domains but does not test causality, or (b) tests causality but only within a single domain or at tiny scale.
+
+6. **The "causal search engine" concept is emerging but entirely text-based.** Causaly, WikiCausal, Csql, and ImpactAI all extract causal claims from literature. No one is building a searchable database of statistically discovered causal relationships from observational data. This is a genuinely novel contribution.
+
+7. **SPACY (Rose-STL-Lab) solves the scalability problem we will face.** Their variational inference approach to discovering latent causal structures from spatiotemporal data -- reducing high-dimensional grid data to a lower-dimensional latent space -- is directly applicable to our challenge.
+
+8. **The PyWhy ecosystem provides complementary causal tools.** Tigramite for discovery, causal-learn for validation, dowhy for explicit modelling, EconML for effect estimation. We should build on this entire ecosystem, not just Tigramite.
+
+9. **Humanitarian sector needs are clear but unmet.** 74% of crisis data is available, but no platform integrates it across domains for causal analysis. Data literacy varies widely among target users. Ethical data handling is non-negotiable.
+
+10. **Population mobility data** (from Flowminder/FlowKit, Meta Data for Good) is an underexplored data source for validating displacement-related causal chains.
+
+### 21.4 Updated Project Landscape Map
+
+```
+                    DATA INTEGRATION
+                         |
+            PRIO-GRID -- AfroGrid -- HDX HAPI
+                |            |           |
+                v            v           v
+            VIEWS    ClimateSERV    FEWS NET
+              |          |              |
+              v          v              v
+         PREDICTION  DATA ACCESS  FOOD SECURITY
+              |          |              |
+              v          v              v
+    ┌─────────────────────────────────────────┐
+    │        GAP: CAUSAL ATLAS FILLS          │
+    │                                         │
+    │   Multi-domain + Causal Discovery       │
+    │   + Interactive Visualisation            │
+    │   + AI Interpretation                    │
+    └─────────────────────────────────────────┘
+              |          |              |
+              v          v              v
+         Tigramite   Kepler.gl      Claude API
+         PCMCI      deck.gl/DuckDB   PyWhy
+```
+
+### 21.5 Priority Integration Targets
+
+Based on this expanded survey, the priority integration order for Causal Atlas should be:
+
+1. **Core data pipeline:** PRIO-GRID backbone + UCDP-GED (conflict) + CHIRPS (rainfall) + MODIS NDVI (vegetation) -- replicating and extending AfroGrid globally.
+2. **Food security layer:** HDX HAPI (IPC classifications) + WFP food prices + FEWS NET data (via FEWSNet_to_PG methodology).
+3. **Causal engine:** Tigramite/PCMCI primary, with SPACY latent-space approach for scalability.
+4. **Visualisation:** Kepler.gl v3 embedded React component, DuckDB-WASM for pre-computed result exploration, PMTiles for base map tiles.
+5. **Validation:** PyWhy/causal-learn for method comparison, CauseME benchmarks for algorithm selection.
+6. **Interpretation:** Claude API for natural language explanation of discovered causal chains, informed by ImpactAI-style literature synthesis.
+
+---
+
+*This document should be updated quarterly. Key items to watch: SPACY's ICML 2025 publication and code release, PyWhy ecosystem evolution, VIEWS 2.0 platform stabilisation, new entrants in the humanitarian data integration space, and commercial "causal search engine" products that may expand beyond biomedical domains.*
 
 6. **Spatial autocorrelation must be handled.** The Colombia forest-conflict study and geocausal R package both emphasise that ignoring spatial dependence leads to false causal claims.
 

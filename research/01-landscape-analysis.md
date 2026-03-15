@@ -15,11 +15,21 @@
 6. [xSub](#6-xsub)
 7. [HDX Platform & HAPI](#7-hdx-platform--hapi)
 8. [Kepler.gl](#8-keplergl)
+8a. [deck.gl Ecosystem](#8a-deckgl-ecosystem)
+8b. [MapLibre GL JS](#8b-maplibre-gl-js)
 9. [ACLED Dashboard & Tools](#9-acled-dashboard--tools)
 10. [GDELT Analysis Service](#10-gdelt-analysis-service)
 11. [Other Relevant Open-Source Projects](#11-other-relevant-open-source-projects)
-12. [Comparative Summary](#12-comparative-summary)
-13. [Implications for Causal Atlas](#13-implications-for-causal-atlas)
+12. [OCHA ReliefWeb](#12-ocha-reliefweb)
+13. [Pacific Disaster Center (PDC) -- DisasterAWARE](#13-pacific-disaster-center-pdc----disasteraware)
+14. [INFORM Model](#14-inform-model)
+15. [Global Conflict Risk Index (GCRI)](#15-global-conflict-risk-index-gcri)
+16. [CrisisReady / Direct Relief](#16-crisisready--direct-relief)
+17. [MapAction](#17-mapaction)
+18. [iMMAP](#18-immap)
+19. [Humanitarian OpenStreetMap Team (HOT)](#19-humanitarian-openstreetmap-team-hot)
+20. [Comparative Summary](#20-comparative-summary)
+21. [Implications for Causal Atlas](#21-implications-for-causal-atlas)
 
 ---
 
@@ -157,12 +167,79 @@ The 2023/24 VIEWS Prediction Challenge invited 13 research institutions to devel
 - **The VIEWS API and data** can serve as an input layer for conflict predictions within Causal Atlas.
 - **Evaluation methodology** from the Prediction Challenge provides benchmarks for assessing causal claims.
 
+### VIEWS 2.0 / Next-Generation Platform (views-platform)
+
+As of March 2025, VIEWS is undergoing a major architectural transition from the legacy `prio-data` GitHub organisation to the new `views-platform` organisation. The new platform represents a ground-up rearchitecture:
+
+**GitHub Organisation:** https://github.com/views-platform
+
+**Key Repositories in views-platform:**
+
+| Repository | Purpose | Key Detail |
+|---|---|---|
+| `views-pipeline-core` | Main pipeline orchestration: data ingestion, preprocessing, model/ensemble training, evaluation, experiment tracking | The central nervous system of the platform |
+| `views-models` | All implemented models at pgm and cm levels, with prediction targets, input data specs, and algorithm configs | Currently supports stepshift models; expanding to other architectures |
+| `views-stepshifter` | Stepshifter model class implementation | Wraps the `stepshift` package with VIEWS-specific config |
+| `views-hydranet` | HydraNet model class: CNN-LSTM hybrid for spatiotemporal forecasting | Multi-task learning with probabilistic predictions; predicts state-based, non-state, and one-sided violence with uncertainty quantification |
+| `views-evaluation` | Stores, calculates, and manages evaluation metrics for time-series forecasting models | Standardised evaluation across all model types |
+| `views-dataviz` | Visualisation utilities for forecasts and evaluations | Notebook-friendly plotting |
+| `views-data` | Data management and access layer | Successor to the VIEWSER client |
+
+**Stepshift Algorithm -- Deep Dive:**
+
+The stepshift approach (Hegre et al. 2020, Appendix A) is the core forecasting strategy:
+
+1. Instead of recursive multi-step forecasting (where a 6-month-ahead prediction depends on the 5-month prediction, which depends on the 4-month prediction, etc.), stepshift trains **independent models for each forecast horizon**.
+2. For a 36-month forecast window, this means 36 separate models, each trained to predict the target variable at a specific future time step.
+3. Each model uses the **same feature set** but with different target offsets. The `StepshiftedModels` class in the `stepshift` package handles this transparently with a scikit-learn-compatible API.
+4. This avoids error accumulation that plagues recursive approaches.
+5. The trade-off: 36x the number of models to train, but each model is simpler and independently evaluable.
+
+```python
+# Conceptual stepshift usage (from the stepshift package)
+from stepshift.views import StepshiftedModels
+import sklearn.ensemble
+
+base_model = sklearn.ensemble.GradientBoostingRegressor()
+ssm = StepshiftedModels(base_model, steps=[1, 2, 3, ..., 36])
+ssm.fit(X_train, y_train)
+predictions = ssm.predict(X_test)  # Returns predictions at each horizon
+```
+
+**HydraNet Architecture:**
+
+HydraNet is a more recent addition representing the shift toward deep learning:
+- **CNN-LSTM hybrid** architecture that captures both spatial patterns (via convolutional layers over the grid) and temporal dynamics (via LSTM layers).
+- **Multi-task learning:** simultaneously predicts state-based conflict, non-state conflict, and one-sided violence -- sharing spatial/temporal representations across tasks.
+- **Probabilistic predictions** with uncertainty quantification, addressing a key limitation of point-estimate models.
+- Represents the cutting edge of the VIEWS modelling pipeline.
+
+**Data Access (VIEWSER Client):**
+
+Models in the VIEWS pipeline fetch data from a central database via the VIEWSER client by specifying a "queryset" -- a declarative specification of which variables, transformations, and time periods to retrieve:
+
+```python
+# Conceptual VIEWSER queryset
+from viewser import Queryset, Column
+qs = Queryset("my_model_data", "priogrid_month")
+qs = qs.with_column(Column("ucdp_ged_best_sb", from_table="ged2_pgm", transforms=[("moving_average", 12)]))
+qs = qs.with_column(Column("wdi_ny_gdp_pcap_pp_kd", from_table="wdi_cy"))
+data = qs.publish().fetch()
+```
+
+**MLOps Stack:**
+- **Weights & Biases** for experiment tracking (uses adjective-noun naming convention for model runs).
+- **Automated monthly forecast runs** with drift detection and quality assurance checks.
+- Industry-grade CI/CD pipeline for model deployment.
+
 ### Limitations
 
 - **Single-domain focus** -- VIEWS predicts conflict only. It does not discover cross-domain causal relationships (e.g., drought causing conflict).
 - **Prediction, not explanation** -- the pipeline is optimised for forecast accuracy, not for identifying causal mechanisms.
 - **Heavy infrastructure** -- the full MLOps pipeline requires significant compute and operational resources.
 - **Python ecosystem** -- fortunately aligned with our tech stack direction.
+- **CC BY-NC-SA 4.0 licence** -- limits commercial use of the code.
+- **Africa and Middle East focus** -- expanding globally but not yet fully global.
 
 ---
 
@@ -183,6 +260,43 @@ AfroGrid's core contribution is **demonstrating how to harmonise multi-domain da
 2. **Temporal standardisation:** All variables are aggregated to monthly resolution (grid-month observations).
 3. **Identifier alignment:** Each row includes month/year indicators, PRIO-GRID cell IDs, and Correlates of War (COW) country IDs, enabling easy joins with external datasets.
 4. **Single-file delivery:** Everything is combined into one flat file, maximising accessibility regardless of user software background.
+
+### Detailed Harmonisation Methods
+
+**NDVI Harmonisation:**
+- Source: MODIS satellite imagery.
+- Three monthly metrics computed per grid cell: NDVI mean, NDVI min, and NDVI max.
+- NDVI mean captures average vegetation coverage; min/max capture within-month variability -- critical for detecting sudden vegetation stress events (e.g., drought onset).
+- Raw MODIS NDVI tiles are aggregated to 0.5-degree grid cells using area-weighted averaging.
+- Cloud-contaminated pixels are filtered before aggregation.
+
+**Dual-Series Nighttime Lights Harmonisation:**
+- This is AfroGrid's most technically complex contribution.
+- **Problem:** Two satellite systems measured nighttime lights over different periods: DMSP-OLS (1992-2013) and NPP-VIIRS (2012 onwards). They use different sensors, spatial resolutions, and measurement units. Naive concatenation produces a discontinuity at the 2012/2013 overlap.
+- **Solution:** AfroGrid uses the Li et al. (2020) harmonisation method ("A harmonized global nighttime light dataset 1992-2018", Nature Scientific Data), which:
+  1. Quantifies monthly VIIRS nighttime light radiance over the continent.
+  2. Calculates the statistical relationship between DMSP and VIIRS during the overlap period (2012-2013).
+  3. Applies a calibration function to create a continuous, comparable time series spanning the full period.
+- This dual-series approach is particularly important for Africa, where DMSP's limited dynamic range poorly captures low-emission rural areas.
+
+**SPEI (Drought) Alignment:**
+- SPEI (Standardised Precipitation Evapotranspiration Index) is calculated at the 1-month timescale.
+- SPEI incorporates both precipitation and temperature (via potential evapotranspiration), making it more comprehensive than precipitation-only indices.
+- Positive SPEI values indicate water surplus; negative values indicate water stress.
+- Source: CRU TS / GPCC datasets, which provide global monthly gridded climate data.
+- Native resolution (~0.5 degrees) aligns well with PRIO-GRID cells, requiring minimal spatial transformation.
+
+**Conflict Data Alignment:**
+- Point-level conflict events (from UCDP-GED, ACLED, SCAD, PITF) are assigned to their containing 0.5-degree grid cell using the event's geocoordinates.
+- Monthly counts of events and fatalities are aggregated per grid cell.
+- Multiple conflict typologies preserved: state-based, non-state, one-sided violence.
+- ACLED provides additional granularity: riots, protests, strategic developments, etc.
+
+**Temporal Alignment Strategy:**
+- All variables converted to calendar month observations.
+- For variables with finer temporal resolution (e.g., daily ACLED events), monthly sums or means are computed.
+- For variables with coarser temporal resolution (e.g., annual population data), values are held constant across all months of the year or linearly interpolated.
+- The overlap of temporal coverage varies by source (UCDP-GED from 1989, ACLED from 1997, PITF from 1995, SCAD 1990-2017), creating a "staircase" of available variables across time.
 
 ### Domains and Variables
 
@@ -497,6 +611,23 @@ datasets = Dataset.search_in_hdx("food prices", rows=10)
 - **The standardisation approach** -- HAPI's category-based data model is a useful reference for our own schema design.
 - **The CKAN pattern** -- if we ever need a data catalogue layer, CKAN is proven at scale.
 
+### HDX Data Grids
+
+In 2019, HDX introduced **Data Grids** -- curated collections of the most critical datasets for countries with a Humanitarian Response Plan (HRP). Based on extensive user research, Data Grids organise crisis data into six categories:
+
+1. **Affected people** -- displacement, refugees, IDPs, casualties
+2. **Coordination and context** -- 3W (Who does What Where), funding, operational presence
+3. **Food security, nutrition, and poverty** -- IPC classifications, food prices, malnutrition rates
+4. **Geography and infrastructure** -- admin boundaries, roads, health facilities, schools
+5. **Health and education** -- health facility locations, disease surveillance, school data
+6. **Climate** -- precipitation, temperature, vegetation indices
+
+As of early 2025, approximately **74% of relevant, complete crisis data** is available and up-to-date across 22 humanitarian operations, up from 70% in 2024.
+
+### HDX Quick Charts
+
+HDX provides **Quick Charts** -- auto-generated visualisations for datasets that follow standard schemas. These include key figures, charts, and maps. An open-source JavaScript dashboard built from HDX HAPI data is available for developers to copy and adapt.
+
 ### Limitations
 
 - **Humanitarian focus** -- does not cover climate, pollution, earthquakes, or non-humanitarian indicators.
@@ -586,13 +717,188 @@ store.dispatch(addDataToMap({
 - **GeoParquet + DuckDB** pipeline aligns perfectly with our DuckDB/Parquet data stack.
 - **Embeddable React component** fits our FastAPI + React architecture.
 
+### Deep Dive: Architecture
+
+**Rendering Pipeline:**
+- Kepler.gl is built on **deck.gl** (WebGL/WebGPU rendering) and **MapLibre GL JS** (base map tiles).
+- The rendering pipeline: Data -> Redux Store -> Layer Configuration -> deck.gl Layer Instances -> WebGL Draw Calls -> GPU -> Canvas.
+- Each layer type (point, hexbin, arc, etc.) maps to a specific deck.gl layer class.
+- GPU-accelerated rendering means millions of data points can be rendered at interactive frame rates.
+
+**Redux State Management:**
+- The entire map state (datasets, layers, filters, map view, interactions) lives in a Redux store.
+- Kepler.gl provides a **reducer** (`keplerGlReducer`) that handles all state transitions.
+- **react-palm** middleware manages side effects (data processing, file I/O).
+- External applications can dispatch Redux actions to programmatically control the map: add data, change filters, update layer styles, etc.
+- This architecture makes kepler.gl highly embeddable but requires developers to understand Redux patterns.
+
+**Dependency Injection / Customisation:**
+- Kepler.gl supports replacing UI components via a factory/injection system.
+- Developers can override the side panel, map control, tooltip, and other UI elements with custom React components.
+- Custom layer types can be added by extending deck.gl layer classes.
+- This is critical for Causal Atlas: we can inject causal analysis panels, lag-correlation views, and custom tooltip displays.
+
+### DuckDB-WASM Integration (v3.1+) -- Deep Dive
+
+**Architecture:**
+- DuckDB compiled to WebAssembly (WASM) runs entirely in the browser tab.
+- Users can write SQL queries that execute against in-browser DuckDB tables.
+- DuckDB's spatial extension enables spatial SQL (ST_Contains, ST_Distance, etc.) on GeoParquet data.
+- **Spatially partitioned GeoParquet** files on cloud storage (S3, GCS) can be queried without downloading the entire file -- DuckDB reads only relevant row groups/partitions based on the query.
+
+**Workflow:**
+1. Drag and drop files (CSV, Parquet, GeoJSON) into kepler.gl to create DuckDB tables.
+2. Write SQL queries in the query panel -- including spatial functions.
+3. Results are passed directly to the rendering pipeline.
+4. Schema panel updates to reflect query results.
+
+**Implications for Causal Atlas:**
+- We could serve pre-computed causal analysis results as GeoParquet files on cloud storage.
+- Users could query them with SQL in the browser: `SELECT * FROM causal_links WHERE source_domain = 'drought' AND target_domain = 'conflict' AND lag_months BETWEEN 3 AND 6`.
+- No backend server required for exploration of pre-computed results.
+- **However:** DuckDB-WASM has memory limits (~2-4 GB depending on browser) and the spatial extension may not be fully available in all WASM builds as of early 2025.
+
+### Version History
+
+| Version | Date | Key Changes |
+|---|---|---|
+| v1.x | 2018-2019 | Original Uber release. Mapbox GL JS dependency. Basic layers. |
+| v2.x | 2019-2022 | Added H3, S2 layers. Improved filters. Better embedding API. |
+| v3.0 | Dec 2023 | Major rewrite. Migrated from Mapbox GL to MapLibre GL. New layer architecture. Dramatically improved developer experience. |
+| v3.1 | Mid 2024 | DuckDB integration. GeoParquet support. AI assistant for SQL generation. Vector tile rendering with PMTiles. |
+| v3.2 | Late 2024 | DuckDB improvements, drag-and-drop file loading, schema panel updates. |
+
+### Performance Limits
+
+- File upload limit: **250 MB** in Chrome (Safari handles larger files but with degraded performance).
+- Can render **millions of points** with spatial aggregation layers (hexbin, grid, heatmap).
+- For raw point layers, performance degrades significantly above ~1-2 million points depending on GPU.
+- **No hard limit on number of datasets**, but each additional dataset/layer reduces frame rate.
+- UI responsiveness can lag with large datasets due to Redux state management overhead.
+- **Recommendation for Causal Atlas:** Pre-aggregate data to PRIO-GRID resolution before sending to kepler.gl. At 0.5-degree resolution, the entire globe is ~260,000 land cells -- well within kepler.gl's comfort zone.
+
+### Kepler.gl Jupyter Widget
+
+- Python package: `keplergl` on PyPI (v0.3.4+ for kepler v3 compatibility).
+- Renders an interactive kepler.gl map directly in Jupyter notebooks (Lab and classic).
+- Useful for data exploration during research/development before building the web frontend.
+- Supports adding data from Pandas DataFrames, GeoDataFrames, and CSV files.
+- Map state (layers, filters, styles) can be exported as JSON and reused in the web application.
+
+```python
+from keplergl import KeplerGl
+import pandas as pd
+
+map_1 = KeplerGl(height=600)
+df = pd.read_csv("conflict_data.csv")
+map_1.add_data(data=df, name="conflict_events")
+map_1  # Renders in notebook
+```
+
+### Foursquare Studio vs. Kepler.gl
+
+| Feature | Kepler.gl (Open Source) | Foursquare Studio |
+|---|---|---|
+| **Cost** | Free, MIT licence | Freemium (generous free tier) |
+| **Hosting** | Self-hosted or kepler.gl demo | Cloud-hosted by Foursquare |
+| **Layers** | 15+ standard layers | All kepler.gl layers + Flow layer + specialty layers |
+| **Analysis** | None | Cluster/outlier analysis, suitability analysis |
+| **Collaboration** | None | Shared datasets, maps, team features |
+| **Data connectors** | File upload only | Database connectors (Snowflake, BigQuery, etc.) |
+| **Publishing** | Export as HTML | Branded/unbranded web publishing with password protection |
+| **DuckDB** | Yes (v3.1+) | Yes |
+| **Embeddable** | Yes (React component) | No (hosted platform) |
+
+**Decision for Causal Atlas:** Use kepler.gl (open source) as our embedded React component. The embeddability and customisation options are essential; Studio's hosted model does not support deep integration.
+
 ### Limitations
 
 - **Visualisation only** -- no statistical analysis, no causal inference, no time-series tools.
 - **No built-in temporal animation** for time-series beyond the Trip layer. Time filtering exists but is basic.
-- **Mapbox dependency** -- requires a Mapbox API token for base maps (free tier available).
+- **MapLibre GL base maps** -- requires tile sources for base maps (free options available: OpenStreetMap, Stadia Maps, etc.). No longer requires Mapbox token since v3.0.
 - **Complex Redux integration** -- embedding requires understanding Redux middleware and state management.
-- **Performance limits** -- while "large-scale", extremely large datasets (100M+ rows) may still require server-side pre-aggregation.
+- **Performance limits** -- while "large-scale", extremely large datasets (100M+ rows) require server-side pre-aggregation.
+
+---
+
+## 8a. deck.gl Ecosystem
+
+**What it is:** The vis.gl framework suite -- a collection of open-source libraries for high-performance geospatial and data visualisation on the web. Kepler.gl is built on top of deck.gl, but understanding the full ecosystem informs our architectural decisions.
+
+**Links:**
+- deck.gl: https://deck.gl/
+- vis.gl umbrella: https://vis.gl/
+- GitHub: https://github.com/visgl/deck.gl
+
+### Framework Components
+
+| Framework | Purpose | Current Version (March 2025) |
+|---|---|---|
+| **deck.gl** | High-performance WebGPU/WebGL2 visualisation of large datasets | v9.0 |
+| **luma.gl** | Low-level WebGPU and WebGL2 rendering and compute | v9.0 |
+| **loaders.gl** | Loaders for big data, geospatial, and 3D file formats (GeoJSON, GeoParquet, CSV, Arrow, tiles) | v4.2+ |
+| **math.gl** | Math library for 3D and geospatial calculations (coordinate transforms, projections) | v4.0 |
+
+### Key Design Principles
+
+- **Zero-copy binary data:** The ecosystem is optimised for compact binary columnar data (Apache Arrow format) rather than bloated deserialized JavaScript objects. This brings better memory usage and improved load/processing performance on big datasets.
+- **GPU-first rendering:** Data flows from binary buffers directly to GPU attribute buffers, minimising CPU overhead.
+- **Composable layers:** deck.gl layers are composable -- complex visualisations are built by stacking multiple layers.
+
+### loaders.gl -- Relevant Capabilities
+
+| Loader | Formats | Relevance |
+|---|---|---|
+| `CSVLoader` | CSV, TSV | Standard tabular data |
+| `ArrowLoader` | Apache Arrow IPC | Columnar binary data for performance |
+| `ParquetLoader` | Apache Parquet, GeoParquet | Our primary data format |
+| `GeoJSONLoader` | GeoJSON | Administrative boundaries, custom regions |
+| `MVTLoader` | Mapbox Vector Tiles | Tiled base map data |
+| `PMTilesLoader` | PMTiles | Single-file tile archives |
+
+### Implications for Causal Atlas
+
+- **Parquet -> Arrow -> deck.gl** is the optimal data pipeline for browser-based visualisation.
+- loaders.gl can read GeoParquet files directly, feeding deck.gl layers without intermediate conversion.
+- math.gl handles coordinate transforms needed for grid-cell visualisation.
+- The entire pipeline is open source and actively maintained by the OpenJS Foundation.
+
+---
+
+## 8b. MapLibre GL JS
+
+**What it is:** An open-source fork of Mapbox GL JS (forked in December 2020 when Mapbox switched to a non-open-source licence). Provides GPU-accelerated vector tile rendering in the browser. Used by kepler.gl v3+ as its base map rendering engine.
+
+**Links:**
+- Website: https://maplibre.org/
+- GitHub: https://github.com/maplibre/maplibre-gl-js (~7k stars)
+- Documentation: https://maplibre.org/maplibre-gl-js/docs/
+
+### Current Capabilities (March 2025)
+
+- **Full vector tile rendering** with style specification compatible with Mapbox GL styles.
+- **3D terrain** and sky rendering.
+- **Globe view** (3D globe projection).
+- **Custom layer API** for integrating non-tile-based rendering (e.g., deck.gl layers).
+- **WebGPU support** in progress.
+- **Martin v1.0** (landmark release, November 2025) -- the fastest open-source tile server, integrating well with MapLibre.
+- **MapLibre Tile Specification** -- a next-generation tile format redesigned for modern geospatial data volumes, deemed stable as of October 2025.
+
+### Tile Generation with Tippecanoe
+
+**Tippecanoe** (https://github.com/felt/tippecanoe) is the standard tool for creating vector tilesets from large GeoJSON files:
+
+- Automatically chooses detail levels and simplification for each zoom level.
+- Produces MBTiles or PMTiles output files.
+- Handles millions of features efficiently.
+- **PMTiles** format is particularly interesting: single-file tile archives that can be served from any static file host (S3, GitHub Pages, etc.) without a tile server.
+
+**Relevance for Causal Atlas:**
+- We could pre-generate vector tiles from PRIO-GRID geometries using tippecanoe.
+- Serve tiles as PMTiles files from static storage.
+- MapLibre GL renders these tiles efficiently with style-based theming.
+- deck.gl layers overlay analysis results on top of the MapLibre base map.
+- This stack (MapLibre + deck.gl + PMTiles) is entirely open-source and requires no tile server infrastructure.
 
 ---
 
@@ -819,7 +1125,326 @@ A curated collection of papers on causality in spatiotemporal data, covering cau
 
 ---
 
-## 12. Comparative Summary
+## 12. OCHA ReliefWeb
+
+**What it is:** The leading humanitarian information source, providing crisis updates, reports, maps, and data since 1996. Managed by OCHA.
+
+**Links:**
+- Website: https://reliefweb.int/
+- API Documentation: https://apidoc.reliefweb.int/
+- ReliefWeb Labs: https://reliefweb.int/labs
+- R package (disastr.api): https://github.com/cran/disastr.api
+
+### API Access
+
+- **Publicly accessible** via HTTP GET/POST requests, returning JSON.
+- **No authentication required.**
+- Rate limits: max 1,000 entries per call, max 1,000 calls per day.
+- Content available from 1996 onwards (some UN reports from the 1980s).
+- Covers: reports, jobs, training, disasters, countries, sources.
+- **Disaster taxonomy:** Standardised disaster type vocabulary via OCHA's Taxonomy as a Service.
+- **Publishing API** (in testing): Allows content partners to submit updates, jobs, or training programmatically.
+
+### Data Types
+
+| Resource | Coverage | Use Case |
+|---|---|---|
+| **Reports** | Since 1996 | Situation reports, assessments, appeals |
+| **Disasters** | Since 1981 | Disaster names, types, GLIDE numbers |
+| **Countries** | Global | Country profiles with crisis status |
+| **Sources** | 2,000+ organisations | Organisation metadata |
+
+### What We Can Reuse
+
+- **Crisis event timeline data** -- ReliefWeb's disaster records provide a structured timeline of crises that could serve as ground truth for validating causal discoveries.
+- **Report metadata** -- could inform contextual AI-generated explanations of discovered causal chains.
+- **Disaster taxonomy** -- standardised disaster type classification for our event categorisation.
+
+### Limitations
+
+- **Text-heavy** -- primarily reports and analysis, not structured quantitative data.
+- **Low API rate limits** (1,000 calls/day) compared to other data sources.
+- **No spatial grid** -- data is organised by country, not sub-national units.
+
+---
+
+## 13. Pacific Disaster Center (PDC) -- DisasterAWARE
+
+**What it is:** A multi-hazard early warning and decision support platform used by tens of thousands of disaster management practitioners globally. Developed by the Pacific Disaster Center.
+
+**Links:**
+- Website: https://www.pdc.org/
+- DisasterAWARE: https://www.pdc.org/disasteraware/
+- DisasterAWARE Explore: https://www.pdc.org/explore-disasteraware/
+
+### Capabilities
+
+- **18 hazard types** monitored in real time with impact and risk estimation.
+- **Impact modelling:** Highest-resolution all-hazards impact modelling, providing estimates of impacts to population and critical infrastructure within minutes of a hazard event.
+- **Global socioeconomic data** including risk and vulnerability information.
+- **AI-augmented** information and advanced analytical reports.
+- **Smart Alerts** -- notifications when monitored assets are exposed to hazards.
+- **API integration** -- users can integrate their own asset data via the DisasterAWARE API.
+- **DisasterAWARE Pro 9.0** (latest): Major enhancements to situational awareness and operational readiness.
+
+### What We Can Learn
+
+- PDC demonstrates that multi-hazard, real-time risk assessment at global scale is operationally feasible.
+- Their impact analytics (population and infrastructure exposure estimates) are a model for the kind of impact quantification Causal Atlas could perform.
+- The Smart Alert pattern (monitoring + threshold-based notification) could inform a Causal Atlas alerting feature.
+
+### Limitations
+
+- **Not open source** -- DisasterAWARE is free for qualified users but the code is proprietary.
+- **Response-focused** -- designed for operational disaster response, not research or causal analysis.
+- **No causal inference** -- identifies hazard exposure but does not analyse causal chains.
+- **No public bulk data access** -- API is for asset monitoring, not data extraction.
+
+---
+
+## 14. INFORM Model
+
+**What it is:** A global, open-source risk assessment framework for humanitarian crises and disasters. Developed by the European Commission Joint Research Centre (JRC) with the Inter-Agency Standing Committee (IASC). Updated twice yearly.
+
+**Links:**
+- Website: https://drmkc.jrc.ec.europa.eu/inform-index
+- Methodology: https://drmkc.jrc.ec.europa.eu/inform-index/INFORM-Risk/Methodology
+- Subnational models: https://drmkc.jrc.ec.europa.eu/inform-index/INFORM-Subnational-risk
+- HDX datasets: https://data.humdata.org/organization/inform
+- Publications: https://drmkc.jrc.ec.europa.eu/inform-index/About/Publications
+
+### Methodology -- Three Dimensions
+
+INFORM assesses risk through three equally weighted dimensions:
+
+| Dimension | Components | Examples |
+|---|---|---|
+| **Hazard & Exposure** | Natural hazards (earthquake, flood, tsunami, tropical cyclone, drought, epidemic), human hazards (conflict intensity, projected conflict risk) | Seismic hazard, flood risk, drought probability |
+| **Vulnerability** | Socio-economic vulnerability (development, inequality, aid dependency), vulnerable groups (uprooted people, other vulnerable groups) | HDI, Gini coefficient, refugee populations |
+| **Lack of Coping Capacity** | Institutional (governance, DRR), infrastructure (communication, physical, access to health) | Government effectiveness, mobile phone subscriptions, hospital beds per capita |
+
+### Key Features
+
+- **80 indicators** aggregated into the three dimensions for **191 countries**.
+- **Updated twice yearly** (March and September).
+- **Open data** -- all source data and calculations downloadable as Excel spreadsheets.
+- **Transparent methodology** -- fully documented aggregation and weighting rules.
+- **Country profiles** available as individual downloads.
+- **Interactive mapping and charting** application.
+
+### INFORM Subnational Risk
+
+INFORM also produces **subnational risk indices** for specific countries/regions, using the same three-dimension methodology but with subnational indicator data:
+- Applied to: South Sudan, Guatemala, Bangladesh, Caucasus and Central Asia, South East Europe, and others.
+- Shows detailed within-country risk variation.
+- Methodology adaptable to different contexts while maintaining comparability.
+
+### What We Can Reuse
+
+- **The three-dimension framework** (hazard, vulnerability, coping capacity) is a well-established analytical structure for understanding risk.
+- **Indicator selection** across 80 variables is a curated reference for which data matters.
+- **Open data and methodology** are directly usable -- INFORM scores could be a feature in Causal Atlas.
+- **Subnational model methodology** is relevant for our admin-level analysis.
+
+### Limitations
+
+- **Country-level primary resolution** (subnational models exist but require custom implementation per country).
+- **Static composite index** -- updated twice yearly, not dynamic or real-time.
+- **No causal analysis** -- purely descriptive risk scoring.
+- **No temporal dimension** -- provides a snapshot, not trends over time.
+
+---
+
+## 15. Global Conflict Risk Index (GCRI)
+
+**What it is:** A quantitative conflict risk model developed by the JRC, based solely on open-source data, providing quantitative input to the EU early warning framework.
+
+**Links:**
+- Website: https://drmkc.jrc.ec.europa.eu/initiatives-services/global-conflict-risk-index
+- Concept paper: https://publications.jrc.ec.europa.eu/repository/handle/JRC92293
+- 2022 revision: https://publications.jrc.ec.europa.eu/repository/handle/JRC131524
+- Regression model methodology: https://publications.jrc.ec.europa.eu/repository/handle/JRC108767
+
+### Methodology
+
+**22 indicators** across **five risk pillars:**
+
+| Pillar | Examples |
+|---|---|
+| **Political** | Regime type, political stability, state fragility |
+| **Security** | Prior conflict history, neighbouring conflict, arms imports |
+| **Social** | Ethnic fractionalization, youth bulge, inequality |
+| **Economic** | GDP growth, unemployment, resource dependence |
+| **Environmental** | Climate variability, natural disaster exposure |
+
+**Model approach:**
+- Uses **logistic regression** to calculate probability of conflict onset in the next 1-4 years.
+- Distinguishes between:
+  - **National conflicts** (civil war over national power)
+  - **Subnational conflicts** (over secession, autonomy, or resources)
+- The 2022 revision: adopted new UCDP conflict definitions, reduced missing values by replacing data sources, systematically compared 14 probability and intensity models, and incorporated short-term predictor projections.
+- Serves as one input to the **EU Conflict Early Warning System (EWS)**, developed by the European External Action Service (EEAS).
+
+### What We Can Learn
+
+- **Indicator selection** across five pillars provides a curated list of conflict-relevant variables.
+- **Open methodology** with published regression coefficients enables replication and comparison.
+- **The distinction between national/subnational conflict types** is important for Causal Atlas's conflict categorisation.
+- GCRI's purely quantitative approach (no expert judgment inputs) aligns with Causal Atlas's data-driven philosophy.
+
+### Limitations
+
+- **Country-level only** -- not subnational grid cells.
+- **Conflict-only** -- does not cover other domains.
+- **Logistic regression only** -- does not capture non-linear or interaction effects.
+- **No causal claims** -- identifies statistical predictors, not causal mechanisms.
+
+---
+
+## 16. CrisisReady / Direct Relief
+
+**What it is:** A research-response partnership between Harvard University and Direct Relief that develops data-driven tools for disaster preparedness, response, and recovery.
+
+**Links:**
+- Website: https://www.crisisready.io/
+- ReadyMapper: https://www.crisisready.io/optimizing-health-response-during-wild-fires-with-real-time-integrated-data/
+- LinkedIn: https://www.linkedin.com/company/crisisready
+- Direct Relief: https://www.directrelief.org/
+
+### ReadyMapper Platform
+
+CrisisReady's flagship product, launched 2022:
+
+**Data Sources Integrated (12+ datasets):**
+- **Population mobility:** Meta's Data For Good high-resolution population density data (near-real-time movement tracking).
+- **Social vulnerability:** CDC Social Vulnerability Index (age, disability, car access, socioeconomic factors).
+- **Health infrastructure:** Locations of hospitals, clinics, long-term care facilities globally.
+- **Power outages:** Real-time utility outage data.
+- **Event dynamics:** Fire perimeters, hurricane tracks, flood extents.
+- **Demographics:** Elderly population percentage, durable medical equipment reliance, income data.
+
+**Architecture:**
+- Originally designed for US wildfires and hurricanes.
+- Now scaled to global disasters.
+- Designed by Stamen (a data visualisation firm) for usability by emergency managers.
+- Produces customisable reports for front-line decision-makers.
+
+### What We Can Learn
+
+- **Multi-source real-time data fusion** with clear operational outputs is a model for Causal Atlas's more research-oriented platform.
+- **Population mobility data** (from Meta/mobile operators) is a data source we should investigate for displacement tracking.
+- **The report generation pattern** (synthesise complex multi-source data into a shareable document) could inform Causal Atlas's AI-assisted interpretation output.
+
+### Limitations
+
+- **Not open source** -- Harvard/Direct Relief partnership product.
+- **Response-focused** -- designed for crisis response, not causal analysis.
+- **US-centric** initially, expanding globally.
+- **No causal inference** capabilities.
+
+---
+
+## 17. MapAction
+
+**What it is:** A UK-based humanitarian NGO that provides GIS support and rapid mapping during emergencies. Recently developing an automated data pipeline for humanitarian response.
+
+**Links:**
+- Website: https://mapaction.org/
+- Pipeline blog: https://mapaction.org/accelerating-humanitarian-response-inside-mapactions-automated-data-pipeline/
+
+### Automated Data Pipeline
+
+**Architecture:**
+- **Python and Bash scripts** for data processing.
+- **Docker container** (Linux) for portability and consistency.
+- **Apache Airflow** for workflow orchestration -- schedules and monitors processing steps.
+- **Event-driven design** (future): automatic initiation triggered by GDACS disaster alerts.
+
+**Data Sources:**
+- HDX (Humanitarian Data Exchange) -- administrative boundaries, population data, humanitarian indicators.
+- Google Earth Engine -- satellite imagery, vegetation indices, precipitation.
+- OpenStreetMap -- roads, buildings, points of interest.
+
+**Pipeline Steps:**
+1. Triggered by a disaster alert or manual configuration.
+2. Acquires relevant datasets for the affected area from multiple sources.
+3. Processes and standardises data.
+4. Produces standardised situation maps within hours.
+
+**Quality Standards:**
+- Developing data quality standards for automated humanitarian data processing.
+- Aims to make the pipeline publicly available to the broader humanitarian community.
+
+### What We Can Learn
+
+- **Airflow for geospatial pipeline orchestration** is a proven pattern.
+- **Docker containerisation** for reproducible data processing environments.
+- **Event-driven pipeline triggers** (GDACS alerts) is an interesting model for Causal Atlas.
+- **Multi-source integration** (HDX + GEE + OSM) demonstrates practical humanitarian data fusion.
+
+---
+
+## 18. iMMAP
+
+**What it is:** An international not-for-profit providing information management services to humanitarian and development organisations, turning data into actionable knowledge for decision-makers.
+
+**Links:**
+- Website: https://immap.org/
+- GitHub: https://github.com/iMMAP
+- Services: https://immap.org/our-service/
+
+### Key Platforms and Tools
+
+| Tool | Purpose | Detail |
+|---|---|---|
+| **Humanitarian Spatial Data Center (HSDC)** | Web-based geospatial platform (launched Aug 2023) | Analytics on demographics, disaster risks, climatic changes |
+| **ReportHub** | Reporting platform for humanitarian activities | Standardised activity reporting across organisations |
+| **3W Matrix** | "Who does What Where" tracking | Maps partners, activities, and geographic coverage for gap analysis |
+| **HeRAMS** | Health Resources & Services Availability Monitoring | Maps service availability at each health facility |
+| **DHIS2 integration** | Health information system | Standard WHO district health information system |
+
+### What We Can Learn
+
+- iMMAP's HSDC demonstrates demand for integrated geospatial humanitarian analytics.
+- Their training programmes (GIS, data management, Power BI, Kobo Toolbox) reveal the skill levels of target users -- Causal Atlas must be accessible to people with basic GIS/data skills.
+- The 3W pattern (who-what-where) is relevant for understanding humanitarian operational presence.
+
+---
+
+## 19. Humanitarian OpenStreetMap Team (HOT)
+
+**What it is:** An international team dedicated to humanitarian action and community development through open mapping. Coordinates volunteer mapping of crisis-affected areas.
+
+**Links:**
+- Website: https://www.hotosm.org/
+- Tasking Manager: https://tasks.hotosm.org/
+- GitHub: https://github.com/hotosm
+
+### Products and Tools
+
+| Tool | Purpose | Detail |
+|---|---|---|
+| **Tasking Manager** | Coordinates distributed volunteer mapping | Divides areas into grid squares; ~12,000 projects; 241 organisations |
+| **Field Tasking Manager (FieldTM)** | Coordinated field mapping | OSM survey forms with conflation workflow |
+| **Drone Tasking Manager** | Community-driven drone imagery collection | Emerging tool for high-resolution local mapping |
+| **Raw Data API** | High-performance OSM data export | Exports OSM data in various GIS formats (GeoJSON, Shapefile, GeoPackage) |
+
+### Data Products
+
+- **Building footprints** -- digitised from satellite imagery by volunteers.
+- **Road networks** -- classification and digitisation.
+- **Health facility locations** -- mapped from imagery and field surveys.
+- **Missing Maps initiative** -- partnership with MSF and Red Cross.
+
+### What We Can Reuse
+
+- **Raw Data API** could provide building footprint and infrastructure data for exposure analysis.
+- **Building density** derived from OSM could serve as a proxy for population density in data-sparse areas.
+- HOT data is completely open (ODbL licence) and globally available.
+
+---
+
+## 20. Comparative Summary
 
 ### Coverage Matrix
 
@@ -836,7 +1461,15 @@ A curated collection of papers on causality in spatiotemporal data, covering cau
 | ACLED | X | - | - | - | - | - | - | X | - (data open) | - |
 | GDELT | X | - | - | - | - | - | - | X | - (data open) | - |
 | Tigramite | - | - | - | - | - | - | - | - | X | X |
-| CausalAI | - | - | - | - | - | - | - | - | X | X |
+| CausalAI | - | - | - | - | - | - | - | - | X (archived) | X |
+| ReliefWeb | X | - | - | - | - | - | X | X | - (data open) | - |
+| DisasterAWARE | - | - | - | - | - | - | X | X | - | - |
+| INFORM | X | X | - | X | X | - | X | X | X (data) | - |
+| GCRI | X | X | - | X | - | - | - | X | X (data) | - |
+| CrisisReady | - | - | - | - | X | - | X | US+ | - | - |
+| MapAction | - | X | - | - | - | - | X | X | Partial | - |
+| iMMAP HSDC | X | X | - | - | X | - | X | Partial | - | - |
+| HOT/OSM | - | - | - | - | - | - | - | X | X | - |
 
 **Key observation:** No existing platform combines multi-domain data integration with causal analysis. This is the gap Causal Atlas fills.
 
@@ -869,7 +1502,7 @@ A curated collection of papers on causality in spatiotemporal data, covering cau
 
 ---
 
-## 13. Implications for Causal Atlas
+## 21. Implications for Causal Atlas
 
 ### What We Can Directly Leverage
 

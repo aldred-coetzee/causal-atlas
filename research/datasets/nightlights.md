@@ -463,3 +463,195 @@ stats = zonal_stats(
 - Roman et al. (2018). "NASA's Black Marble nighttime lights product suite." Remote Sensing of Environment, 210, 113-143.
 - Chen & Nordhaus (2015). "A consistent and corrected nighttime light dataset (CCNL 1992-2013)." Scientific Data.
 - Li & Li (2014). "Night-Time Light Data: A Good Proxy Measure for Economic Activity?" PLOS ONE, 10(10), e0139779.
+- Li, X. et al. (2020). "A harmonized global nighttime light dataset 1992–2018." Scientific Data, 7, 168. https://doi.org/10.1038/s41597-020-0510-y
+- Figshare harmonised dataset: https://doi.org/10.6084/m9.figshare.9828827
+
+---
+
+## Harmonised DMSP-VIIRS Dataset (Li et al.)
+
+For long time-series analysis spanning both sensor eras, the harmonised dataset by Li et al. (2020) is the standard reference product.
+
+### Dataset Overview
+
+| Property | Detail |
+|---|---|
+| **Authors** | Xuecao Li, Yuyu Zhou, Min Zhao, Xia Zhao |
+| **Publication** | "A harmonized global nighttime light dataset 1992–2018" — Scientific Data, 7, 168 (2020) |
+| **DOI** | https://doi.org/10.1038/s41597-020-0510-y |
+| **Data DOI** | https://doi.org/10.6084/m9.figshare.9828827 |
+| **Temporal coverage** | 1992–2020 (extended in later versions; v5 covers through 2024) |
+| **Spatial resolution** | 30 arc-seconds (~1 km) |
+| **Format** | GeoTIFF |
+| **Licence** | CC BY 4.0 |
+
+### Methodology
+
+1. **Inter-calibration of DMSP-OLS** (1992–2013): Stepwise calibration using reference regions in Sicily (stable urban area). Sensors F10 (1992–1994), F12 (1995–1996), F14 (1997–2003), F16 (2004–2009), F18 (2010–2013) are harmonised to a consistent scale.
+2. **VIIRS-to-DMSP conversion** (2014–2020+): A sigmoid function maps calibrated VIIRS radiance values to the DMSP-like DN scale, enabling a continuous time series.
+3. **Annual composites**: One harmonised global composite per year.
+
+### GEE Access
+
+The harmonised dataset is available in the Google Earth Engine Community Catalog:
+
+```javascript
+// GEE collection ID
+var hntl = ee.ImageCollection('projects/sat-io/open-datasets/Harmonized_NTL/dmsp');
+```
+
+Source: https://gee-community-catalog.org/projects/hntl/
+
+### Other Harmonisation Products
+
+| Product | Coverage | Method | Reference |
+|---|---|---|---|
+| **Li et al. harmonised** | 1992–2024 | Sigmoid conversion | Scientific Data, 2020 |
+| **Chen & Nordhaus CCNL** | 1992–2013 | Consistent corrected NTL | Scientific Data, 2015 |
+| **Zheng et al. global simulated VIIRS** | 1992–2023 | VIIRS simulation from DMSP | Scientific Data, 2024 |
+| **PCNL (Pixel-Scale Corrected)** | 1992–2021 | Pixel-level correction | Remote Sensing, 2023 |
+
+---
+
+## BlackMarblePy — Detailed Usage
+
+BlackMarblePy is a World Bank-developed Python package for accessing NASA Black Marble (VNP46) products. It automates tile download, mosaicking, and zonal statistics.
+
+### Installation and Setup
+
+```bash
+pip install blackmarblepy
+```
+
+**Prerequisites:**
+- NASA Earthdata account (free: https://urs.earthdata.nasa.gov/)
+- Generate a bearer token from your Earthdata profile
+
+### Core Functions
+
+| Function | Description |
+|---|---|
+| `bm_raster()` | Download and mosaic VNP46 tiles as a georeferenced raster for a region of interest |
+| `bm_extract()` | Extract aggregated statistics (sum, mean) for regions over date ranges |
+
+### Detailed Usage Example
+
+```python
+from blackmarble.bm_raster import bm_raster
+from blackmarble.bm_extract import bm_extract
+import geopandas as gpd
+import pandas as pd
+
+# NASA Earthdata bearer token
+bearer = "YOUR_NASA_BEARER_TOKEN"
+
+# Define region of interest
+roi = gpd.read_file("yemen_admin1.shp")
+
+# --- Download a single monthly raster ---
+raster = bm_raster(
+    roi,
+    product_id="VNP46A3",        # Monthly composite
+    date="2023-06-01",
+    bearer=bearer,
+    variable="NearNadir_Composite_Snow_Free",  # Recommended variable
+    quality_flag_rm=[255, 2],     # Remove fill and poor quality
+    output_path="yemen_ntl_202306.tif"
+)
+
+# --- Extract time series for admin regions ---
+dates = pd.date_range("2020-01-01", "2023-12-01", freq="MS")
+
+stats = bm_extract(
+    roi,
+    product_id="VNP46A3",
+    date=dates.tolist(),
+    bearer=bearer,
+    aggregation_fun="sum",        # Sum of lights (SOL) per region
+    variable="NearNadir_Composite_Snow_Free"
+)
+
+# stats is a GeoDataFrame with one column per date
+print(stats.head())
+
+# --- Daily data for disaster analysis ---
+daily_raster = bm_raster(
+    roi,
+    product_id="VNP46A2",        # Daily gap-filled product
+    date="2023-10-15",
+    bearer=bearer
+)
+```
+
+### Available VNP46 Variables
+
+| Product | Variable Name | Description |
+|---|---|---|
+| VNP46A2 | `Gap_Filled_DNB_BRDF-Corrected_NTL` | Daily corrected radiance |
+| VNP46A3 | `NearNadir_Composite_Snow_Free` | Monthly composite, near-nadir, snow-free |
+| VNP46A3 | `AllAngle_Composite_Snow_Free` | Monthly composite, all angles, snow-free |
+| VNP46A4 | `NearNadir_Composite_Snow_Free` | Annual composite |
+
+---
+
+## NTL as Conflict and Economic Shock Indicator
+
+### Computing Light Change
+
+The standard approach for detecting conflict or disaster impact uses pre/post comparison:
+
+```python
+import numpy as np
+
+def compute_ntl_change(pre_values, post_values, method='percent'):
+    """
+    Compute nighttime light change for impact assessment.
+
+    Args:
+        pre_values: array of NTL values before event (e.g., 12-month pre-event mean)
+        post_values: array of NTL values after event
+        method: 'percent', 'difference', or 'zscore'
+
+    Returns:
+        Change metric per cell
+    """
+    pre_mean = np.nanmean(pre_values, axis=0)
+    post_mean = np.nanmean(post_values, axis=0)
+
+    if method == 'percent':
+        # Percentage change (handle zeros)
+        return np.where(pre_mean > 0,
+                        ((post_mean - pre_mean) / pre_mean) * 100,
+                        np.nan)
+    elif method == 'difference':
+        return post_mean - pre_mean
+    elif method == 'zscore':
+        pre_std = np.nanstd(pre_values, axis=0)
+        return np.where(pre_std > 0,
+                        (post_mean - pre_mean) / pre_std,
+                        np.nan)
+```
+
+### Published Effect Sizes
+
+| Study | Finding | Data Used |
+|---|---|---|
+| **Li et al. (2017)** | 100 rebel-caused deaths associated with -23% NTL change; 100 government-caused deaths with -14% | DMSP-OLS + UCDP GED |
+| **Henderson et al. (2012)** | Elasticity of NTL to GDP: ~0.3 globally; lower in agriculture-heavy economies | DMSP-OLS + WDI GDP |
+| **EMDE estimate (World Bank)** | 1% GDP change ≈ 1.55% NTL change in emerging/developing economies | VIIRS monthly |
+| **Advanced economies** | NTL elasticity to GDP drops to ~0.1-0.2 (saturation at high development) | Various |
+
+### NTL-GDP Calibration by Region
+
+The relationship between nighttime lights and GDP varies significantly by region and income level:
+
+| Region/Income Group | NTL-GDP Elasticity | Key Factor |
+|---|---|---|
+| Sub-Saharan Africa | 0.3–0.5 | Low base, electrification growth |
+| South Asia | 0.3–0.4 | Mixed urban/rural |
+| East Asia | 0.2–0.3 | Rapid urbanisation |
+| Latin America | 0.2–0.3 | Established urban networks |
+| OECD/High income | 0.1–0.2 | Saturation, efficiency gains |
+| Oil-exporting states | Unreliable | Gas flare contamination |
+
+**Methodological note:** These elasticities are estimated using country-level panel regressions of log(NTL) on log(GDP). Sub-national estimates require additional calibration. The World Bank's Open Nighttime Lights tutorial (https://worldbank.github.io/OpenNightLights/) provides practical guidance.

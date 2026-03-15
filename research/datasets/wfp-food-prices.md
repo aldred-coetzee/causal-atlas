@@ -690,3 +690,744 @@ The food price literature uses methods directly aligned with Causal Atlas's meth
 ### Review of global food price databases
 
 - [https://reliefweb.int/report/world/review-global-food-price-databases-overlaps-gaps-and-opportunities-improve](https://reliefweb.int/report/world/review-global-food-price-databases-overlaps-gaps-and-opportunities-improve)
+
+---
+
+## 13. DataBridges API v2 — Detailed Documentation
+
+> **Last checked:** March 2025
+
+### 13.1 OAuth 2.0 Authentication Flow
+
+The DataBridges API uses the **OAuth 2.0 Client Credentials** flow. There is no user-interactive login — you authenticate your application directly.
+
+#### Step 1: Register an Application
+
+1. Go to <https://databridges.vam.wfp.org/>
+2. Create an account and log in
+3. Navigate to the application registration section
+4. Register a new application, specifying the API scopes you need
+5. You will receive a **Client Key** (API Key) and **Client Secret**
+
+#### Step 2: Obtain an Access Token
+
+```python
+import requests
+import base64
+
+CLIENT_KEY = "your-client-key"
+CLIENT_SECRET = "your-client-secret"
+
+# Encode credentials
+credentials = base64.b64encode(f"{CLIENT_KEY}:{CLIENT_SECRET}".encode()).decode()
+
+# Request token
+token_response = requests.post(
+    "https://api.wfp.org/token",
+    headers={
+        "Authorization": f"Basic {credentials}",
+        "Content-Type": "application/x-www-form-urlencoded",
+    },
+    data={
+        "grant_type": "client_credentials",
+        "scope": "vamdatabridges_marketprices-pricemonthly_get vamdatabridges_commodities-list_get vamdatabridges_markets-list_get vamdatabridges_marketprices-alps_get"
+    }
+)
+
+token = token_response.json()["access_token"]
+```
+
+#### Step 3: Make Authenticated API Requests
+
+```python
+headers = {
+    "Authorization": f"Bearer {token}",
+    "Accept": "application/json"
+}
+
+# Example: Get monthly prices for Kenya
+response = requests.get(
+    "https://api.wfp.org/vam-data-bridges/7.0.0/MarketPrices/PriceMonthly",
+    headers=headers,
+    params={
+        "countryCode": "KEN",
+        "startDate": "2023-01-01",
+        "endDate": "2024-01-01",
+        "page": 1,
+        "format": "json"
+    }
+)
+
+data = response.json()
+```
+
+### 13.2 Complete Endpoint Reference
+
+#### Market Prices Endpoints
+
+| Endpoint | Method | Description | Key scopes required |
+|---|---|---|---|
+| `/MarketPrices/PriceMonthly` | GET | Monthly aggregated price time series | `vamdatabridges_marketprices-pricemonthly_get` |
+| `/MarketPrices/PriceWeekly` | GET | Weekly aggregated price time series | `vamdatabridges_marketprices-priceweekly_get` |
+| `/MarketPrices/PriceDaily` | GET | Daily price time series | `vamdatabridges_marketprices-pricedaily_get` |
+| `/MarketPrices/PriceRaw` | GET | Original unprocessed price observations | `vamdatabridges_marketprices-priceraw_get` |
+| `/MarketPrices/Alps` | GET | ALPS anomaly indicator values | `vamdatabridges_marketprices-alps_get` |
+
+#### Reference Data Endpoints
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/Commodities/List` | GET | Full commodity catalogue with IDs, names, categories |
+| `/Commodities/Categories/List` | GET | Commodity category taxonomy |
+| `/CommodityUnits/List` | GET | Units of measure per country |
+| `/CommodityUnits/Conversion/List` | GET | Conversion factors to standard units (kg/litres) |
+| `/Markets/List` | GET | Market directory by country |
+| `/Markets/GeoJSONList` | GET | Geo-referenced market locations (GeoJSON) |
+| `/Markets/NearbyMarkets` | GET | Markets within 15 km radius of a point |
+
+#### Additional Endpoints
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/Currency/List` | GET | Available currencies and exchange rates |
+| `/Currency/UsdIndirectQuotation` | GET | USD exchange rates |
+| `/Rpme/XLSForms` | GET | Remote price monitoring survey forms |
+| `/Surveys/List` | GET | Available surveys by country |
+| `/IncubationLab/HungerSnapshots` | GET | HungerMap snapshot data |
+
+#### Pagination
+
+All list endpoints support pagination:
+- `page` (integer): Page number (1-based)
+- `pageSize` (integer): Results per page (default varies, max 1000 for most endpoints)
+- Response includes `totalItems`, `page`, `pageSize` metadata
+
+### 13.3 Rate Limits and Quotas
+
+Rate limits are **not publicly documented** but are controlled per application profile:
+- Typical rate: ~100 requests per minute (estimated from community usage)
+- Data volume limits: scoped by the permissions granted during app registration
+- If rate-limited, the API returns HTTP 429 with a `Retry-After` header
+
+**Recommendation for Causal Atlas:** Use HDX bulk downloads for initial historical data loading, then use the DataBridges API for incremental monthly updates.
+
+---
+
+## 14. ALPS Methodology — Detailed Algorithm
+
+> **Last checked:** March 2025
+
+### 14.1 Mathematical Formulation
+
+The ALPS (Alert for Price Spikes) indicator quantifies how far the current price of a commodity deviates from its expected seasonal trend. It is computed for each market-commodity pair individually.
+
+#### Step 1: Seasonal Trend Estimation
+
+For a time series of monthly prices {P_t}, estimate the seasonal component using a **Hodrick-Prescott (HP) filter** or polynomial trend + seasonal dummies:
+
+```
+Trend_t = HP_filter(P_t, lambda=14400)  # lambda=14400 for monthly data
+```
+
+Or equivalently, fit a model:
+```
+P_t = α + β·t + Σ(γ_m · D_m) + ε_t
+```
+
+Where D_m are monthly dummy variables capturing regular seasonal patterns.
+
+#### Step 2: Compute the ALPS Score
+
+```
+ALPS_t = (P_t - Trend_t) / σ(ε)
+```
+
+Where:
+- P_t is the observed price at time t
+- Trend_t is the estimated seasonal trend at time t
+- σ(ε) is the standard deviation of the residuals from the trend model
+
+#### Step 3: Classify Alert Levels
+
+| ALPS Score | Alert Level | Interpretation |
+|---|---|---|
+| ALPS < 0.25 | **Normal** | Price within expected seasonal range |
+| 0.25 ≤ ALPS < 1.0 | **Stress** | Price above expected range but within 1σ |
+| 1.0 ≤ ALPS < 2.0 | **Alert** | Price exceeds 1σ above seasonal trend |
+| ALPS ≥ 2.0 | **Crisis** | Price exceeds 2σ above seasonal trend |
+
+### 14.2 Computing ALPS Yourself
+
+```python
+import numpy as np
+import pandas as pd
+from statsmodels.tsa.filters.hp_filter import hpfilter
+
+def compute_alps(prices, lambda_hp=14400):
+    """
+    Compute the ALPS (Alert for Price Spikes) indicator.
+
+    Parameters
+    ----------
+    prices : pd.Series
+        Monthly price series with DatetimeIndex.
+        Must have at least 36 months of data.
+    lambda_hp : int
+        HP filter smoothing parameter. 14400 for monthly data (WFP convention).
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with columns: price, trend, alps_score, alert_level
+    """
+    if len(prices) < 36:
+        raise ValueError("ALPS requires at least 36 months of data")
+
+    # Remove missing values for trend estimation
+    prices_clean = prices.dropna()
+
+    # Step 1: HP filter to extract trend + cycle
+    cycle, trend = hpfilter(prices_clean, lamb=lambda_hp)
+
+    # Step 2: Compute standard deviation of residuals
+    sigma = cycle.std()
+
+    # Step 3: ALPS score
+    alps_score = cycle / sigma if sigma > 0 else pd.Series(0, index=cycle.index)
+
+    # Step 4: Alert classification
+    def classify_alert(score):
+        if score < 0.25:
+            return 'Normal'
+        elif score < 1.0:
+            return 'Stress'
+        elif score < 2.0:
+            return 'Alert'
+        else:
+            return 'Crisis'
+
+    result = pd.DataFrame({
+        'price': prices_clean,
+        'trend': trend,
+        'alps_score': alps_score,
+        'alert_level': alps_score.apply(classify_alert)
+    })
+
+    return result
+
+# Example usage
+# prices = pd.Series([...], index=pd.date_range('2015-01', periods=96, freq='ME'))
+# alps = compute_alps(prices)
+# print(alps.tail(12))
+```
+
+### 14.3 ALPS Limitations
+
+- Requires at least 36 months (3 years) of continuous data to estimate a meaningful seasonal trend — many conflict-affected markets have gaps that prevent ALPS computation
+- The HP filter can produce boundary effects at the start and end of the series
+- ALPS does not distinguish between demand-driven price increases (genuine scarcity) and supply-driven increases (market manipulation, transport disruption)
+- The same ALPS score means different things for different commodities — a 2σ deviation for rice may represent a smaller absolute price change than for imported cooking oil
+
+### 14.4 PEWI: Price Early Warning Index
+
+The **PEWI** (Price Early Warning Index) is a composite index that aggregates ALPS signals:
+
+- Computed at the **country level** by combining ALPS scores across all monitored markets and commodities
+- Provides a single summary indicator of national food price stress
+- Available via the DataBridges API and on the VAM Economic Explorer
+- Useful for country-level dashboards and comparison, though it masks within-country variation
+
+**Technical reference:** [WFP Technical Guidance Note — ALPS (April 2014)](https://documents.wfp.org/stellent/groups/public/documents/manual_guide_proced/wfp264186.pdf)
+
+---
+
+## 15. Market-Level Metadata
+
+> **Last checked:** March 2025
+
+### 15.1 Market Coverage by Region
+
+| Region | Approximate markets | Countries | Key coverage areas |
+|---|---|---|---|
+| West Africa (Sahel) | ~800 | 15+ | Dense coverage; FEWS NET priority region |
+| East Africa (Horn) | ~600 | 8+ | Somalia, Ethiopia, Kenya, South Sudan, Sudan |
+| Great Lakes / Central Africa | ~300 | 6+ | DRC, Burundi, Rwanda |
+| Southern Africa | ~200 | 8+ | Mozambique, Malawi, Madagascar, Zimbabwe |
+| Middle East & North Africa | ~400 | 10+ | Yemen, Syria, Iraq, Lebanon, Palestine |
+| South/Southeast Asia | ~400 | 8+ | Afghanistan, Myanmar, Bangladesh, Nepal |
+| Latin America & Caribbean | ~300 | 8+ | Haiti, Honduras, Guatemala, Venezuela, Colombia |
+| **Total** | **~3,000** | **98** | |
+
+### 15.2 Market Selection Criteria
+
+WFP distinguishes between two types of markets for monitoring:
+
+| Market type | Selection approach | Coverage target |
+|---|---|---|
+| **Local markets** | Markets directly used by the population of interest (beneficiaries, vulnerable households) | 25–50% of local markets in the area |
+| **Market hubs** | Markets with regional or transnational importance that set prices for surrounding areas | Include all key hub markets |
+
+Selection criteria include:
+- **Operational relevance:** Markets near WFP distribution points, transit corridors, or planned cash-transfer areas are prioritised
+- **Population served:** Markets serving larger populations are preferred
+- **Accessibility:** Markets that can be safely and regularly accessed by enumerators
+- **Supply chain importance:** Markets that function as wholesale/aggregation points for the region
+- **Cross-border relevance:** Markets near borders where trade flows affect food availability
+
+### 15.3 Data Collection Process
+
+1. **Country VAM officers** define the "market basket" of commodities — typically 10–20 locally relevant staple foods plus fuel
+2. **Enumerators** (WFP staff, partner organisations, or contracted data collectors) physically visit each market, typically monthly
+3. **Prices are recorded** for standardised units, with at least 3 price quotes per commodity per market visit to establish a representative price
+4. **Digital data collection** is increasingly standard (tablets/mobile phones with ODK or similar platforms)
+5. **Automated quality checks** flag outliers (>2σ from market historical median, negative values, duplicates)
+6. **Data flows** to WFP corporate database → DataBridges API → HDX
+7. **Typical reporting lag:** 2–4 weeks from market visit to public availability
+
+### 15.4 Market Functionality Index (MFI)
+
+WFP's Market Functionality Index assesses nine dimensions of market health:
+1. Assortment of essential goods
+2. Availability of goods
+3. Price levels
+4. Resilience of supply chains
+5. Market competition
+6. Physical infrastructure
+7. Market services
+8. Food quality
+9. Access and protection (including safety)
+
+The MFI is relevant because it provides context for interpreting price data — a market with low functionality may show price spikes not because of commodity scarcity but because of structural market failure.
+
+---
+
+## 16. Commodity Classification System
+
+> **Last checked:** March 2025
+
+### 16.1 WFP Standard Commodity List
+
+WFP maintains an internal commodity taxonomy with hierarchical categories. The commodities tracked vary by country to reflect local diets, but the classification framework is standardised:
+
+#### Category → Commodity Examples
+
+| Category ID | Category Name | Example commodities | Typical count per country |
+|---|---|---|---|
+| 1 | cereals and tubers | Maize, rice (local/imported), wheat flour, sorghum, millet, cassava, potatoes, yams | 4–8 |
+| 2 | pulses and nuts | Beans (red/white), lentils, cowpeas, chickpeas, groundnuts, peas | 2–4 |
+| 3 | oil and fats | Vegetable oil, palm oil, sunflower oil, ghee, butter | 1–3 |
+| 4 | meat, fish and eggs | Beef, goat meat, chicken, fish (dried/fresh/smoked), eggs | 2–4 |
+| 5 | milk and dairy | Fresh milk, powdered milk, cheese, yoghurt | 1–2 |
+| 6 | vegetables and fruits | Tomatoes, onions, bananas, oranges, cabbage | 2–4 |
+| 7 | miscellaneous food | Sugar, salt, tea, bread, pasta, cooking banana | 2–3 |
+| 8 | non-food | Diesel, petrol, kerosene, charcoal, firewood, transport | 1–3 |
+
+### 16.2 Mapping to FAO Commodity Codes
+
+There is no official one-to-one mapping between WFP commodity codes and FAO Item Codes, but the following approximate correspondences can be established:
+
+| WFP Commodity | WFP Category | FAO Item Code | FAO Item Name | Notes |
+|---|---|---|---|---|
+| Maize | cereals and tubers | 56 | Maize (corn) | Direct match |
+| Rice (imported) | cereals and tubers | 27 | Rice | WFP distinguishes imported/local; FAO does not |
+| Wheat flour | cereals and tubers | 16 | Wheat flour | FAO code for flour specifically |
+| Sorghum | cereals and tubers | 75 | Sorghum | Direct match |
+| Millet | cereals and tubers | 71 | Millet | Direct match |
+| Beans (dry) | pulses and nuts | 176 | Beans, dry | WFP may specify colour; FAO is generic |
+| Groundnuts | pulses and nuts | 242 | Groundnuts (shelled) | Direct match |
+| Vegetable oil | oil and fats | — | — | FAO has specific oils (palm 257, soybean 236); WFP often uses generic "vegetable oil" |
+| Sugar | miscellaneous food | 162 | Sugar (raw centrifugal) | Approximate |
+| Cassava | cereals and tubers | 125 | Cassava | May appear as fresh or flour in WFP |
+
+**Key interoperability challenges:**
+- WFP distinguishes local vs. imported varieties (especially rice); FAO does not
+- WFP records retail prices per kg; FAO records producer prices per tonne
+- WFP may track processed forms (flour, oil) while FAO focuses on primary commodities
+- Currency and unit conversions introduce additional discrepancies
+
+---
+
+## 17. Real-World Data Quality Issues — Detailed Examples
+
+> **Last checked:** March 2025
+
+### 17.1 Currency Conversion Errors
+
+| Issue | Example | Impact |
+|---|---|---|
+| **Black market exchange rates** | In Venezuela, Sudan, and Myanmar, official exchange rates diverge massively from parallel market rates. WFP USD conversions use official rates, so `usdprice` may understate the true cost to consumers by 2–10×. | USD price comparisons across countries become unreliable. Use local currency prices for within-country time series analysis. |
+| **Multiple currencies** | In South Sudan, both SSP (South Sudanese Pound) and USD are used in markets. Some observations are in SSP, others in USD, creating apparent price discontinuities. | Filter by `currency` field before analysis. |
+| **Exchange rate timing** | Exchange rate used for conversion may differ from the rate prevailing on the price collection date by days or weeks. | In rapidly depreciating currencies (Lebanon, Argentina), this introduces 5–15% noise. |
+| **Dollarisation** | In Zimbabwe, markets transitioned from ZWL to USD and back. Currency column may not always reflect the actual transaction currency. | Cross-reference with market-specific notes. |
+
+### 17.2 Unit Inconsistencies
+
+| Issue | Example | Mitigation |
+|---|---|---|
+| Local units | "Bowl" (Nigeria), "Tin" (East Africa), "Sack" (multiple countries) — conversion factors to kg are approximations | Use the `CommodityUnits/Conversion/List` API endpoint; verify conversions with country office |
+| Changing units | A market may switch from reporting per 50kg sack to per kg without annotation, causing an apparent 50× price drop | Detect using price-to-previous-month ratio checks |
+| Weight vs volume | Some liquids (oil, milk) reported in litres, others in kg; density assumptions needed | Flag litres vs kg in processing pipeline |
+
+### 17.3 Market Closures and Conflict Gaps
+
+- **Somalia (2007–2012):** Multiple markets in south-central Somalia have complete data gaps during Al-Shabaab control periods
+- **Yemen (2015–present):** Intermittent market reporting from Houthi-controlled areas; some markets disappear for months then reappear
+- **Syria:** Dramatic reduction in monitored markets from ~60 pre-conflict to <30 during peak fighting; markets in opposition-held areas are systematically underrepresented
+- **South Sudan:** Data collection completely ceased in some counties during the 2013–2014 and 2016–2017 fighting seasons
+
+**Key insight for Causal Atlas:** Data gaps correlate with conflict events — precisely when price data would be most informative. This creates a **selection bias** that must be accounted for in any food-price-to-conflict causal analysis.
+
+### 17.4 Seasonal Coverage Gaps
+
+Some markets are physically inaccessible during certain seasons:
+- Flood-prone markets in Bangladesh, South Sudan, and Mozambique are unreachable during rainy season
+- Mountain markets in Afghanistan and Nepal are inaccessible during winter
+- This creates **systematic seasonal gaps** that can confound seasonal adjustment
+
+---
+
+## 18. Seasonal Adjustment Techniques for Food Price Data
+
+> **Last checked:** March 2025
+
+### 18.1 Why Seasonal Adjustment Matters
+
+Food prices exhibit strong seasonal patterns driven by agricultural cycles:
+- **Lean season** (pre-harvest): prices rise as stocks diminish
+- **Harvest season**: prices fall as new supply enters the market
+- **Dry season**: prices for fresh vegetables and dairy may spike
+- Ignoring seasonality will produce spurious "anomalies" that are actually normal seasonal variation
+
+### 18.2 Methods Used in the Literature
+
+| Method | Description | Suitability for WFP data |
+|---|---|---|
+| **Hodrick-Prescott (HP) filter** | Separates trend from cycle; used by ALPS | Good; standard in WFP/CERDI framework |
+| **STL decomposition** | Seasonal-Trend decomposition using LOESS | Good; handles changing seasonal patterns |
+| **X-13 ARIMA-SEATS** | US Census Bureau's standard seasonal adjustment | Overkill for most food price series; requires continuous data |
+| **Month-of-year dummies** | OLS regression with 12 monthly dummy variables | Simple; works well for stable seasonal patterns |
+| **Moving average ratio** | Observed / 12-month centered moving average | Robust to short gaps; easy to implement |
+| **Seasonal-and-Trend decomposition (MSTL)** | Multi-seasonal STL for complex seasonal patterns | Useful if both annual and intra-annual patterns exist |
+
+### 18.3 STL Decomposition Example
+
+```python
+import pandas as pd
+from statsmodels.tsa.seasonal import STL
+
+def seasonal_adjust_price(prices, period=12, seasonal_window=13):
+    """
+    Seasonally adjust a food price series using STL decomposition.
+
+    Parameters
+    ----------
+    prices : pd.Series
+        Monthly price time series with DatetimeIndex.
+    period : int
+        Seasonal period (12 for monthly data).
+    seasonal_window : int
+        Width of the LOESS window for seasonal extraction (must be odd, >= 7).
+
+    Returns
+    -------
+    pd.DataFrame
+        With columns: observed, trend, seasonal, residual, seasonally_adjusted
+    """
+    stl = STL(prices.dropna(), period=period, seasonal=seasonal_window, robust=True)
+    result = stl.fit()
+
+    df = pd.DataFrame({
+        'observed': result.observed,
+        'trend': result.trend,
+        'seasonal': result.seasonal,
+        'residual': result.resid,
+        'seasonally_adjusted': result.observed - result.seasonal,
+    })
+
+    return df
+```
+
+---
+
+## 19. The WFP–FEWS NET–IPC Data Ecosystem
+
+> **Last checked:** March 2025
+
+### 19.1 How the Three Systems Relate
+
+The global food security early warning architecture rests on three interconnected systems:
+
+```
+┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│    WFP VAM       │     │   FEWS NET       │     │     IPC/CH       │
+│  (data provider) │────▶│  (analyst)       │────▶│  (classifier)    │
+│                  │     │                  │     │                  │
+│ • Market prices  │     │ • Scenario-based │     │ • Consensus-     │
+│ • Food consump.  │     │   food security  │     │   based phase    │
+│ • Remote sensing │     │   analysis       │     │   classification │
+│ • HungerMapLIVE  │     │ • 3-month food   │     │ • Phases 1-5     │
+│                  │     │   security       │     │   (Minimal to    │
+│                  │     │   outlook        │     │   Famine)        │
+└──────────────────┘     └──────────────────┘     └──────────────────┘
+        │                        │                        │
+        ▼                        ▼                        ▼
+┌──────────────────────────────────────────────────────────────────┐
+│  Harmonized Food Insecurity Dataset (HFID)                      │
+│  Consolidates: IPC/CH phases, FEWS NET IPC-compatible phases,   │
+│  WFP FCS (Food Consumption Score), WFP rCSI (Coping Strategy)   │
+│  Monthly, sub-national, common admin reference system            │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### 19.2 IPC Phase Classification
+
+| Phase | Name | Description | Typical price signal |
+|---|---|---|---|
+| 1 | Minimal | Adequate food access | Prices within seasonal norms |
+| 2 | Stressed | Marginally adequate food access | ALPS Stress or above |
+| 3 | Crisis | Acute food insecurity | ALPS Alert; >25% price above seasonal |
+| 4 | Emergency | Severe food gaps | ALPS Crisis; markets may be failing |
+| 5 | Famine | Death, destitution, starvation | Markets non-functional or prices hyperinflationary |
+
+### 19.3 Harmonized Food Insecurity Dataset (HFID)
+
+A new consolidated dataset published in 2025 (Pokhariyal et al., *Scientific Data*) that combines:
+- **IPC/Cadre Harmonisé phase classifications**
+- **FEWS NET IPC-compatible phase estimates**
+- **WFP Food Consumption Score (FCS)**
+- **WFP reduced Coping Strategy Index (rCSI)**
+
+Updated monthly with a common reference system for administrative units, this is the most comprehensive harmonised food insecurity dataset available.
+
+**Reference:** Pokhariyal, G.P., et al. (2025). "A monthly sub-national Harmonized Food Insecurity Dataset for comprehensive analysis and predictive modeling." *Scientific Data*. <https://www.nature.com/articles/s41597-025-05034-4>
+
+### 19.4 Relevance to Causal Atlas
+
+For Causal Atlas, the WFP–FEWS NET–IPC ecosystem means:
+1. WFP food prices are **input data** that drive food security classifications
+2. IPC phases are the **outcome variable** for food security prediction models
+3. The HFID provides a standardised outcome variable for training prediction models
+4. Combining WFP prices with CHIRPS rainfall and ACLED conflict data replicates (and could improve upon) the manual analytical process that FEWS NET analysts perform
+
+---
+
+## 20. Food Price Data in Academic Early Warning Models
+
+> **Last checked:** March 2025
+
+### 20.1 Key Machine Learning Studies Using Food Price Data
+
+| Study | Method | Food price role | Accuracy | Lead time |
+|---|---|---|---|---|
+| Busker et al. (2024), *Earth's Future* | XGBoost | Food prices as one of 56 input features | IPC phase prediction accuracy varies by region | Up to 12 months |
+| Foini et al. (2024), *Comms. Earth & Environment* | Reservoir Computing, ARIMA, XGBoost, LSTM, CNN | WFP FCS, rCSI, and food prices as input | 83% accuracy for food consumption forecasts | Up to 4 months |
+| Martini et al. (2023), *Scientific Reports* | Various ML models | WFP HungerMap real-time data including prices | Forecastability varies by country stability | 1–3 months |
+| Baquedano et al. (2024), *arXiv* | Integrated model | Conflict + price data integration | Improved accuracy over price-only models | 3–6 months |
+| Lentz et al. (2019), *World Development* | Logistic regression with lagged features | Food prices as predictive features alongside conflict and climate | Improvements over baseline | 6 months |
+
+### 20.2 Key Findings
+
+1. **Food prices are consistently among the top predictive features** for food insecurity forecasting, typically ranking alongside conflict intensity and rainfall anomalies
+2. **Food price volatility and conflict interact synergistically** — the combination is more predictive than either alone
+3. **Lead time vs accuracy trade-off:** Models achieve ~83% accuracy at 1 month lead time, degrading to ~60–70% at 6 months
+4. **WFP's HungerMapLIVE** data (which includes prices) has been used directly for real-time forecasting, with daily updates providing near-real-time predictive capability
+5. **Spatial granularity matters:** Sub-national (admin1/admin2) price data significantly outperforms national-level data for crisis prediction
+
+### 20.3 References
+
+- Busker, T., et al. (2024). "Predicting Food-Security Crises in the Horn of Africa Using Machine Learning." *Earth's Future*, 12, e2023EF004211. <https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2023EF004211>
+- Foini, P., et al. (2024). "Forecasting trends in food security with real time data." *Communications Earth & Environment*, 5, 698. <https://www.nature.com/articles/s43247-024-01698-9>
+- Lentz, E.C., et al. (2019). "A data-driven approach improves food insecurity crisis prediction." *World Development*, 122, 399–409. <https://www.sciencedirect.com/science/article/abs/pii/S0305750X19301603>
+
+---
+
+## 21. Worked Example: East Africa Maize Prices → ALPS → PRIO-GRID
+
+> **Last checked:** March 2025
+
+### 21.1 End-to-End Pipeline
+
+This example downloads all maize prices for East Africa (Kenya, Uganda, Tanzania, Ethiopia, Somalia, South Sudan), cleans the data, computes ALPS scores, and maps to PRIO-GRID cells.
+
+```python
+import pandas as pd
+import numpy as np
+import requests
+import base64
+from statsmodels.tsa.filters.hp_filter import hpfilter
+
+# ============================================================
+# Step 1: Download data from HDX
+# ============================================================
+
+# Using the legacy single-file download for simplicity
+url = ("https://data.humdata.org/dataset/4fdcd4dc-5c2f-43af-a1e4-93c9b6539a27"
+       "/resource/12d7c8e3-eff9-4db0-93b7-726825c4fe9a/download/wfpvam_foodprices.csv")
+
+print("Downloading WFP food price data...")
+df_all = pd.read_csv(url)
+
+# Skip HXL tag row if present
+if df_all.iloc[0].apply(lambda x: str(x).startswith('#')).any():
+    df_all = pd.read_csv(url, skiprows=[1])
+
+print(f"Total records: {len(df_all):,}")
+
+# ============================================================
+# Step 2: Filter to East Africa maize
+# ============================================================
+
+east_africa_countries = ['Kenya', 'Uganda', 'Tanzania', 'Ethiopia', 'Somalia', 'South Sudan']
+# Note: admin1 contains country in some file versions; adjust field as needed
+
+# Filter for maize commodities (various names)
+maize_terms = ['maize', 'Maize', 'corn', 'Corn']
+df_maize = df_all[
+    df_all['commodity'].str.contains('|'.join(maize_terms), case=False, na=False)
+].copy()
+
+# Further filter by region if country column is available
+# (field names may vary; adapt to your download)
+
+print(f"Maize records: {len(df_maize):,}")
+
+# ============================================================
+# Step 3: Clean the data
+# ============================================================
+
+# Parse dates
+df_maize['date'] = pd.to_datetime(df_maize['date'], errors='coerce')
+df_maize = df_maize.dropna(subset=['date', 'price'])
+
+# Remove obviously invalid prices
+df_maize = df_maize[df_maize['price'] > 0]
+
+# Remove unit inconsistencies: keep only KG
+df_maize_kg = df_maize[df_maize['unit'].str.upper().str.contains('KG', na=False)].copy()
+
+# Flag potential outliers (price > 5× market median)
+market_medians = df_maize_kg.groupby(['market'])['price'].transform('median')
+df_maize_kg['outlier_flag'] = df_maize_kg['price'] > 5 * market_medians
+print(f"Outliers flagged: {df_maize_kg['outlier_flag'].sum()}")
+
+# Remove outliers
+df_clean = df_maize_kg[~df_maize_kg['outlier_flag']].copy()
+
+# ============================================================
+# Step 4: Compute ALPS for each market
+# ============================================================
+
+def compute_alps_for_market(market_prices, min_months=36, lambda_hp=14400):
+    """Compute ALPS for a single market's monthly price series."""
+    # Resample to monthly (use mean if multiple obs per month)
+    monthly = market_prices.set_index('date')['price'].resample('ME').mean()
+
+    # Need at least 36 months
+    if monthly.dropna().shape[0] < min_months:
+        return None
+
+    # Interpolate short gaps (up to 3 months)
+    monthly = monthly.interpolate(method='linear', limit=3)
+
+    if monthly.dropna().shape[0] < min_months:
+        return None
+
+    try:
+        cycle, trend = hpfilter(monthly.dropna(), lamb=lambda_hp)
+        sigma = cycle.std()
+
+        if sigma == 0 or np.isnan(sigma):
+            return None
+
+        alps_score = cycle / sigma
+
+        result = pd.DataFrame({
+            'price': monthly,
+            'trend': trend,
+            'alps_score': alps_score,
+        })
+
+        result['alert_level'] = pd.cut(
+            result['alps_score'],
+            bins=[-np.inf, 0.25, 1.0, 2.0, np.inf],
+            labels=['Normal', 'Stress', 'Alert', 'Crisis']
+        )
+
+        return result
+    except Exception:
+        return None
+
+# Apply per market
+alps_results = []
+for market_name, group in df_clean.groupby('market'):
+    alps_df = compute_alps_for_market(group)
+    if alps_df is not None:
+        alps_df['market'] = market_name
+        # Get market coordinates (take first non-null)
+        lat = group['latitude'].dropna().iloc[0] if 'latitude' in group else np.nan
+        lon = group['longitude'].dropna().iloc[0] if 'longitude' in group else np.nan
+        alps_df['latitude'] = lat
+        alps_df['longitude'] = lon
+        alps_results.append(alps_df)
+
+df_alps = pd.concat(alps_results).reset_index()
+print(f"Markets with ALPS: {df_alps['market'].nunique()}")
+
+# ============================================================
+# Step 5: Map to PRIO-GRID cells
+# ============================================================
+
+def assign_priogrid(lat, lon):
+    """Assign a PRIO-GRID cell ID from lat/lon coordinates."""
+    if pd.isna(lat) or pd.isna(lon):
+        return np.nan
+
+    # PRIO-GRID row and column
+    row = int(np.floor((lat + 90) / 0.5))
+    col = int(np.floor((lon + 180) / 0.5))
+
+    # PRIO-GRID cell ID (simplified encoding)
+    gid = row * 720 + col + 1
+    return gid
+
+df_alps['prio_gid'] = df_alps.apply(
+    lambda r: assign_priogrid(r['latitude'], r['longitude']), axis=1
+)
+
+# ============================================================
+# Step 6: Aggregate to PRIO-GRID level
+# ============================================================
+
+# When multiple markets fall in the same cell, take the mean
+priogrid_monthly = df_alps.groupby(['prio_gid', 'date']).agg({
+    'price': 'mean',
+    'alps_score': 'mean',
+    'alert_level': lambda x: x.mode().iloc[0] if len(x) > 0 else np.nan,
+    'latitude': 'first',
+    'longitude': 'first',
+}).reset_index()
+
+priogrid_monthly['year'] = priogrid_monthly['date'].dt.year
+priogrid_monthly['month'] = priogrid_monthly['date'].dt.month
+
+# Save as Parquet
+priogrid_monthly.to_parquet('wfp_maize_alps_priogrid_eastafrica.parquet', index=False)
+print(f"PRIO-GRID cells with data: {priogrid_monthly['prio_gid'].nunique()}")
+print(f"Output shape: {priogrid_monthly.shape}")
+```
+
+### 21.2 Expected Output Schema
+
+| Column | Type | Description |
+|---|---|---|
+| `prio_gid` | int | PRIO-GRID cell identifier |
+| `date` | datetime | Month (last day of month) |
+| `price` | float | Mean maize price in local currency (per kg) |
+| `alps_score` | float | ALPS anomaly score (z-score) |
+| `alert_level` | string | Normal / Stress / Alert / Crisis |
+| `latitude` | float | Representative latitude |
+| `longitude` | float | Representative longitude |
+| `year` | int | Calendar year |
+| `month` | int | Calendar month |
+
+This output can be directly joined with CHIRPS precipitation data (by `prio_gid` + `year` + `month`) for lag correlation analysis.

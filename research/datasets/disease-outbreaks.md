@@ -887,3 +887,199 @@ Most structured disease data is **annual**, while Causal Atlas targets **monthly
 - Climate change and infectious diseases: https://pmc.ncbi.nlm.nih.gov/articles/PMC6974868/
 - Climate-driven early warning systems for infectious disease: https://www.sciencedirect.com/science/article/pii/S0013935124004729
 - COVID-19 and conflict risk under climate change: https://pmc.ncbi.nlm.nih.gov/articles/PMC10256592/
+
+---
+
+## 11. WHO EWARS (Early Warning, Alert and Response System)
+
+### Overview
+
+EWARS is WHO's deployable disease surveillance system designed for emergency settings — conflict zones, post-disaster areas, refugee camps — where routine health surveillance has broken down.
+
+- **URL:** https://www.who.int/emergencies/surveillance/early-warning-alert-and-response-system-ewars/
+- **Operator:** WHO Health Emergencies Programme
+- **Deployment:** Can be set up within **48 hours** of an emergency declaration
+- **Status:** Operational system deployed in multiple crises
+
+### How EWARS Works
+
+1. **Configuration:** Disease list and alert thresholds are defined for the specific emergency (e.g., cholera, measles, acute watery diarrhea)
+2. **Data collection:** Health facilities report cases via EWARS mobile app (online/offline capable)
+3. **Two reporting streams:**
+   - **Immediate alerts:** Triggered when a single case of a notifiable disease (e.g., cholera, Ebola) is reported
+   - **Weekly reports:** Aggregated case counts by disease, site, age group, and sex
+4. **Alert management:** Automatic threshold-based alerts trigger SMS/email notifications
+5. **Response:** Rapid Response Teams investigate alerts, classify risk, and initiate response
+
+### Diseases Under Surveillance
+
+EWARS typically monitors 10-15 priority diseases per deployment, including:
+- Acute watery diarrhea / cholera
+- Acute bloody diarrhea / dysentery
+- Suspected measles
+- Acute flaccid paralysis (polio indicator)
+- Acute jaundice syndrome (hepatitis)
+- Meningitis
+- Acute hemorrhagic fever syndrome (Ebola, Marburg indicators)
+- Severe acute respiratory infection (SARI)
+- Acute malnutrition
+- Malaria (in endemic areas)
+
+### EWARS Deployments (Selected)
+
+| Crisis | Year | Context |
+|---|---|---|
+| **Rohingya refugee crisis, Bangladesh** | 2017–present | 900,000+ refugees in Cox's Bazar |
+| **Syria crisis** | 2013–present | Conflict-affected areas |
+| **Yemen crisis** | 2016–present | Cholera outbreak surveillance |
+| **Cyclone Idai, Mozambique** | 2019 | Post-disaster surveillance |
+| **Ukraine conflict** | 2022–present | Conflict-disrupted health system |
+| **Sudan crisis** | 2023–present | Conflict and displacement |
+
+### Data Access
+
+**EWARS data is NOT publicly accessible.** It is shared only with:
+- WHO country offices and headquarters
+- Ministry of Health of the affected country
+- Humanitarian health cluster partners (on a need-to-know basis)
+
+Weekly bulletins may be published for some deployments (e.g., Syria EWARN bulletins via WHO EMRO: https://www.emro.who.int/syr/publications-other/ewars-weekly-bulletin.html), but raw data is not released.
+
+### Relevance to Causal Atlas
+
+EWARS is the most granular disease surveillance data available for emergency settings, but its restricted access limits direct use. However:
+- **Aggregated EWARS data** sometimes appears in WHO situation reports and humanitarian bulletins
+- **The EWARS framework** informs what diseases to track in crisis contexts
+- **Future possibility:** Advocacy for open data sharing from EWARS deployments could significantly enhance Causal Atlas's disease layer in conflict-affected regions
+
+---
+
+## 12. WHO IHR Monitoring and Evaluation Framework
+
+### International Health Regulations (2005)
+
+The IHR (2005) is a binding international legal instrument requiring all 196 signatory states to develop core public health capacities for detecting, assessing, reporting, and responding to public health events.
+
+### IHR Monitoring Tools
+
+| Tool | Type | Frequency | Coverage | Public? |
+|---|---|---|---|---|
+| **SPAR** (States Parties Self-Assessment Annual Reporting) | Self-assessment | Annual (mandatory) | 196 countries | Yes |
+| **JEE** (Joint External Evaluation) | External evaluation | Every ~5 years (voluntary) | 130+ countries evaluated | Yes |
+| **AAR** (After Action Review) | Post-event review | After significant events | Variable | Sometimes |
+| **Simulation Exercises** | Tabletop/functional exercises | Variable | Variable | Sometimes |
+
+### SPAR (e-SPAR) — Detailed
+
+The electronic SPAR (e-SPAR) is the primary quantitative tool for monitoring IHR implementation.
+
+**Version:** SPAR 2nd edition (2021), expanded from the original version
+**Capacities assessed:** 15 core capacities, 35 indicators
+**Scale:** 1–5 per indicator (1 = no capacity, 5 = sustainable capacity)
+
+| Capacity | Indicators |
+|---|---|
+| 1. Policy, legal and normative instruments | 2 |
+| 2. IHR coordination and national IHR focal point functions | 3 |
+| 3. Financing | 1 |
+| 4. Laboratory | 3 |
+| 5. Surveillance | 3 |
+| 6. Human resources | 2 |
+| 7. Health emergency management | 3 |
+| 8. Health service provision | 2 |
+| 9. Infection prevention and control | 2 |
+| 10. Risk communication and community engagement | 2 |
+| 11. Points of entry | 2 |
+| 12. Zoonotic events and the human-animal-environment interface | 2 |
+| 13. Food safety | 2 |
+| 14. Chemical events | 2 |
+| 15. Radiation emergencies | 2 |
+
+### Data Access
+
+- **SPAR data:** Available through WHO GHO: https://www.who.int/data/gho/data/themes/topics/topic-details/GHO/international-health-regulations-ihr
+- **e-SPAR platform:** https://extranet.who.int/e-spar (requires WHO login for some features)
+- **JEE reports:** Published on WHO website per country: https://www.who.int/emergencies/operations/international-health-regulations-monitoring-evaluation-framework/joint-external-evaluations
+
+### Relevance to Causal Atlas
+
+SPAR scores provide a **country-level health system preparedness indicator** that can serve as a moderating variable:
+- Countries with low SPAR scores (weak surveillance, limited lab capacity) may experience worse disease outcomes after climate shocks or conflict
+- SPAR scores can be used alongside WGI governance indicators as contextual variables
+- The disconnect between SPAR self-assessment and JEE external evaluation can indicate governance quality
+
+---
+
+## 13. Wastewater Surveillance as Emerging Data Source
+
+### Overview
+
+Wastewater-based epidemiology (WBE) has emerged post-COVID as a powerful tool for community-level pathogen surveillance. It provides early, non-invasive detection of pathogen circulation at the population level.
+
+### How It Works
+
+1. **Sample collection:** Wastewater is collected from municipal sewage systems, treatment plants, or specific buildings
+2. **Laboratory analysis:** RT-qPCR or sequencing detects pathogen genetic material (RNA/DNA)
+3. **Normalisation:** Pathogen signal is normalised against population markers (e.g., PMMoV for SARS-CoV-2) or flow rate
+4. **Trend analysis:** Concentration trends indicate rising or declining community infection
+
+### Current Global Infrastructure
+
+| Network | Scope | Pathogens | Notes |
+|---|---|---|---|
+| **US CDC National Wastewater Surveillance System (NWSS)** | ~1,400 US sites | SARS-CoV-2, RSV, Influenza A, Avian H5, Mpox | Most mature system; public dashboard |
+| **GLOWACON** (Global Consortium for WES) | International | Multiple | WHO-supported; connecting national programs |
+| **European surveillance** | EU/EEA | SARS-CoV-2, Polio | EU Recommendation for WBE since 2021 |
+| **Aircraft wastewater** | Emerging concept | Multiple | Monitoring international travel routes |
+
+### Data Access
+
+- **US CDC NWSS Dashboard:** https://www.cdc.gov/nwss/ — publicly accessible, county-level trends
+- **No global standardised database exists** as of March 2025
+- **Research datasets:** Published alongside individual studies; no unified API
+
+### Relevance to Causal Atlas
+
+Wastewater surveillance is in its early stages as a global data source. For Causal Atlas:
+- **Not yet ready** for systematic integration due to fragmented, non-standardised data
+- **Watch for:** GLOWACON standardisation efforts and potential WHO-managed global database
+- **Potential future use:** Early pathogen detection signals that precede clinical case reporting by 1-2 weeks
+- **Key advantage:** Captures asymptomatic infections missed by clinical surveillance
+
+---
+
+## 14. Genomic Surveillance Data (GISAID)
+
+### Overview
+
+GISAID (Global Initiative on Sharing All Influenza Data) is the world's largest repository of pathogen genomic sequences, critical for tracking pathogen evolution and emergence.
+
+| Property | Detail |
+|---|---|
+| **URL** | https://gisaid.org/ |
+| **Founded** | 2008 (originally for influenza; expanded to SARS-CoV-2 in 2020) |
+| **Pathogens covered** | Influenza, SARS-CoV-2, RSV, Mpox, Dengue, Chikungunya, Zika |
+| **Databases** | EpiFlu (influenza), EpiCoV (SARS-CoV-2), EpiRSV, EpiPox, EpiArbo |
+| **Total sequences** | 16+ million SARS-CoV-2 sequences (largest COVID genomic database) |
+| **Contributors** | Labs and public health agencies in 190+ countries |
+
+### Data Access Model
+
+GISAID uses a unique **"share with care"** model:
+- **Registration required:** Users must agree to the GISAID Database Access Agreement (DAA)
+- **No open bulk download:** Data cannot be redistributed freely
+- **Attribution required:** Contributors must be acknowledged
+- **API access:** Available for authenticated users with institutional affiliation
+- **EpiCoV API:** Provides programmatic access to SARS-CoV-2 metadata and sequences
+
+### Relevance to Causal Atlas
+
+Genomic surveillance data is **not directly suitable** for spatiotemporal causal analysis at the PRIO-GRID level because:
+- Sequencing coverage is extremely uneven (dense in wealthy countries, sparse elsewhere)
+- Data represents variants/lineages, not case counts
+- GISAID's access restrictions prevent free redistribution
+
+However, **aggregated genomic surveillance metrics** could be useful:
+- **Variant emergence detection** as an early warning signal
+- **Phylogeographic analysis** for tracking pathogen spread patterns
+- **Country-level sequencing coverage** as a health system capacity indicator
