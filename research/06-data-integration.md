@@ -31,6 +31,10 @@
 21. [Temporal Downscaling](#21-temporal-downscaling)
 22. [Edge Matching and Boundary Harmonisation](#22-edge-matching-and-boundary-harmonisation)
 23. [Worked Pipeline Example: Somalia Integration](#23-worked-pipeline-example-somalia-integration)
+24. [Cross-Dataset Validation](#24-cross-dataset-validation)
+25. [Handling the "Data Desert" Problem](#25-handling-the-data-desert-problem)
+26. [Real-World Integration Case Studies](#26-real-world-integration-case-studies)
+27. [Scalability and Performance](#27-scalability-and-performance)
 
 ---
 
@@ -2869,3 +2873,465 @@ Source: [ACLED API Documentation](https://apidocs.acleddata.com/), [CHIRPS Data]
 - [CHIRPS Data (UC Santa Barbara)](https://data.chc.ucsb.edu/products/CHIRPS-2.0/)
 - [HDX HAPI Food Prices API](https://hapi.humdata.org/docs)
 - [WFP CHIRPS Scripts](https://github.com/datamission/WFP/tree/master/Datasets/CHIRPS)
+
+---
+
+## 24. Cross-Dataset Validation
+
+> **Added:** March 2025
+
+When integrating data from multiple sources that measure overlapping phenomena, we must systematically validate consistency. Disagreement between datasets is not always a problem — it can reveal measurement limitations, definitional differences, or genuine uncertainty — but it must be quantified and understood.
+
+### 24.1 ACLED Fatalities vs. UCDP-GED Fatalities
+
+ACLED and UCDP-GED are the two leading georeferenced conflict event datasets, but they produce dramatically different fatality counts for the same events due to fundamental methodological differences.
+
+**Key differences in methodology:**
+
+| Dimension | ACLED | UCDP-GED |
+|---|---|---|
+| **Inclusion threshold** | No minimum fatality threshold; includes non-violent events (protests, strategic developments) | Requires a "stated incompatibility" and ≥25 battle-related deaths per year to qualify as a conflict |
+| **Scope** | All political violence and protest, including state-based, non-state, and one-sided violence | Primarily state-based armed conflict; non-state and one-sided violence added as extensions |
+| **Fatality coding** | Codes "best estimate", "low estimate", "high estimate" per event | Codes "best", "low", "high" estimates per event; a "deaths_civilians" field reports civilian deaths separately |
+| **Source reliance** | Heavily uses local media, NGO reports, and researcher networks | Uses global news wires, regional media, and international reports |
+| **Geographic precision** | Assigns lat/lon with a precision field (1 = exact, 2 = near, 3 = admin region) | Similar georeferencing with confidence indicators |
+
+**Quantified disagreement examples:**
+
+- **Mexico (2021):** ACLED recorded 6,739 civilian fatalities (81% of the country's annual violent fatalities). UCDP-GED recorded only 28 civilian fatalities for Mexico in the same year. The gap is driven by UCDP's incompatibility requirement — much of Mexico's drug cartel violence does not meet UCDP's definition of armed conflict.
+- **Yemen (2015-2018):** ACLED registers 64,315 more fatalities than UCDP-GED. The disagreement partly stems from different source networks and coding decisions in a low-information, high-casualty environment.
+- **Philippines (2020):** Both datasets capture broadly similar spatial patterns but diverge on event categorisation and fatality magnitudes.
+
+Sources: [Eck (2012) "In data we trust?"](https://journals.sagepub.com/doi/10.1177/0010836711434463), [ACLED Working Paper on Comparing Conflict Data (2019)](https://acleddata.com/report/working-paper-comparing-conflict-data), [Oberg & Yilmaz (2025) "Measurement issues in conflict event data"](https://journals.sagepub.com/doi/10.1177/20531680251362440), [Nature (2023) "Political instability patterns are obscured by conflict dataset scope conditions"](https://www.nature.com/articles/s41599-023-01559-4)
+
+**Validation metrics for conflict data:**
+
+| Metric | How to Compute | Interpretation |
+|---|---|---|
+| **Event count correlation** | Pearson/Spearman correlation of monthly event counts per grid cell between ACLED and UCDP-GED | High correlation (>0.7) suggests both capture the same spatial-temporal patterns even if magnitudes differ |
+| **Fatality ratio bias** | Median(ACLED_deaths / UCDP_deaths) per event matched by location + date ± 3 days | Values > 1 indicate ACLED systematically reports higher fatalities |
+| **Spatial agreement (Cohen's κ)** | For binary "any conflict this month" per grid cell, compute Cohen's κ | κ > 0.6 = substantial agreement, κ > 0.8 = near-perfect |
+| **Temporal onset agreement** | % of conflict onsets detected by both datasets within ±1 month | Measures whether the datasets agree on *when* violence starts |
+
+**What to do when datasets disagree:**
+1. **Use both as separate variables** — ACLED and UCDP-GED measure related but different constructs. Include both in analysis and note which one drives any causal finding.
+2. **Create a consensus variable** — For binary "conflict present/absent", flag a cell-month as conflictual if *either* dataset records an event. This maximises recall at the cost of precision.
+3. **Use the disagreement itself as a variable** — Cells where ACLED and UCDP-GED diverge most may be areas with poor information environments, which is itself analytically valuable.
+4. **Sensitivity analysis** — Run causal analyses separately with each dataset and report whether conclusions change. If results are robust to dataset choice, this strengthens confidence.
+
+### 24.2 CHIRPS vs. ERA5 vs. Gauge Data for Rainfall
+
+Rainfall is a critical driver in many causal chains (drought → food insecurity → conflict), but satellite-derived estimates and reanalysis products can disagree substantially, especially in areas with complex terrain or sparse gauge networks.
+
+**Product comparison:**
+
+| Product | Resolution | Method | Strengths | Weaknesses |
+|---|---|---|---|---|
+| **CHIRPS** | 0.05° (~5 km), daily/monthly | Satellite cold cloud duration + gauge blending | Best in data-sparse tropical regions; long record (1981-present) | Underestimates orographic rainfall in some areas; gauge network drives quality |
+| **ERA5** | 0.25° (~28 km), hourly | Full atmospheric reanalysis (ECMWF IFS model) | Globally complete; includes all met variables; physically consistent | Systematic biases in complex terrain; tends to oversmooth extreme events |
+| **Ground gauges** | Point locations | Direct measurement | Ground truth at that point | Sparse and declining network in Africa; point ≠ area average; gauge undercatch in wind |
+
+**Quantified agreement (from published validation studies):**
+
+| Region | CHIRPS vs. Gauge (r) | ERA5 vs. Gauge (r) | CHIRPS RMSE (mm/month) | ERA5 RMSE (mm/month) | Source |
+|---|---|---|---|---|---|
+| Ethiopia (monthly) | 0.59 | 0.40 | ~47 | ~89 | [Evaluation of ERA5 and CHIRPS in Ethiopia (2024)](https://link.springer.com/article/10.1007/s00703-024-01008-0) |
+| Pakistan (monthly) | ~0.65 | 0.79 | ~62 | ~49 | [Testing accuracy of precipitation products (2021)](https://link.springer.com/article/10.1007/s00704-021-03783-x) |
+| Mexico (all events) | Higher for 10-50 mm and >100 mm ranges | Lower than CHIRPS in most ranges | — | — | [Reanalysis/satellite assessment in southern Mexico (2021)](https://www.scielo.org.mx/scielo.php?script=sci_arttext&pid=S0187-62362021000200189) |
+
+**Key finding:** Performance is region-dependent. CHIRPS generally outperforms ERA5 in tropical/African regions (where Causal Atlas's primary use case lies) but ERA5 is better in some arid and mid-latitude regions. Neither is uniformly superior.
+
+**Validation approach for Causal Atlas:**
+1. For each PRIO-GRID cell, compute CHIRPS vs. ERA5 monthly correlation over the overlapping period
+2. Flag cells where correlation < 0.5 as "rainfall-uncertain" (display with reduced opacity or hatching on the map)
+3. Where gauge data is available (GHCN-Monthly, country meteorological services), use it as the reference to compute bias correction factors
+4. Consider using **CHIRPS as primary** (because it is specifically designed for food-security-relevant regions) but store ERA5 as a secondary source for gap-filling and for variables CHIRPS doesn't provide (temperature, wind, humidity)
+5. Standard validation metrics: Pearson correlation (r), RMSE, percent bias (PBIAS), Kling-Gupta Efficiency (KGE)
+
+### 24.3 WFP Market Prices vs. FAO Producer Prices
+
+Market prices from WFP and producer prices from FAO measure different stages of the food supply chain but should be correlated.
+
+**Key differences:**
+
+| Dimension | WFP Food Prices | FAO Producer Prices |
+|---|---|---|
+| **What is measured** | Retail/wholesale market prices for specific commodities at specific market locations | Farm-gate prices paid to producers, usually aggregated to national level |
+| **Spatial resolution** | Market-level (hundreds of markets per country) | Country-level (sometimes subnational) |
+| **Temporal resolution** | Monthly or bi-weekly | Annual (some quarterly) |
+| **Coverage** | Primarily food-insecure countries (Africa, Middle East, South/SE Asia) | Global, but with gaps in conflict-affected countries |
+| **Source** | WFP field offices and partner organisations | National statistical offices reporting to FAO |
+
+**Expected relationship:** WFP retail prices should track FAO producer prices with a positive correlation, but with a markup reflecting transport, processing, and retail margins. In crisis situations, the gap widens as supply chain disruptions increase margins.
+
+**Validation approach:**
+- Temporally align by downscaling FAO annual data to monthly (see Section 21 on temporal downscaling) or aggregating WFP monthly data to annual
+- Compute correlation per country per commodity
+- Track the retail-producer price spread over time — widening spreads may indicate supply chain disruptions and are themselves analytically interesting
+
+---
+
+## 25. Handling the "Data Desert" Problem
+
+> **Added:** March 2025
+
+### 25.1 The Fundamental Paradox
+
+The regions where cross-domain causal analysis is most needed — active conflict zones, fragile states, remote rural areas — are precisely the regions where data is scarcest. This creates a systematic bias: the strongest causal signals (e.g., conflict disrupting food systems) occur where we have the least ability to measure them.
+
+**Forms of the data desert:**
+- **Media deserts:** Conflict event data (ACLED, UCDP, GDELT) relies on media reports and local partners. In areas with press suppression, internet shutdowns, or physical danger to journalists, events go unreported. Events in populous areas are more likely to be covered than events in remote areas.
+- **Survey deserts:** Nutritional assessments, food security surveys, and household income surveys cannot be conducted in areas with active fighting or government restrictions
+- **Infrastructure deserts:** Weather gauges, air quality monitors, and market price reporting depend on physical infrastructure that is destroyed or abandoned in conflict
+- **Administrative deserts:** Government statistical offices in failed/fragile states produce incomplete or deliberately misleading data
+
+Sources: [Eck & Hultman (2007) — reporting bias in conflict data](https://www.researchgate.net/publication/280916538_A_Closer_Look_at_Reporting_Bias_in_Conflict_Event_Data), [Weidmann (2025) — "An agenda for addressing bias in conflict data"](https://www.nature.com/articles/s41597-022-01705-8), [AidData — "Data innovation in conflict zones"](https://www.aiddata.org/blog/data-innovation-in-conflict-zones-enabling-insights-without-endangering-lives)
+
+### 25.2 Systematic Bias Implications
+
+Data deserts do not just create gaps — they create **non-random** gaps that bias analytical results:
+
+- **Selection on the dependent variable:** If conflict prevents data collection, then our dataset systematically excludes the most intense conflict periods. Any analysis of "conflict → outcome" will underestimate the effect because the worst cases are missing.
+- **Spatial autocorrelation of missingness:** Missing data is spatially clustered (around conflict epicentres), which violates the assumptions of many spatial statistical methods.
+- **Temporal gaps at the worst moments:** Data drops out precisely when a crisis peaks (e.g., food price reporting stops when a market is attacked), creating right-censoring at the most analytically important time points.
+- **Denominator problems:** Population counts in conflict zones are unreliable (displacement, refugee flows), making per-capita calculations suspect.
+
+### 25.3 Satellite-Based Alternatives That Work in Conflict Zones
+
+Remote sensing provides data that is **collected uniformly regardless of ground conditions**. Unlike media reports or surveys, satellites do not need permission, road access, or functioning internet.
+
+| Satellite Product | What It Measures | Conflict Zone Application | Limitations |
+|---|---|---|---|
+| **VIIRS Nighttime Lights** | Light emissions from human activity | Economic disruption (lights go dark), displacement (refugee camp lights appear), infrastructure destruction | Cloud contamination; cannot distinguish cause of light changes; ~500m resolution |
+| **CHIRPS Rainfall** | Precipitation estimates from satellite + gauge | Drought monitoring even where gauges are destroyed | Quality drops where gauge stations have ceased operating (the blending step suffers) |
+| **MODIS/VIIRS NDVI** | Vegetation greenness | Agricultural disruption (fields abandoned → NDVI changes), scorched-earth tactics | Seasonal variation must be accounted for; cloud cover gaps; cannot distinguish cause of vegetation change |
+| **Sentinel-1 SAR** | Radar backscatter (works through clouds) | Building damage detection, flood extent mapping | Complex interpretation; requires ML models for damage classification |
+| **High-res commercial imagery** | Very high resolution (0.3-1m) optical | Direct observation of damage, displacement camps, military movements | Expensive; archive coverage biased toward areas of commercial/security interest; not global |
+
+**Nightlights as a conflict proxy:** Unlike conflict data derived from news reports, nighttime lights (NTL) data collection is unaffected by media coverage, cell phone access, internet availability, or political repression. Research has shown that NTL declines correlate with conflict onset and intensity, making them a valuable gap-filling variable. See [PNAS (2021) — "Monitoring war destruction from space using machine learning"](https://www.pnas.org/doi/full/10.1073/pnas.2025400118) and [Bennett et al. (2022) — "Improving Satellite Monitoring of Armed Conflicts"](https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2022EF002904).
+
+### 25.4 The Role of GDELT in Gap-Filling
+
+GDELT monitors worldwide news media (broadcast, print, and web) in over 100 languages and translates events into a structured event database updated every 15 minutes. It is the most voluminous conflict-related dataset available.
+
+**GDELT's strengths for gap-filling:**
+- Monitors ~300 event categories (far beyond just conflict)
+- Updates in near real-time (15-minute cadence)
+- Covers the entire globe without a minimum fatality threshold
+- Machine-coded from news sources, so can scale to massive volumes
+
+**GDELT's critical limitations:**
+- **Media bias:** GDELT is only as complete as its source media. Coverage is systematically lower in regions with limited media infrastructure — precisely the data deserts we are trying to fill. The paradox: "GDELT's knowledge is least effective in the areas, like Nigeria, where it is needed most."
+- **Not ground truth:** GDELT captures *what is reported*, not *what happened*. A single event can generate dozens of GDELT entries if reported by multiple outlets. Event duplication is a persistent issue.
+- **No quality control:** Machine-coded events have significant error rates in actor identification, event type classification, and geolocation
+- **Decontextualisation:** Individual GDELT events lack the expert curation of ACLED or UCDP; aggregation is required to extract meaningful signals
+
+Source: [OpenNews — "GDELT and the Problem of Decontextualized Data"](https://source.opennews.org/articles/gdelt-decontextualized-data/)
+
+**Recommendation for Causal Atlas:** Use GDELT as a **supplementary indicator**, not a primary conflict data source. GDELT's value lies in: (a) providing a real-time early signal where ACLED/UCDP have reporting lags of 1-4 weeks, (b) capturing event types beyond violence (protests, diplomatic actions, cooperation events), and (c) serving as a media attention proxy (the *volume* of GDELT events about a region may itself be analytically useful, independent of accuracy).
+
+### 25.5 How HungerMapLIVE Handles Data-Scarce Environments
+
+WFP's HungerMapLIVE is the most mature operational system for monitoring food security in data-scarce environments. Its approach is directly relevant to Causal Atlas.
+
+**HungerMapLIVE's nowcasting methodology:**
+
+1. **Ground truth collection:** WFP operates call centres that conduct live phone surveys (mVAM — mobile Vulnerability Analysis and Mapping) collecting food consumption scores (FCS) and coping strategies (rCSI) from thousands of households daily
+2. **Feature engineering:** For areas without direct survey data, the system assembles indirect indicators: food commodity prices, macro-economic indicators (GDP, exchange rates), weather data (rainfall anomalies), conflict intensity, prevalence of undernourishment, and population density
+3. **ML-based nowcasting:** Machine learning models trained on areas with survey data are used to predict food security status in areas without survey data. The model produces current estimates of FCS and rCSI prevalence — this is the "nowcast"
+4. **Uncertainty quantification:** The system reports median and 95% confidence intervals from 100-bootstrap models trained on subsamples with replacement. Wider confidence intervals explicitly communicate data uncertainty to users
+5. **Continuous calibration:** As new survey data comes in (even infrequently — once or twice per year in some locations), the model is recalibrated
+
+Sources: [WFP HungerMap Innovation](https://innovation.wfp.org/project/hungermap-live), [Nutritioncluster — HungerMap LIVE Predictive Model (PDF)](https://www.nutritioncluster.net/sites/nutritioncluster.com/files/2021-02/Session%204)%20HungerMap%20LIVE%20-%20Predictive%20model.pdf)
+
+**Lessons for Causal Atlas:**
+- Do not simply leave data-sparse cells blank — use ML-based imputation with explicit uncertainty bounds
+- Satellite-derived features (NDVI, nightlights, CHIRPS) are the backbone for data-sparse predictions because they are available everywhere
+- Always show the user whether a value is observed or modelled/imputed (e.g., solid fill for observed, hatched fill for modelled)
+- The confidence interval is as important as the point estimate
+
+---
+
+## 26. Real-World Integration Case Studies
+
+> **Added:** March 2025
+
+### 26.1 The VIEWS Project: Conflict Forecasting Pipeline
+
+The Violence & Impacts Early-Warning System (VIEWS), run by Uppsala University and PRIO, is the most directly comparable project to Causal Atlas in terms of data integration scope.
+
+**Data infrastructure:**
+- Maintains an actively updated PostgreSQL database containing approximately **10,000 features** across diverse domains: conflict (UCDP-GED), economic, developmental, and environmental variables
+- Features are defined at two spatial levels of analysis: **country-month** and **PRIO-GRID-month (pgm)**
+- Most features are regularly updated, with UCDP-GED updated on a monthly timescale
+
+**Integration pipeline (from the `views-pipeline-core` GitHub repository):**
+
+1. **Data ingestion:** Raw data from external sources is downloaded, parsed, and loaded into the PostgreSQL database. Each data source has a dedicated ingestion adapter.
+2. **Feature engineering:** The `viewser` client applies mathematical transforms to raw features: log transformations, temporal decay functions, time lags (to capture delayed effects), space lags (to capture effects from neighbouring grid cells), and missing data imputation.
+3. **Data processing pipeline:** The core pipeline handles preprocessing, drift monitoring (detecting when incoming data distributions shift), model management, ensemble construction, evaluation, and reconciliation.
+4. **Model training:** Multiple model families run in parallel: traditional time series models and the newer HydraNet (CNN-LSTM hybrid for spatiotemporal forecasting). All models operate at both pgm and country-month levels.
+5. **Evaluation:** Monthly out-of-sample assessments against the most recent UCDP-GED data, plus annual evaluations against vetted annual releases.
+6. **Output:** Monthly updated conflict forecasts for 1-36 months ahead, published via API and dashboard.
+
+**Key technical details:**
+- The `viewser` client communicates with a remote server that bears all computational load — this is a client-server architecture, not a browser-based tool
+- Data transforms are applied as a DAG (directed acyclic graph) of operations, ensuring reproducibility
+- Feature space includes spatial lags (values in adjacent PRIO-GRID cells) which is essential for capturing spatial diffusion of conflict
+
+Sources: [VIEWS Platform GitHub](https://github.com/views-platform), [views-pipeline-core](https://github.com/views-platform/views-pipeline-core), [viewser wiki](https://github.com/prio-data/viewser/wiki), [prio-data/views_pipeline](https://github.com/prio-data/views_pipeline)
+
+**Lessons for Causal Atlas:**
+- A dedicated database (Postgres or DuckDB) with a consistent schema across all features is essential at scale
+- Feature engineering (lags, transforms, spatial lags) should be a first-class pipeline step, not ad-hoc
+- The VIEWS approach of ~10,000 features across domains is manageable in a relational database; we can aspire to similar breadth
+- Client-server separation allows the heavy computation to stay server-side while the browser handles visualisation
+
+### 26.2 AfroGrid: Standardising Environmental-Conflict Data for Africa
+
+AfroGrid (Koren et al., 2022, Nature Scientific Data) is a 0.5° grid-month dataset integrating conflict, environmental stress, and socioeconomic features for Africa, 1989-2020. Its integration methodology is highly relevant because it targets the exact same spatial grid (PRIO-GRID compatible) and many of the same variables.
+
+**Integration process (as described in the published paper):**
+
+1. **Grid construction:** 10,674 cross-sectional grid cells at 0.5° × 0.5° resolution covering the African continent. Each cell is identified by centroid lat/lon, PRIO-GRID cell ID, and COW country code.
+
+2. **Conflict data (point → grid):**
+   - ACLED and UCDP-GED events are geocoded to lat/lon and then assigned to the containing grid cell
+   - Events are aggregated to monthly counts: number of events, total fatalities (best estimate), civilian fatalities
+   - Both ACLED and UCDP are included as separate indicator series (not merged), allowing researchers to compare
+
+3. **Climate data (raster → grid):**
+   - Temperature and precipitation from CRU TS (0.5° native resolution — aligns directly, no resampling needed)
+   - SPEI (Standardised Precipitation-Evapotranspiration Index) from the Global SPEI Database — also 0.5° native resolution
+   - Values are extracted per grid cell per month directly
+
+4. **NDVI (raster → grid):**
+   - Source: MODIS (250m resolution) — much finer than the target grid
+   - Aggregation: mean, min, and max NDVI values are computed per 0.5° grid cell per month
+   - This requires spatial averaging of thousands of MODIS pixels per grid cell
+
+5. **Nightlights (raster → grid, with harmonisation):**
+   - Challenge: Two satellite sensor systems cover different eras — DMSP-OLS (1992-2013) and VIIRS (2012-present), with different radiometric properties
+   - Solution: AfroGrid uses a **harmonised NTL dataset** (Li et al., 2020) that cross-calibrates DMSP and VIIRS into a consistent time series
+   - Values aggregated to grid cell level as mean light intensity
+
+6. **Population (raster → grid):**
+   - Source: WorldPop (1 km resolution)
+   - Aggregation: Sum of all WorldPop pixels within each grid cell (this is an extensive variable — summing is correct)
+   - Annual values only
+
+7. **Output format:** Single CSV file with one row per grid-cell-month, all variables as columns. This maximises accessibility — no GIS software needed.
+
+Source: [Koren et al. (2022) "Introducing AfroGrid" — Nature Scientific Data](https://www.nature.com/articles/s41597-022-01198-5), [AfroGrid V1.0 on Harvard Dataverse](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/LDI5TK)
+
+**Lessons for Causal Atlas:**
+- Where native data resolution matches the target grid (CRU TS, SPEI), integration is trivial — no spatial interpolation needed. We should prioritise data sources that natively align with 0.5°.
+- For high-resolution rasters (MODIS, WorldPop), the aggregation step is computationally intensive but methodologically straightforward — mean for intensive variables, sum for extensive.
+- The nightlights harmonisation problem (DMSP → VIIRS sensor transition) is a real issue we must address. Existing harmonised datasets (Li et al., 2020) solve this.
+- Delivering data as a flat CSV is excellent for accessibility but not for performance at the scale we plan. We should use Parquet/GeoParquet with the same logical structure.
+- Including both ACLED and UCDP-GED as separate variables (not merging them) is the right approach for a research platform.
+
+### 26.3 FEWS NET: Operational Climate-Market-Nutrition Integration
+
+The Famine Early Warning Systems Network (FEWS NET), funded by USAID and operational since 1985, is the gold standard for integrated food security analysis. Its integration process is not fully automated — it relies heavily on expert analyst judgement, which is both its strength and its scalability limitation.
+
+**Data integration architecture:**
+
+1. **Climate monitoring (near real-time):**
+   - Partnerships with NASA, NOAA, USGS, UCSB Climate Hazards Center, and NASA Harvest
+   - Satellite-derived rainfall (CHIRPS), NDVI, evapotranspiration, and soil moisture
+   - Comparison against historical normals to identify anomalies
+   - Produced by the USGS FEWS Early Warning and Environmental Monitoring Program
+
+2. **Market and trade data:**
+   - Commodity prices collected from NGO partnerships, national sources, and primary field data
+   - Tracks: market prices, domestic and cross-border trade flows, exchange rates, price indices
+   - Data entered into the FEWS NET Data Warehouse (FDW) via standardised forms
+
+3. **Production and livelihoods:**
+   - Maintains one of the world's largest subnational crop production datasets
+   - Livelihoods zone maps classify regions by primary livelihood strategy (pastoral, agropastoral, agricultural, urban, fishing, etc.)
+   - Seasonal assessment calendars for each livelihood zone
+
+4. **Nutrition and mortality:**
+   - Integration guidance specifies how analysts describe the current nutrition/mortality situation, explore causes, and make assumptions about future evolution
+   - Draws from SMART surveys, DHS data, and nutrition screening (MUAC)
+
+5. **Scenario development (the integration step):**
+   - Analysts synthesise all data streams into an Integrated Phase Classification (IPC) outcome
+   - This is a **human-in-the-loop** integration process: analysts use data as evidence, but the final classification is an expert judgement
+   - Scenarios cover 0-6 months (current + projected)
+
+**Data warehouse (FDW):**
+- Domains: commodity prices, cross-border trade, agricultural production, food insecurity classifications (IPC/CH), food-insecure population estimates, population estimates
+- Web-based Information Management System (IMS) for evidence-based analysis
+- API access for external researchers
+
+Sources: [FEWS NET Data Explorer](https://fews.net/data), [FEWS NET Guidance Documents](https://fews.net/products/guidance-documents), [USGS FEWS](https://earlywarning.usgs.gov/fews/), [FEWS NET Medium — "Beyond Numbers"](https://medium.com/@fewsnet/beyond-numbers-usaids-fews-net-data-unlocks-actionable-insights-02e808d0adcf)
+
+**Lessons for Causal Atlas:**
+- FEWS NET's effectiveness comes from expert analyst judgement synthesising diverse data. Causal Atlas aims to **augment** this with statistical methods and AI interpretation, not replace it.
+- The IPC classification framework (5 phases of food insecurity) is widely understood and could be used as a reference output for Causal Atlas's anomaly detection.
+- FEWS NET's livelihoods zone approach — classifying regions by *how people earn a living* — is essential context for interpreting causal relationships. A drought has different effects in pastoral vs. agricultural zones.
+- The seasonal calendar approach (knowing *when* planting, growing, and harvest seasons occur for each region) is critical for interpreting lag structures. We should incorporate this as metadata.
+
+### 26.4 Published Data Integration Pipeline Code on GitHub
+
+Several open-source projects provide reusable code for spatiotemporal data integration:
+
+| Project | Repository | What It Does | Language | Relevance |
+|---|---|---|---|---|
+| **VIEWS Pipeline Core** | [views-platform/views-pipeline-core](https://github.com/views-platform/views-pipeline-core) | End-to-end conflict forecasting: ingestion, transforms, model training, evaluation | Python | Directly comparable architecture; PRIO-GRID native |
+| **stagg (Spatiotemporal Aggregation)** | [tcarleton/stagg](https://github.com/tcarleton/stagg) | Harmonises spatiotemporal raster data for statistical analyses, with functions for spatial aggregation and temporal resampling | R | Methodologically relevant for raster-to-grid operations |
+| **ACLED Conflict Analysis** | [datapartnership/acled_conflict_analysis](https://github.com/datapartnership/acled_conflict_analysis) | Python package for downloading, processing, and analysing ACLED data | Python | Reusable ACLED ingestion adapter |
+| **WFP CHIRPS Scripts** | [datamission/WFP](https://github.com/datamission/WFP/tree/master/Datasets/CHIRPS) | Scripts for downloading and processing CHIRPS rainfall data for WFP use | Python | CHIRPS processing patterns |
+| **GDELT Conflict Dataset** | [vlad-ds/gdelt-conflict](https://github.com/vlad-ds/gdelt-conflict) | Processes 80M GDELT conflict events across 258 countries (1979-2021) | Python | GDELT processing at scale |
+| **OpenClimateGIS** | [NCPP/ocgis](https://github.com/NCPP/ocgis) | Subsetting, computation, and translation of spatiotemporal climate data | Python | Spatial operations on climate grids |
+
+---
+
+## 27. Scalability and Performance
+
+> **Added:** March 2025
+
+### 27.1 Scale of the Causal Atlas Data Cube
+
+The full PRIO-GRID at 0.5° × 0.5° resolution contains approximately **259,200 grid cells** covering the global land surface (360° / 0.5° × 360° / 0.5° = 518,400 cells, roughly half of which are land). With 30 years of monthly data and 50 variables, the data cube dimensions are:
+
+```
+259,200 grid cells × 360 months (30 years) × 50 variables
+= 4,665,600,000 cell-month-variable observations
+≈ 4.7 billion values
+```
+
+At 8 bytes per float64 value, the raw numerical data is approximately **37 GB** uncompressed. With Parquet compression (typically 3-5× for this type of data), this becomes **8-12 GB** on disk.
+
+This is a large but manageable dataset by modern standards — it fits in memory on a workstation with 64 GB RAM, and DuckDB/Parquet can handle it without distributed computing.
+
+### 27.2 Memory Management Strategies for Large Spatial Joins
+
+The most memory-intensive operations in the Causal Atlas pipeline are:
+
+**1. Raster-to-grid aggregation (e.g., MODIS NDVI at 250m to 0.5° grid)**
+- A single month of MODIS NDVI at 250m is ~86,400 × 43,200 pixels = **3.7 billion pixels** globally
+- Cannot load entire rasters into memory at once
+- **Strategy:** Use `rioxarray` with Dask chunking to read rasters in spatial tiles, aggregate each tile independently, then concatenate results
+
+**2. Point-in-polygon joins (e.g., assigning ACLED events to grid cells)**
+- ACLED has ~1.5 million events globally (cumulative). Joining against 259,200 polygons.
+- **Strategy:** Use DuckDB's spatial join operator with R-tree indexing (see benchmarks below)
+
+**3. Cross-correlation computation (analysis phase)**
+- Computing pairwise cross-correlations for 50 variables across 259,200 cells × 24 lag values
+- **Strategy:** Vectorised NumPy operations; process one grid cell at a time (each cell's computation is independent and small)
+
+### 27.3 Chunked Processing with Dask and Xarray
+
+For large raster data (CHIRPS, MODIS, nightlights), Dask provides lazy evaluation and parallel processing:
+
+**Chunking strategy:**
+- Align Dask chunks with the storage structure of the underlying files (e.g., CHIRPS files are per-month GeoTIFF, so chunk by month)
+- Target chunk sizes of ~100 MB for optimal Dask performance (large enough to reduce scheduling overhead, small enough for many to fit in memory)
+- For global 0.05° CHIRPS data: each monthly file is ~7,200 × 3,600 pixels × 4 bytes ≈ 100 MB — one chunk per file works well
+- For MODIS NDVI at 250m: tile spatially into ~10° × 10° blocks (2,400 × 2,400 pixels ≈ 23 MB per tile), then aggregate each tile to 0.5° independently
+
+**Implementation pattern:**
+```python
+import xarray as xr
+import dask
+
+# Open all monthly CHIRPS files lazily
+ds = xr.open_mfdataset(
+    'chirps/chirps-v2.0.*.tif',
+    engine='rasterio',
+    chunks={'x': 3600, 'y': 1800}  # spatial chunks, ~100 MB each
+)
+
+# Coarsen from 0.05° to 0.5° (factor of 10)
+ds_grid = ds.coarsen(x=10, y=10, boundary='trim').mean()
+
+# Compute in parallel across all months
+ds_grid.to_netcdf('chirps_0.5deg.nc', compute=True)
+```
+
+**Memory budget rule of thumb:** Ensure `n_workers × chunk_size × 2` (for intermediate results) fits in available RAM. With 8 workers and 100 MB chunks, budget ~1.6 GB. Most of our operations will work comfortably on a machine with 16-32 GB RAM.
+
+Sources: [Xarray + Dask parallel computing guide](https://docs.xarray.dev/en/stable/user-guide/dask.html), [Spatial Dev Guru — parallel raster processing with Dask](https://spatial-dev.guru/2024/11/30/raster-parallel-processing-and-saving-raster-chunks-using-xarray-and-dask/), [Coiled — "Xarray at Large Scale"](https://docs.coiled.io/blog/xarray-at-scale.html), [xESMF lazy Dask evaluation](https://xesmf.readthedocs.io/en/latest/notebooks/Dask.html)
+
+### 27.4 DuckDB Performance Characteristics for This Scale
+
+DuckDB is our primary query engine for the integrated data cube. Key performance characteristics relevant to our scale:
+
+**Spatial join benchmarks (DuckDB v1.3.0+):**
+- DuckDB v1.3.0 introduced a dedicated `SPATIAL_JOIN` operator that builds an R-tree index on-the-fly for the smaller table during join execution
+- **Benchmark (NYC Citi Bike):** 58 million point rows joined against 310 neighbourhood polygons in **28.7 seconds** (vs. 107.6 seconds with the previous approach, vs. 1,799.6 seconds with naive nested loop join — a **58× improvement**)
+- **Benchmark (US building centroids):** 130 million point records successfully processed using DuckDB's spatial capabilities
+- These benchmarks are directly relevant: our point-in-polygon operation (ACLED events → grid cells) involves ~1.5M points × 259K polygons, well within DuckDB's demonstrated capacity
+
+**Analytical query performance:**
+- DuckDB processes Parquet files natively with predicate pushdown and column pruning — only reads the columns and row groups needed for a query
+- For our 8-12 GB Parquet data cube, a typical query (e.g., "get all variables for grid cells in Kenya, 2018-2023") reads ~0.1-1% of the data, completing in milliseconds
+- DuckDB's columnar engine is optimised for aggregation queries (GROUP BY grid_cell, month) which are our primary access pattern
+- In-process architecture (no server to manage) aligns with both local analysis and server-side API deployment
+
+**DuckDB-WASM considerations:**
+- DuckDB compiles to WebAssembly and runs in-browser, enabling client-side analysis of Parquet files hosted on object storage
+- Practical for datasets up to ~1 GB in-browser; our full 8-12 GB cube exceeds this, but subset queries (single country, few variables) are feasible
+- This enables a progressive architecture: small queries run client-side (zero latency), large queries hit the FastAPI backend
+
+Sources: [DuckDB Spatial Joins blog (v1.3.0)](https://duckdb.org/2025/08/08/spatial-joins), [Dunnington — "Wrangling and joining 130M points with DuckDB"](https://dewey.dunnington.ca/post/2024/wrangling-and-joining-130m-points-with-duckdb--the-open-source-spatial-stack/), [DuckDB WASM documentation](https://duckdb.org/docs/stable/clients/wasm/overview)
+
+### 27.5 Estimated Operation Times
+
+Based on published benchmarks and comparable workloads, rough estimates for key pipeline operations on a single workstation (32 GB RAM, 8-core CPU, NVMe SSD):
+
+| Operation | Data Volume | Estimated Time | Bottleneck | Strategy |
+|---|---|---|---|---|
+| **CHIRPS monthly raster → 0.5° grid (1 month)** | 100 MB per file | ~2 seconds | I/O bound | Dask parallel across months |
+| **CHIRPS full history (1981-2025, 528 months)** | ~52 GB total raster | ~20 minutes | I/O + CPU | Dask with 8 workers |
+| **ACLED full history → grid cells (point-in-polygon)** | ~1.5M events × 259K polygons | ~5-10 seconds | CPU (spatial join) | DuckDB SPATIAL_JOIN |
+| **MODIS NDVI monthly → 0.5° grid (1 month, global)** | ~4 GB per month at 250m | ~30 seconds | I/O + CPU | Chunk spatially, aggregate per tile |
+| **MODIS NDVI full history (2000-2025, 300 months)** | ~1.2 TB total raster | ~3-4 hours | I/O dominant | Dask + parallel file reads |
+| **Nightlights annual → grid (1 year)** | ~2 GB per year at 500m | ~15 seconds | CPU | Single-threaded DuckDB or rioxarray |
+| **Cross-correlation (50 vars × 259K cells × 24 lags)** | ~37 GB data cube | ~10-30 minutes | CPU (embarrassingly parallel) | NumPy vectorised; Dask bag for cell parallelism |
+| **PCMCI (50 vars × 1 cell × 12 lags)** | Tiny per cell | ~0.5-2 seconds per cell | CPU (sequential per cell) | Parallel across cells; ~36-144 hours for all cells |
+| **Full pipeline rebuild** | All sources | ~6-8 hours | Raster aggregation | Incremental updates preferred |
+
+**Key insight:** The full pipeline rebuild takes hours, not days. But PCMCI across all 259,200 grid cells is the true computational bottleneck. In practice, users will run PCMCI on selected regions (hundreds to thousands of cells), not globally. Global causal analysis should be pre-computed as a batch job and cached.
+
+### 27.6 Scalability Architecture
+
+```
+                     ┌─────────────────────────────────┐
+                     │      Object Storage (S3/GCS)     │
+                     │  Parquet files partitioned by:    │
+                     │  /variable/year/month/region.pq   │
+                     └──────────┬──────────┬────────────┘
+                                │          │
+                  ┌─────────────┘          └──────────────┐
+                  ▼                                       ▼
+         ┌────────────────┐                    ┌──────────────────┐
+         │ DuckDB (server) │                    │ DuckDB-WASM      │
+         │ Full data cube   │                    │ (browser)        │
+         │ FastAPI backend  │                    │ Subset queries   │
+         │ PCMCI compute    │                    │ <1 GB data       │
+         └────────┬─────────┘                    └────────┬─────────┘
+                  │                                       │
+                  ▼                                       ▼
+         ┌────────────────┐                    ┌──────────────────┐
+         │ API responses   │                    │ Client-side       │
+         │ JSON/Arrow IPC  │                    │ visualisation     │
+         └────────────────┘                    └──────────────────┘
+```
+
+**Partitioning strategy for Parquet files:**
+- Partition by variable (first level) for column-oriented access patterns
+- Sub-partition by year (second level) for temporal queries
+- Use Parquet row group metadata for spatial filtering (store min/max lat/lon per row group)
+- Enable predicate pushdown so DuckDB only reads relevant partitions
+
+**Incremental update strategy:**
+- New data arrives monthly (ACLED, CHIRPS, UCDP updates)
+- Only reprocess the affected variable × month partition
+- Append new Parquet files; rebuild the DuckDB metadata catalog
+- Full rebuild only when a data source revises historical data (UCDP annual release) or when schema changes

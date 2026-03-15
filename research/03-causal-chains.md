@@ -30,6 +30,10 @@
 21. [Novel and Emerging Pathways](#21-novel-and-emerging-pathways)
 22. [Cross-Cutting Methodological Insights](#22-cross-cutting-methodological-insights)
 23. [Implications for Causal Atlas](#23-implications-for-causal-atlas)
+24. [Quantified Lag Structure Reference Table](#24-quantified-lag-structure-reference-table)
+25. [Feedback Loops and Bidirectional Causality](#25-feedback-loops-and-bidirectional-causality)
+26. [Cascading Failure Scenarios](#26-cascading-failure-scenarios)
+27. [Regional Causal Chain Atlases](#27-regional-causal-chain-atlases)
 
 ---
 
@@ -1868,6 +1872,623 @@ From the literature, the following variables at grid-cell level are most frequen
 4. **Include contextual moderators** (agricultural dependence, income level, governance) as the von Uexkull et al. (2016) and Cattaneo & Peri (2016) studies show these dramatically change results
 5. **Validate against known findings** (e.g., El Nino -> conflict doubling in tropics) before exploring novel chains
 6. **Account for spatial spillovers** (Harari & La Ferrara 2018 show conflict spreads to neighboring cells)
+
+---
+
+## 24. Quantified Lag Structure Reference Table
+
+> **Last updated:** March 2025
+> **Purpose:** Comprehensive reference of ALL documented lag structures from the academic literature, organized by causal pathway. This table is critical for validating Causal Atlas's causal discovery results against known findings.
+
+### 24.1 Climate-to-Agriculture Lags
+
+| Cause | Effect | Lag (months) | Effect Size | Region | Reference |
+|-------|--------|-------------|-------------|--------|-----------|
+| Rainfall deficit | NDVI (vegetation) decline | 0.5-2 | Significant correlation; mean lag ~0.94 months | Global (varies by biome) | PMC 10537649 (2023); Ecological Processes (2023) |
+| Drought onset (SPEI < -1) | Crop yield reduction | 1-6 (growing season) | 3-5 pp conflict incidence increase (proxy) | Africa | Harari & La Ferrara (2018) |
+| Growing-season drought | Maize yield loss | 0-3 (same season) | 10-15% average deficit in El Nino years | Southern Africa (Zimbabwe, South Africa) | Multiple ENSO-crop studies |
+| Temperature +1degC | Crop yield decline | 0-3 (same season) | -3% to -7% per degC above optimal | Global tropics | Zhao et al. (2017), PNAS |
+| ENSO phase transition (ONI) | Regional rainfall anomaly | 2-4 | Varies by teleconnection strength | East Africa, SE Asia, S. America | NOAA CPC; Nature Reviews Earth & Env. (2023) |
+| ENSO (El Nino) | East African short rains (OND) | 2-4 | Enhanced rainfall (positive anomaly) | East Africa | Endris et al. (2018); ICPAC |
+| ENSO (El Nino) | Southern African rainfall deficit | 3-6 | Significant negative anomaly | Southern Africa | Reason et al. (2000) |
+| ENSO (El Nino) | Indian monsoon weakening | 3-6 | Reduced monsoon rainfall | South Asia | Webster et al. (1998) |
+| Volcanic eruption (VEI 6+) | Global temperature drop | 1-3 | 0.3-0.7degC cooling | Global | Pinatubo 1991; Tambora 1815 |
+| Volcanic eruption | Crop failure (next growing season) | 3-18 | Variable; devastating for VEI 7 | Global | Kandlbauer & Sparks (2013) |
+
+### 24.2 Agriculture-to-Food Price Lags
+
+| Cause | Effect | Lag (months) | Effect Size | Region | Reference |
+|-------|--------|-------------|-------------|--------|-----------|
+| Crop failure (drought) | Local food price increase | 3-6 | Variable; 30-50% spikes documented | Sub-Saharan Africa | Burke et al. (2015); WFP market data |
+| Temperature +1degC (monthly) | Food price inflation | 0-12 (persists 12+ months) | Significant; affects CPI food component | Global (121 countries) | EPJ Data Science (2024); Letta & Tol (2019) |
+| Export ban (e.g., Russia wheat 2010) | Global commodity price spike | 1-3 | 32% FAO FPI increase in H2 2010 | Global | Lagi et al. (2011) |
+| El Nino | Maize price spike (Southern Africa) | 3-9 | 20-50% above trend | Southern/East Africa | FEWS NET reports |
+| Drought | Livestock price collapse (pastoralist) | 1-4 | Significant; primary conflict transmission channel | Somalia, Horn of Africa | Maystadt & Ecker (2014) |
+| Flooding | Rice price spike | 1-3 | 15-30% local increases documented | South/Southeast Asia | Multiple WFP market analyses |
+
+### 24.3 Food Price-to-Conflict Lags
+
+| Cause | Effect | Lag (months) | Effect Size | Region | Reference |
+|-------|--------|-------------|-------------|--------|-----------|
+| Food price spike (above FAO FPI ~210) | Social unrest / riots | 0-3 (near-simultaneous) | Significant; threshold effect | Global, especially MENA | Lagi et al. (2011) |
+| Sustained high food prices | Conflict onset | 1-3 | Significant | Global (net food importers) | Bellemare (2015) |
+| Food price volatility | Political instability | 1-6 | Stronger in countries with high food expenditure share | Developing countries | Bellemare (2015) |
+| Wheat price increase | Conflict events (Sudan) | 1-3 | Significant Granger causality (unidirectional) | Sudan | AgEcon Search (2015) |
+| Livestock price collapse | Local violent conflict | 1-6 | +62% conflict likelihood per 1 SD drought increase | Somalia | Maystadt & Ecker (2014) |
+
+### 24.4 Climate-to-Conflict Direct Lags
+
+| Cause | Effect | Lag (months) | Effect Size | Region | Reference |
+|-------|--------|-------------|-------------|--------|-----------|
+| Temperature +1 sigma | Intergroup conflict | 0-12 | +11-14% | Global meta-analysis | Hsiang et al. (2013); Burke et al. (2015) |
+| Growing-season drought | Civil conflict onset | 0-12 | Significant for agri-dependent, excluded groups | Africa, Asia | von Uexkull et al. (2016) |
+| El Nino year | Civil conflict (tropics) | 0-12 (contemporaneous) | Risk doubles (3% to 6%) | Tropics (teleconnected) | Hsiang, Meng & Cane (2011) |
+| Rainfall anomaly (extreme wet or dry) | Social conflict (all types) | 0-12 | Significant | Africa | Hendrix & Salehyan (2012) |
+
+### 24.5 Conflict-to-Other Domain Lags
+
+| Cause | Effect | Lag (months) | Effect Size | Region | Reference |
+|-------|--------|-------------|-------------|--------|-----------|
+| Conflict onset | Nightlight decline | 0-3 | 23-31% luminosity decline per 100 government deaths | Multiple conflict zones | Duke Univ. (nightlight study); Syria data |
+| Conflict | Food price spike | 1-6 | Significant (bidirectional) | Multiple | Various (see Section 25) |
+| Conflict | NDVI / vegetation decline | 3-12 | Significant in agricultural zones | Colombia, DRC | Papadogeorgou et al. (2022) |
+| Conflict | Health system disruption | 0-3 | ~50% reduction in non-conflict health services | West Africa (Ebola), Syria | PMC 9759305 (2022) |
+| Conflict | Displacement peak | 0-1 | Immediate; peaks within days to weeks | Global | IDMC annual reports |
+| Conflict | GDP per capita decline | 3-24 | Variable; nightlights suggest faster decline than official data | Developing countries | Henderson et al. (2012); IMF (2022) |
+
+### 24.6 Disaster-to-Displacement Lags
+
+| Cause | Effect | Lag (months) | Effect Size | Region | Reference |
+|-------|--------|-------------|-------------|--------|-----------|
+| Earthquake (major) | Displacement peak | 0-0.5 (days to weeks) | Immediate mass displacement | Global | USGS; IDMC |
+| Earthquake | Economic recovery / reconstruction | 6-24 | GDP effects often small due to stimulus | Global | Aksoy et al. (2024) |
+| Flood (sudden onset) | Displacement peak | 0-0.25 (days) | Immediate; often temporary | South Asia, SE Asia | IDMC (2023) |
+| Drought (slow onset) | Progressive migration | 3-24 | Gradual departure; often permanent | Sahel, Horn of Africa | Rigaud et al. (2018) |
+| Sea level rise | Coastal displacement | Years to decades | 0.9-2.1 million (Bangladesh by 2050) | Low-lying coasts, SIDS | IPCC AR6 |
+
+### 24.7 Pollution-to-Health Lags
+
+| Cause | Effect | Lag (months) | Effect Size | Region | Reference |
+|-------|--------|-------------|-------------|--------|-----------|
+| PM2.5 spike (acute) | Respiratory ER visits | 0-0.1 (0-3 days) | +1-3% per 10 ug/m3 | Global | WHO meta-analysis (2024) |
+| PM2.5 (chronic exposure) | All-cause mortality | Years (cumulative) | +7.3% per 10 ug/m3 | Global | Di et al. (2017), NEJM |
+| Childhood lead exposure | Violent crime | 216-276 (18-23 years) | ~56% of US crime decline attributable | US, 9 countries | Reyes (2007); Nevin (2007) |
+| ENSO -> flooding -> vector breeding | Malaria/dengue/cholera increase | 2-6 | Documented increases | Tropics | Multiple WHO studies |
+
+### 24.8 Economic and Cross-Domain Lags
+
+| Cause | Effect | Lag (months) | Effect Size | Region | Reference |
+|-------|--------|-------------|-------------|--------|-----------|
+| Temperature +1degC | GDP growth decline (poor countries) | 0-12 | -1.3 percentage points | Poor countries | Dell, Jones & Olken (2012) |
+| Oil price crash | Petrostate fiscal strain | 6-24 | Significant instability risk | Petrostates | Colgan (2013); multiple |
+| Mineral price spike | Local conflict (Africa) | 0-12 | ~25% of average violence levels explained | Africa | Berman et al. (2017) |
+| Pandemic onset | Supply chain disruption | 0-3 | 0.5-1.2% global value added loss | Global (COVID-19) | PLOS ONE (2021) |
+| Pandemic | Food price spike | 3-12 | +11-13% (US, 2021-2022); FAO FPI record March 2022 | Global | BLS; FAO |
+| Social media viral content | Protest mobilization | 0-0.25 (hours to days) | Significant Granger-causal | Global | ARIMA/Granger studies |
+| Media tone shift (negative) | Protest events | 0.25-1 (days to weeks) | Leading indicator | Global | GDELT analysis |
+
+### 24.9 Using This Table for Validation
+
+When Causal Atlas discovers a lagged relationship between two variables, the first validation step should be checking it against this reference table:
+
+1. **If the discovered lag falls within the documented range:** Good — the finding is consistent with published literature. Report it with the supporting references.
+2. **If the discovered lag falls outside documented ranges:** Flag for further investigation. Possible explanations include: (a) novel finding, (b) data artifact, (c) different spatial/temporal resolution, (d) regional variation.
+3. **If the discovered direction is opposite to documented findings:** Strong red flag. Likely a confounding issue or data problem.
+4. **If a strong published relationship is NOT found in the data:** Check data quality, coverage gaps, whether the correct lag window was tested, and whether contextual moderators (agricultural dependence, political exclusion) need to be included.
+
+---
+
+## 25. Feedback Loops and Bidirectional Causality
+
+### 25.1 Conflict <-> Food Prices (Bidirectional)
+
+This is the most thoroughly documented bidirectional relationship in the cross-domain literature.
+
+**Direction 1: Food prices -> Conflict**
+- Mechanism: Food price spikes reduce purchasing power -> economic grievance -> protest/unrest -> armed conflict
+- Evidence: Lagi et al. (2011) FAO FPI threshold; Bellemare (2015) IV approach; Hendrix & Brinkman (2013)
+- Lag: Weeks to months
+- In Sudan, wheat price was found to Granger-cause conflict events (AgEcon Search, 2015)
+
+**Direction 2: Conflict -> Food prices**
+- Mechanism: Conflict disrupts agricultural production, destroys infrastructure, blocks trade routes -> supply shortage -> prices rise
+- Evidence: WFP market monitoring in Syria, Yemen, South Sudan consistently shows food price spikes during conflict escalation
+- Lag: 1-6 months
+- In some contexts (e.g., Sudan), the feedback from conflict back to food prices was NOT found to be significant, suggesting the bidirectional link is context-dependent
+
+**The feedback loop:**
+```
+Food price spike
+    |
+    v (weeks to months)
+Social unrest / conflict onset
+    |
+    v (1-6 months)
+Agricultural disruption, market collapse, trade blockage
+    |
+    v (1-3 months)
+Further food price increase
+    |
+    v (feedback)
+Escalation of conflict
+```
+
+**Published evidence of bidirectionality:**
+- Geopolitical risk and food prices: Time-varying bidirectional Granger causality documented across multiple studies (Emerald Publishing, 2024). High geopolitical risk raises food prices, AND food prices positively impact geopolitical risk indicators
+- Monetary policy and food inflation: Bi-directional feedback causality documented in emerging economies (ScienceDirect, 2024)
+- Oil and food prices: In asymmetric frameworks, long-run feedback effects between oil and food prices are evident, though in linear frameworks the relationship appears unidirectional (Journal of Business Cycle Research, 2023)
+
+**Detection strategy for Causal Atlas:**
+- Run bidirectional Granger causality tests (X->Y and Y->X)
+- Use transfer entropy to capture nonlinear feedback components
+- Apply PCMCI with contemporaneous links enabled to detect feedback at monthly resolution
+- Use time-varying Granger causality (rolling window) to detect when feedback activates vs. dormant periods
+
+### 25.2 Climate <-> Deforestation (Bidirectional)
+
+**Direction 1: Deforestation -> Climate change**
+- Mechanism: Forest removal releases stored carbon (~20% of global CO2 emissions from land-use change); reduces evapotranspiration -> local warming of 0.3-0.8degC; alters precipitation patterns
+- Evidence: Alkama & Cescatti (2016, Science); Curtis et al. (2018, Science)
+- Lag: Years to decades for global effects; 1-5 years for local biophysical effects
+
+**Direction 2: Climate change -> Deforestation**
+- Mechanism: Climate-induced agricultural stress -> pressure to expand farmland -> deforestation; drought stress weakens forests -> increased fire susceptibility -> forest loss
+- Evidence: ~90% of global forest cover changes 2000-2018 attributable to agricultural expansion (Scientific Reports, 2024)
+- Lag: Years to decades
+
+**The feedback loop:**
+```
+Deforestation
+    |
+    v (1-5 years local; decades global)
+Local/global climate change (warming, altered rainfall)
+    |
+    v (1-10 years)
+Reduced agricultural productivity
+    |
+    v (1-5 years)
+Pressure to expand agricultural land
+    |
+    v (policy/economic response)
+MORE deforestation
+```
+
+**Where this loop is most active:** Amazon Basin, Congo Basin, Southeast Asia (Indonesia, Malaysia), Central America
+**Key datasets:** Global Forest Watch tree cover loss, ERA5 climate, MODIS NDVI, FAO crop production
+
+### 25.3 Poverty <-> Conflict (Bidirectional)
+
+**Direction 1: Poverty -> Conflict**
+- Mechanism: Poverty creates grievance, reduces opportunity cost of fighting, enables armed group recruitment, weakens state capacity
+- Evidence: Low socioeconomic development judged "most influential" driver of conflict by expert elicitation (Mach et al., 2019). High unemployment and inequality "soften the ground" for recruitment (GSDRC, UK DFID). Recent scoping review confirms strong evidence (Nature HSS Communications, 2025)
+- Lag: Structural (years to decades); acute poverty shocks can trigger conflict within months
+
+**Direction 2: Conflict -> Poverty**
+- Mechanism: Conflict destroys infrastructure, disrupts markets, displaces populations, reduces investment, collapses health and education systems
+- Evidence: Conflict-affected countries have 20+ percentage points higher poverty rates on average. Conflict cripples agricultural production, destroying infrastructure and displacing populations (Frontiers in Political Science, 2024)
+- Lag: Immediate onset; persistent effects lasting years to decades
+
+**The vicious cycle:**
+```
+Poverty (low income, unemployment, inequality)
+    |
+    v (years; months for acute shocks)
+Recruitment by armed groups / grievance-based mobilization
+    |
+    v
+Armed conflict
+    |
+    v (immediate to years)
+Infrastructure destruction, market disruption, displacement
+    |
+    v (months to years)
+DEEPER poverty (reduced income, destroyed capital, lost human capital)
+    |
+    v (feedback)
+Further recruitment, sustained conflict
+```
+
+**Published quantitative evidence:**
+- Poverty-conflict nexus scoping review (Nature HSS Communications, 2025): Confirms bidirectional relationship with strong evidence in both directions
+- IMF Staff Climate Note (2023): Fragile and conflict-affected states suffer more severe and persistent GDP losses from climate shocks, demonstrating how conflict amplifies poverty which amplifies climate vulnerability
+- Von Uexkull & Buhaug (2021, ARER): "Vicious circles" framework showing violence, vulnerability, and climate change reinforce each other
+
+### 25.4 Urbanization <-> Pollution (Bidirectional, with Health Feedback)
+
+**Direction 1: Urbanization -> Pollution**
+- Each 1% urbanization rate increase associated with +0.54 ug/m3 PM2.5 (Chen et al., 2023)
+- Mechanism: Industrial development, vehicle density, construction, energy demand
+
+**Direction 2: Pollution -> Urbanization patterns**
+- Mechanism: Pollution in city centers can drive suburbanization or peri-urban expansion; pollution-related health costs reduce urban quality of life
+- Evidence: Less well documented than Direction 1; primarily documented in China and India
+
+### 25.5 Detecting Feedback Loops in Causal Atlas
+
+**Statistical approaches for feedback detection:**
+
+1. **Bidirectional Granger causality:** Test both X->Y and Y->X. If both are significant, a feedback loop may exist.
+   - Limitation: Can produce false bidirectional results if a common confounder exists
+
+2. **Transfer entropy comparison:** Compare TE(X->Y) and TE(Y->X). Asymmetry indicates the dominant direction; both being significant indicates feedback.
+   - Advantage: Captures nonlinear feedback components
+
+3. **PCMCI with contemporaneous links:** Runge's PCMCI+ algorithm can detect contemporaneous (within-timestep) and lagged links simultaneously, which is essential for feedback loops operating faster than the sampling interval.
+
+4. **Vector Autoregression (VAR) impulse response functions:** Trace the dynamic propagation of shocks through the system, including feedback effects.
+   - Shows how a shock to food prices propagates to conflict AND back to food prices over time
+
+5. **Convergent Cross-Mapping (CCM):** Particularly suited for detecting bidirectional coupling in nonlinear dynamical systems. If CCM detects coupling in both directions, it provides evidence for feedback.
+
+6. **Time-varying approaches:** Feedback loops may not be permanently active. Use rolling-window Granger causality or regime-switching models to detect periods when feedback is active vs. dormant.
+   - Example: The conflict-food price feedback may only activate during acute crises, not during peacetime
+
+**Implementation recommendation for Causal Atlas:**
+```
+For each variable pair (X, Y):
+    1. Run Granger causality X->Y and Y->X
+    2. If BOTH significant at p < 0.05:
+        a. Run PCMCI+ for robustness
+        b. Compute transfer entropy in both directions
+        c. If confirmed: flag as FEEDBACK LOOP
+        d. Compute net information flow: TE(X->Y) - TE(Y->X)
+        e. If net flow is approximately zero: symmetric feedback
+        f. If net flow is strongly positive/negative: asymmetric feedback (dominant direction identified)
+    3. Apply rolling-window analysis to determine temporal dynamics of feedback
+```
+
+---
+
+## 26. Cascading Failure Scenarios
+
+### 26.1 Syria 2006-2011: Drought -> Crop Failure -> Migration -> Urban Stress -> Civil War
+
+**Timeline:**
+
+| Date | Event | Relevant Dataset |
+|------|-------|-----------------|
+| Winter 2006/07 | Severe drought begins in northeastern Syria (worst in instrumental record) | CHIRPS, CRU TS, GPCC precipitation |
+| 2007-2009 | Wheat yields drop 47%, barley yields drop 67% in breadbasket region | FAO crop production data |
+| 2007-2009 | ~800,000 people lose livelihoods; basic food support collapses | WFP, FEWS NET |
+| 2008-2010 | ~1.5 million people migrate from rural areas to urban peripheries (Aleppo, Damascus, Dara'a, Homs) | UNHCR, census data |
+| 2008-2010 | Pre-existing agricultural mismanagement (water table depletion from overextraction) amplifies drought impacts | GRACE groundwater data |
+| Mar 2011 | Protests begin in Dara'a | ACLED, GDELT |
+| Mid-2011 | Protests escalate to armed conflict | ACLED, UCDP-GED |
+| 2011-2015 | Full-scale civil war; nightlights decline >80% in conflict zones | VIIRS/DMSP nightlights |
+
+**Lag structures observed:**
+- Drought onset to crop failure: 1-2 growing seasons (6-18 months)
+- Crop failure to mass migration: 1-2 years
+- Migration to urban stress: cumulative over 2-3 years
+- Urban stress to protest onset: difficult to quantify; years of accumulated pressure
+- Full chain (drought to conflict): 3-4 years (Kelley et al., 2015)
+
+**Datasets that would have captured each link:**
+1. CHIRPS/CRU precipitation -> drought signal (monthly, 0.05deg/0.5deg)
+2. MODIS NDVI -> vegetation/crop health decline (16-day, 250m)
+3. FAO crop production -> yield loss (annual, national/subnational)
+4. WFP food prices -> market stress (monthly, market level)
+5. GRACE -> groundwater depletion (monthly, ~300km)
+6. ACLED/UCDP-GED -> conflict events (daily, geocoded)
+7. VIIRS nightlights -> economic collapse (monthly, ~750m)
+
+**Contested elements:**
+- Selby et al. (2017, Political Geography): Challenged the narrative on multiple grounds — migration scale was overstated; agricultural collapse was due to economic liberalization (not just drought); croplands showed fast recovery after 2007-2009 drought
+- Communic. Earth & Env. (2022): Societal drought vulnerability better explained by agriculture than meteorology — governance and pre-existing policy failures were critical
+- Consensus: The drought was real and severe, but attributing the civil war primarily to climate oversimplifies a deeply political situation. The causal chain ran through a "landscape of vulnerability" shaped by government policies
+
+### 26.2 Somalia 2010-2012: Drought + Conflict + Governance Failure -> Famine
+
+**Timeline:**
+
+| Date | Event | Relevant Dataset |
+|------|-------|-----------------|
+| Mid-2010 | Multiple failed rains begin; lowest rainfall in 50 years in some areas | CHIRPS, FEWS NET |
+| Aug 2010 | FEWS NET issues first warning of likely drought | FEWS NET alerts |
+| Oct-Dec 2010 | Failure of Deyr (short) rains | CHIRPS |
+| Early 2011 | Extremely poor January harvests; extended dry season | FAO crop data |
+| 2010-2011 | Livestock prices collapse (pastoralist primary asset); cereal prices spike | WFP market monitoring |
+| Ongoing | Al-Shabaab controls most of southern Somalia; restricts humanitarian access | ACLED (conflict data) |
+| Jul 2011 | UN declares famine in two regions of southern Somalia | IPC classification |
+| 2010-2012 | Estimated 256,000 deaths from extreme food insecurity and famine | WHO mortality data |
+
+**Why this was a cascading failure (not a single-cause event):**
+1. **Drought** triggered crop failure and livestock losses
+2. **Conflict** (Al-Shabaab insurgency) blocked humanitarian access and destroyed markets
+3. **Governance failure** (Transitional Federal Government operating from exile, corruption, political instability)
+4. **International response failure** (counter-terrorism legislation restricted aid to Al-Shabaab-controlled areas; donors saw risks of action > risks of inaction until famine declared)
+5. **Pre-existing livelihood crisis** compounded all other factors
+
+**Lag structures observed:**
+- Failed rains to crop failure: 3-6 months (one growing season)
+- Failed rains to livestock price collapse: 1-4 months
+- FEWS NET warning to famine declaration: 11 months (August 2010 to July 2011)
+- FEWS NET warning to peak mortality: ~12-18 months
+
+**Key insight for Causal Atlas:** The Somalia case demonstrates that drought alone does not cause famine — it requires the simultaneous failure of markets, governance, and humanitarian response. A multi-indicator early warning system must track ALL channels simultaneously. Neighboring Kenya experienced the same drought but avoided famine due to better governance and humanitarian access.
+
+### 26.3 COVID-19 2020-2022: Pandemic -> Lockdowns -> Supply Chain Disruption -> Food Prices -> Nutrition Crisis
+
+**Timeline:**
+
+| Date | Event | Relevant Dataset |
+|------|-------|-----------------|
+| Jan-Mar 2020 | COVID-19 spreads globally; lockdowns begin | WHO case data |
+| Mar-Apr 2020 | Demand shock: panic buying, restaurant collapse; supply shock: labor shortages, meat processing shutdowns | BLS food price data |
+| Apr-May 2020 | US meat prices spike +16% (import); export restrictions imposed by some countries on wheat/rice | FAO FPI; BLS |
+| Mid-2020 | Agricultural labor shortages (seasonal workers stranded by travel bans) | ILO labor data |
+| 2020 | 161 million additional people experience chronic undernourishment | FAO SOFI report |
+| 2020 | Global GDP declines 3.1% | IMF WEO |
+| 2021 | Supply chain crisis deepens; fertilizer shortages; input costs rise | World Bank commodity data |
+| 2021-2022 | US food prices spike 11%; combined with energy crisis | BLS CPI; FAO FPI |
+| Feb 2022 | Russia-Ukraine war compounds existing supply disruption | ACLED; FAO |
+| Mar 2022 | FAO Food Price Index hits all-time record (+13% in one month) | FAO FPI |
+| 2022 | Number of severely food-insecure people doubles to 276 million | WFP; FAO SOFI |
+
+**Lag structures observed:**
+- Pandemic onset to initial food price volatility: 0-3 months
+- Lockdowns to sustained supply chain disruption: 3-12 months
+- Supply disruption to structural food price increase: 6-24 months
+- Compound with Ukraine war: synergistic amplification at 24 months post-pandemic
+- Pandemic onset to peak food insecurity: 24-30 months
+
+**Datasets that would have captured each link:**
+1. WHO COVID-19 case/death data -> pandemic progression (daily, country-level)
+2. Google/Apple Mobility Reports -> lockdown intensity (daily, subnational)
+3. FAO Food Price Index -> global commodity prices (monthly)
+4. WFP Market Monitor -> local food prices (monthly, market-level)
+5. VIIRS nightlights -> economic activity proxy (monthly, 750m)
+6. FAO SOFI data -> food insecurity (annual/semi-annual, national)
+7. BLS CPI -> consumer price impact (monthly, US)
+
+### 26.4 Pakistan 2022: Economic Collapse + Unprecedented Floods -> Compound Disaster
+
+**Timeline:**
+
+| Date | Event |
+|------|-------|
+| Early 2022 | Economic crisis: inflation, debt, political instability |
+| June-Sept 2022 | Unprecedented monsoon rainfall (8x normal in some provinces); 1/3 of country submerged |
+| Aug-Sept 2022 | 8+ million people displaced; $30 billion+ in damages |
+| Late 2022 | Thousands migrate irregularly to Europe; compound vulnerability |
+| 2022-2023 | Agricultural land destroyed by floodwaters; food insecurity spikes |
+
+**Key insight:** This illustrates a compound event where a slow-onset crisis (economic collapse) and a sudden-onset crisis (monsoon flooding) interact synergistically. Neither alone would have produced the same severity of outcome.
+
+### 26.5 How Causal Atlas Could Detect Cascading Scenarios
+
+**Real-time cascade detection algorithm (conceptual):**
+
+```
+1. MONITORING PHASE (continuous):
+   - Track all grid-cell variables monthly: rainfall, NDVI, food prices, conflict events, nightlights, pollution
+   - Compute anomaly scores for each variable (z-scores relative to historical baseline)
+
+2. TRIGGER DETECTION:
+   - Flag any grid cell where ONE variable exceeds anomaly threshold (e.g., |z| > 2)
+   - Check neighboring cells for spatial clustering (Moran's I local)
+
+3. CASCADE SCREENING:
+   - For flagged cells: check all DOWNSTREAM variables in known causal chains
+   - Use the Lag Structure Reference Table (Section 24) to determine WHEN to expect downstream effects
+   - Example: If CHIRPS shows drought (z < -2) in March:
+     - Check NDVI at lag 1-2 months (April-May)
+     - Check food prices at lag 3-6 months (June-September)
+     - Check conflict events at lag 3-12 months (June-March next year)
+
+4. COMPOUND RISK ASSESSMENT:
+   - If MULTIPLE upstream variables are anomalous simultaneously:
+     - Flag as COMPOUND RISK (higher severity than single-chain activation)
+     - Cross-reference with regional vulnerability indicators (agricultural dependence, governance quality)
+
+5. FEEDBACK MONITORING:
+   - If a downstream variable becomes anomalous:
+     - Check for feedback effects on upstream variables
+     - Example: If conflict spikes (detected at step 3), check if food prices subsequently spike further (feedback)
+     - If feedback detected: flag as FEEDBACK LOOP ACTIVATED — escalation risk
+
+6. HISTORICAL PATTERN MATCHING:
+   - Compare current multi-variable anomaly pattern against known cascading failures (Syria, Somalia, Pakistan)
+   - Report similarity scores to known historical cascades
+```
+
+---
+
+## 27. Regional Causal Chain Atlases
+
+### 27.1 East Africa (Horn of Africa)
+
+**Dominant causal chains:**
+
+1. **Drought -> Pastoralist livelihood loss -> Conflict** (most documented)
+   - Pastoralists depend on livestock; drought reduces phytomass on grazing lands -> forced migration to agricultural areas -> farmer-herder conflict
+   - Maystadt & Ecker (2014, AJAE): 1 SD increase in drought intensity/length raises conflict likelihood by 62% in Somalia, with livestock price changes as primary transmission channel
+   - McGuirk & Nunn (2024, Review of Economic Studies): Transhumant pastoralism movement during drought explicitly modeled as conflict driver
+
+2. **ENSO -> Short rains anomaly -> Crop/livestock impact**
+   - El Nino typically enhances East African short rains (Oct-Dec), while La Nina produces drought
+   - IOD (Indian Ocean Dipole) coupling intensifies the ENSO-rainfall relationship
+   - Lag: ENSO transition to rainfall anomaly: 2-4 months
+   - Source: Endris et al. (2018); Nature Reviews Earth & Environment (2023)
+
+3. **Drought -> Food insecurity -> Displacement -> Urban stress**
+   - The full chain documented in Somalia 2010-2012 (Section 26.2)
+   - FEWS NET provides operational monitoring of this chain across the region
+
+4. **Conflict -> Humanitarian access disruption -> Famine**
+   - Al-Shabaab in Somalia, various armed groups in South Sudan
+   - Conflict blocks relief, converts food crisis into famine
+
+**Unique regional dynamics:**
+- Bimodal rainfall (March-May long rains, October-December short rains) creates two seasonal vulnerability windows per year
+- Pastoralist vs. agriculturalist livelihood systems create distinct vulnerability profiles that interact during drought
+- The region is a "hotspot" for climate-conflict research, with the strongest evidence base globally (though partly due to research attention bias per Adams et al. 2018)
+
+**Data availability (best coverage):**
+- ACLED: Excellent (conflict events, geocoded, daily)
+- CHIRPS: Excellent (rainfall, 0.05deg, daily)
+- FEWS NET: Excellent (food security classifications, regular updates)
+- WFP Market Monitor: Good (food prices, market-level, monthly)
+- MODIS NDVI: Excellent (vegetation, 250m, 16-day)
+- UCDP-GED: Excellent (conflict events, geocoded)
+- IPC: Good (food security phase classification)
+
+**Key published studies specific to this region:**
+- Maystadt & Ecker (2014). "Extreme Weather and Civil War: Does Drought Fuel Conflict in Somalia through Livestock Price Shocks?" *AJAE*
+- Thalheimer et al. (2024). "Causal discovery reveals complex patterns of drought-induced displacement." *Nature Commun. Earth & Env.*
+- McGuirk & Nunn (2024). "Transhumant Pastoralism, Climate Change, and Conflict in Africa." *Review of Economic Studies*
+- UNDRR (2024). "Horn of Africa floods and drought, 2020-2023: Forensic analysis"
+
+### 27.2 Sahel
+
+**Dominant causal chains:**
+
+1. **Desertification -> Southward pastoralist migration -> Farmer-herder conflict**
+   - ~80% of Sahel farmlands degraded by climate change
+   - Pastoralists pushed southward into farming zones -> resource competition -> violence
+   - Lake Chad has shrunk ~90% since 1960s, devastating 30+ million livelihoods
+   - Documented in Nigeria's Middle Belt, Mali, Burkina Faso, CAR
+
+2. **Climate stress -> Livelihood loss -> Recruitment by armed groups**
+   - UNCCD: Radicalization of youth in degraded-land areas is "not a coincidence"
+   - Violent extremists now responsible for 92% of livestock thefts in 2024 (up from 45% in 2019)
+   - Tony Blair Institute: "From Crisis to Conflict" documents escalation pathway
+   - Source: Brookings (2022); CASCADES project (2021)
+
+3. **Drought -> Food price spike -> Food insecurity -> Displacement**
+   - FEWS NET operational monitoring chain for the region
+   - IPC Phase 3+ classification triggers humanitarian response
+   - Agriculture, livestock, and forestry provide >80% of Sahel population income
+
+4. **Resource competition -> Ethnic tension amplification -> Political exploitation**
+   - Climate stress does not create ethnic tensions but amplifies them
+   - Governance quality, clientelism, and ethnic fractionalization are critical mediators
+   - Climate change functions as "aggravating factor rather than root cause" (LSE Africa blog, 2022)
+
+**Unique regional dynamics:**
+- Single rainy season (June-September) creates one annual vulnerability window
+- Transhumant pastoralism is the dominant livelihood in arid zones
+- Armed group exploitation of livelihood crises is a distinctive regional pattern
+- Lake Chad Basin exemplifies the confluence of resource depletion, population growth, and armed group recruitment (Boko Haram)
+
+**Data availability:**
+- ACLED: Excellent (including farmer-herder violence coding)
+- CHIRPS: Excellent
+- FEWS NET: Excellent (the Sahel is a FEWS NET priority region)
+- MODIS NDVI: Good (but cloud contamination issues in rainy season)
+- IPC: Good
+- WFP Market Monitor: Good
+- UNCCD land degradation data: Fair (less frequent)
+- Livestock price data: Fair (FEWS NET markets)
+
+**Key studies:**
+- Stimson Center (2020). "The Erosion of Pastoralism in the Sudano-Sahel"
+- Brookings (2022). "Climate change, development, and conflict-fragility nexus in the Sahel"
+- CASCADES (2021). "Climate Change, Development and Security in the Central Sahel"
+- Nkiaka et al. (2024). "Water Footprint and Conflict in the Sahel." *Earth's Future*
+
+### 27.3 South and Southeast Asia
+
+**Dominant causal chains:**
+
+1. **Monsoon disruption -> Flooding -> Mass displacement**
+   - The 2025 South/Southeast Asia flooding killed 1,600+, displaced 1.2 million, affected ~11 million
+   - Pakistan 2022: 1/3 of country submerged, 8+ million displaced
+   - Warm ocean temperatures and shifting storm tracks producing more extreme rainfall
+   - Source: IDMC; UNDRR; Moodys (2025)
+
+2. **Monsoon failure -> Crop failure -> Food insecurity -> Migration**
+   - India's agricultural sector highly dependent on monsoon timing and intensity
+   - ENSO (El Nino) weakens Indian monsoon -> rice/wheat production risk
+   - Lag: Monsoon failure to crop loss: 0-3 months; to food price spike: 3-6 months
+
+3. **Cyclone/flood -> Infrastructure destruction -> Economic disruption**
+   - South Asia faces compound weather events: heavy monsoon + pre-monsoon heatwave + glacier melt
+   - Rapid urban growth + deforestation + wetland loss magnify flood impacts
+   - Source: Frontiers in Climate (2024); CSIS (2025)
+
+4. **Sea level rise -> Saltwater intrusion -> Agricultural loss -> Displacement (Bangladesh)**
+   - Bay of Bengal sea levels rising 60% faster than global average
+   - Saltwater intrusion affecting Khulna, Satkhira, Bagerhat coastal districts
+   - 0.9-2.1 million displaced by 2050 from sea level rise alone
+
+5. **Transboundary water disputes**
+   - India-Pakistan (Indus), India-Bangladesh (Ganges), Mekong (China-downstream nations)
+   - Dam construction upstream -> reduced downstream flow -> agricultural stress -> tension
+   - Lag: Dam completion to downstream impact: 1-5 years
+
+**Unique regional dynamics:**
+- Monsoon dominance creates extreme seasonality in hazard exposure
+- High population density amplifies all displacement and food security impacts
+- Compound events (heat + flood + cyclone) are increasingly common
+- Transboundary river systems create interstate tension dimensions absent in Africa
+
+**Data availability:**
+- CHIRPS: Good (monsoon regions)
+- ERA5: Excellent
+- ACLED: Moderate (less complete than Africa for some countries)
+- IDMC: Good (displacement)
+- MODIS NDVI: Good
+- WFP: Moderate
+- GRACE-FO: Good (groundwater, sea level)
+- Satellite altimetry: Good (sea level rise)
+
+### 27.4 MENA (Middle East and North Africa)
+
+**Dominant causal chains:**
+
+1. **Water scarcity -> Agricultural stress -> Livelihood loss -> Instability**
+   - Temperatures rising 2x the global average; rainfall becoming scarcer
+   - Water stress could reduce MENA GDP by up to 14% by 2050
+   - Water-related conflicts quadrupled 2012-2022 vs. 2000-2011 (Ide et al., 2021)
+   - Source: ERF (2025); Pacific Institute Water Conflict Chronology
+
+2. **Oil price volatility -> Fiscal instability -> Social contract breakdown**
+   - Petrostates depend on oil revenue for social programs and security apparatus
+   - Oil price crash -> fiscal contraction -> reduced social spending -> grievance
+   - High resource rents foster economic dependency, inequality, and corruption (resource curse)
+   - Source: IMF WP (2017); Dynamic Interactions (MDPI, 2025)
+
+3. **Food import dependence -> Global price transmission -> Unrest**
+   - Egypt imported ~60% of wheat at time of Arab Spring
+   - Global food price spikes transmitted directly to consumer prices
+   - FAO FPI >210 threshold -> protest risk (Lagi et al., 2011)
+   - Lag: Global price spike to local protest: weeks to 3 months
+
+4. **Heat stress -> Labor productivity decline -> Economic contraction**
+   - MENA faces among the highest heat exposure globally
+   - Outdoor work (agriculture, construction) becomes dangerous/impossible
+   - Burke et al. (2015): Productivity peaks at 13degC; MENA far above optimal
+
+5. **Transboundary water tensions**
+   - Nile (GERD dam dispute: Egypt, Sudan, Ethiopia)
+   - Tigris-Euphrates (Turkey, Syria, Iraq)
+   - Jordan River (Israel, Palestine, Jordan)
+   - Dam construction or diversion -> downstream scarcity -> tension
+   - Source: Water International; Oregon State Univ. TFDD
+
+**Unique regional dynamics:**
+- Extreme aridity makes water scarcity a perennial rather than seasonal issue
+- Oil-dependent economies create distinctive fiscal stability pathways
+- High food import dependence makes the region uniquely vulnerable to global commodity price shocks
+- Shared transboundary water resources are sources of both cooperation and tension
+- ~12% of 2024 water conflict incidents connected to Israeli-Palestinian conflict; ~16% to Russia-Ukraine war (Pacific Institute, 2024)
+
+**Data availability:**
+- ACLED: Excellent
+- CHIRPS: Good (but limited relevance in extremely arid zones)
+- GRACE-FO: Excellent (groundwater depletion monitoring)
+- ERA5: Excellent (temperature, heat stress)
+- FAO FPI / WFP prices: Good
+- Oil price data: Excellent (World Bank Commodity)
+- Pacific Institute Water Conflict Chronology: Good (subnational water conflict events)
+- VIIRS nightlights: Good
+
+**Key studies:**
+- Kelley et al. (2015). Syria drought. *PNAS*
+- Ide et al. (2021). Pathways to water conflict during drought in MENA. *JPR*
+- Lagi et al. (2011). Food crises and political instability. *arXiv*
+- ERF (2025). Climate change and resource scarcity on conflict in MENA
 
 ---
 

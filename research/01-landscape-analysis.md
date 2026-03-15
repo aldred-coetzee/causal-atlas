@@ -30,6 +30,9 @@
 19. [Humanitarian OpenStreetMap Team (HOT)](#19-humanitarian-openstreetmap-team-hot)
 20. [Comparative Summary](#20-comparative-summary)
 21. [Implications for Causal Atlas](#21-implications-for-causal-atlas)
+22. [Operational Early Warning Systems](#22-operational-early-warning-systems)
+23. [Data Visualization Platforms Used by Humanitarian Actors](#23-data-visualization-platforms-used-by-humanitarian-actors)
+24. [Novel Platform Ideas Relevant to Causal Atlas](#24-novel-platform-ideas-relevant-to-causal-atlas)
 
 ---
 
@@ -1565,6 +1568,631 @@ The landscape analysis confirms that **no existing platform does what Causal Atl
 - **Tigramite** -- excellent causal discovery algorithms, but no data integration or visualisation
 
 Causal Atlas's unique value proposition is the **combination** of multi-domain data harmonisation, automated causal discovery, interactive visualisation, and AI-assisted interpretation. Each individual component can leverage existing tools; the integration is what we must build.
+
+---
+
+## 22. Operational Early Warning Systems
+
+> **Date of findings:** March 2025
+
+These systems operationally predict or monitor crises and are directly relevant to Causal Atlas's positioning. They demonstrate what is currently possible in production early warning and where gaps remain for cross-domain causal analysis.
+
+---
+
+### 22.1 FEWS NET (Famine Early Warning Systems Network)
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://fews.net/ |
+| **Data Portal** | https://fews.net/data (FEWS NET Data Explorer) |
+| **USGS Earth Observation** | https://earlywarning.usgs.gov/fews/ |
+| **Organisation** | USAID (created 1985), implemented by Chemonics, USGS, NASA, NOAA, UCSB Climate Hazards Center, others |
+| **Coverage** | 30+ countries across Africa, Central America, Haiti, Afghanistan, Yemen |
+| **Status** | Fully operational since 1985; continuously updated |
+
+**Architecture and Data Pipeline:**
+
+FEWS NET operates through a multi-pillar architecture:
+- **Pillar 1 (Technical Analysis):** Field-based teams conducting scenario development, food security classification (using IPC-compatible methodology), and analytical reporting
+- **Pillar 2 (Data Hub):** The FEWS NET Data, Learning, and Communications Hub, managed by the American Institutes for Research, provides a web-based Information Management System (IMS) housing ~21 million food security-related data points accessible via API and the FEWS NET Data Explorer (FDE)
+- **Pillar 3 (Remote Sensing & Climate):** USGS FEWS NET Project at EROS Center provides satellite image products, derived data, and climate monitoring
+
+**Data Sources and Feeds:**
+- **Remote sensing:** CHIRPS rainfall estimates, NDVI vegetation monitoring, MODIS/VIIRS land surface temperature, soil moisture (from NASA FLDAS -- Famine Land Data Assimilation System using Noah 3.6.1 surface model combining MERRA-2 and CHIRPS data)
+- **Climate modelling:** Partnerships with NASA, NOAA, UCSB Climate Hazards Center, and NASA Harvest Program for drought/flood early warning
+- **Market monitoring:** Staple food prices, cross-border trade flows, macroeconomic indicators
+- **Livelihoods:** Livelihood zone baseline profiles documenting how populations sustain themselves under normal and stress conditions
+- **Conflict:** Integration of conflict reporting (ACLED, UCDP, local sources) as a key driver of food insecurity
+- **Nutrition:** Anthropometric survey data, nutritional surveillance
+
+**Methods:**
+- **Scenario development:** Analysts construct "most likely" scenarios for 6-8 month outlook periods, based on convergence of evidence across all data streams
+- **IPC-compatible classification:** Food security conditions are classified using phases compatible with the Integrated Food Security Phase Classification (Phase 1: Minimal to Phase 5: Famine)
+- **Convergence of evidence:** Qualitative expert judgement guided by quantitative indicators -- NOT a pure statistical model. Analyst expertise is central to the methodology
+- **FLDAS modelling:** NASA Land Information System (LIS) adapted for data-sparse developing countries, generating ensemble estimates of soil moisture, evapotranspiration, and other water balance variables
+
+**Lead Time:** 6-8 month outlooks published monthly; emergency alerts issued when rapid deterioration detected
+
+**Accuracy:** FEWS NET has successfully provided advance warning for every major famine since its creation in 1985. Its strength lies in integrating expert knowledge with quantitative data -- a deliberate choice over purely model-driven approaches.
+
+**Output Format:** Monthly reports, food security classification maps (IPC-compatible phases), food security outlooks, market analyses, weather hazards assessments. Machine-readable data via API at fews.net/data.
+
+**Relevance to Causal Atlas:**
+- FEWS NET's multi-domain data integration (climate, markets, conflict, livelihoods, nutrition) is the closest operational analogue to what Causal Atlas aims to do analytically
+- However, FEWS NET relies heavily on expert judgement rather than automated statistical methods -- precisely the gap Causal Atlas aims to fill
+- The ~21 million data points accessible via API could serve as a rich data source for Causal Atlas
+- The scenario development methodology could inform how we present causal chain findings to policymakers
+
+---
+
+### 22.2 INFORM Warning
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://drmkc.jrc.ec.europa.eu/inform-index/INFORM-Warning |
+| **Organisation** | Inter-Agency Standing Committee (IASC) Reference Group on Risk, Early Warning and Preparedness + European Commission JRC |
+| **Coverage** | Global (191 countries) |
+| **Status** | Operational; under active development as forward-looking complement to INFORM Risk |
+
+**What it Does:**
+INFORM Warning monitors how crisis and disaster risk is changing and identifies where new or worsening crises could emerge. It is the forward-looking complement to the INFORM Global Risk Index (GRI), which scores structural/baseline risk.
+
+**Data Feeds:**
+- Builds on the INFORM GRI framework with its three dimensions: Hazard & Exposure, Vulnerability, and Lack of Coping Capacity
+- Uses 80+ indicators from multiple UN and research sources
+- Supplements structural risk scores with dynamic/real-time signals of deterioration: conflict escalation, economic shocks, weather anomalies, displacement trends, food price spikes
+
+**Methods:**
+- Risk = Hazard & Exposure^(1/3) x Vulnerability^(1/3) x Lack of Coping Capacity^(1/3)
+- Composite index combining normalised indicators into functional levels, categories, and dimensions
+- Scores range from 0-10 (higher = higher risk)
+- Forward-looking indicators overlay trend detection on top of structural risk baselines
+
+**Lead Time:** Designed for anticipatory action -- identifying emerging crises before acute phase. Monthly/quarterly updates.
+
+**Output Format:** Country-level risk scores (Excel, CSV, API), interactive maps, country profiles. Available on HDX: https://data.humdata.org/dataset/inform-global-crisis-severity-index
+
+**Relevance to Causal Atlas:**
+- INFORM's composite index methodology demonstrates one approach to multi-domain risk synthesis, but it is fundamentally additive (weighted aggregation) rather than causal
+- Causal Atlas could quantify the *causal pathways* underlying INFORM's composite scores -- e.g., how much of a country's risk score change is causally driven by climate vs. conflict vs. economic factors
+- Open data availability makes it a strong candidate for integration as a validation benchmark
+
+---
+
+### 22.3 ACLED CAST (Conflict Alert System)
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://acleddata.com/platform/cast-conflict-alert-system |
+| **Methodology** | https://acleddata.com/methodology/cast-methodology |
+| **Organisation** | ACLED |
+| **Coverage** | Global, all countries |
+| **Status** | Fully operational; merged into unified Early Warning Dashboard (2025) |
+
+**What it Does:**
+CAST forecasts the number of political violence events each month for the next six months in every country, predicting three event types: Battles, Explosions/Remote Violence, and Violence Against Civilians, at both country and first administrative division (admin1) levels.
+
+**Data Feeds:**
+- Primarily ACLED's own event data (most comprehensive global political violence dataset)
+- Supplementary indicators derived from ACLED data: actor-level features, event type distributions, fatality counts, geographic diffusion patterns
+- Some external covariates (not fully documented publicly)
+
+**Methods:**
+- Four model types fitted per outcome: Random Forest (simple predictors), Random Forest (complex predictors), XGBoost (simple), XGBoost (complex)
+- Ensemble of models generates final forecast
+- Explainable AI (XAI) component disentangles factors driving each forecast
+- Pattern-based predictive modelling accounts for variability in conflict dynamics
+
+**Lead Time:** 1-6 months ahead
+
+**Accuracy:** Varies by context. Stable conflicts with established patterns produce more accurate forecasts; new, volatile conflicts with no historical pattern are harder. Accuracy rates publicly reported on the CAST platform, but ACLED emphasises that "conflict forecast models are never 100% accurate."
+
+**Output Format:** Interactive dashboard with forecast visualisations, downloadable forecasts, trend analysis tools. Integrated with ACLED's Early Warning Dashboard (2025 update) alongside Trendfinder, Conflict Exposure Calculator, and Conflict Index.
+
+**Relevance to Causal Atlas:**
+- CAST is single-domain (conflict only) and prediction-focused rather than causal
+- Its XAI component for factor decomposition is relevant to Causal Atlas's interpretation layer
+- ACLED data is already a key input for Causal Atlas; CAST's forecasts could provide a baseline for comparison
+- The 2025 integration of multiple risk tools into a single dashboard is a UX pattern worth studying
+
+---
+
+### 22.4 VIEWS -- Forecast Outputs and Policy Use
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://viewsforecasting.org/ |
+| **GitHub** | https://github.com/views-platform |
+| **Pipeline** | https://github.com/prio-data/views_pipeline |
+| **Organisation** | PRIO + Uppsala University |
+| **Status** | Operational; monthly forecast releases; awarded Kluz Prize for PeaceTech Special Distinction (2024) |
+
+**Forecast Output Details:**
+- Monthly predictions of state-based armed conflict fatalities at two levels:
+  - **Country-month (cm):** Global coverage, 1-36 months ahead
+  - **PRIO-GRID-month (pgm):** Sub-national predictions for Africa and the Middle East, 1-36 months ahead
+- Forecasts include both expected fatality counts and probability distributions (uncertainty quantification)
+- January 2026 forecast covers projections through December 2028
+
+**Architecture (as of 2025):**
+- Comprehensive MLOps pipeline with centralised logging, model monitoring, and data monitoring
+- Branching strategy separating production code from development
+- Synchronisation workflows for tightly coupled ML and non-ML components
+- Key repositories: views-models, views-stepshifter (time-series forecasts), views-hydranet (spatiotemporal forecasts), views-evaluation (evaluation metrics)
+- Monthly update cycle overwrites past 12 months of UCDP-derived data, capturing corrections and updates
+
+**Data Sources:**
+- UCDP GED and UCDP Candidate datasets (primary conflict data)
+- PRIO-GRID spatial framework
+- Supplementary covariates from various socioeconomic and geographic sources
+
+**2023/24 Prediction Challenge:**
+- Invited 13 research institutions to submit competing models
+- Challenge target: predict conflict fatalities as probability distributions for July 2024 - June 2025
+- VIEWS' benchmark model "Conflictology" led rankings for both country- and subnational-level predictions as of February 2025
+- Published in *Journal of Peace Research* (Hegre et al., 2024)
+
+**Policy Use:**
+- Used by policymakers to anticipate and prepare for potential conflicts
+- Designed to increase preparedness for low-probability, high-impact crises
+- Monthly release cadence aligns with policy planning cycles
+
+**Relevance to Causal Atlas:**
+- VIEWS demonstrates that monthly sub-national forecasting on PRIO-GRID is operationally viable at scale
+- Its MLOps pipeline architecture is the most mature open-source model for what Causal Atlas needs
+- However, VIEWS is single-domain (conflict) and does not perform causal analysis across domains
+- The Prediction Challenge methodology could inform how Causal Atlas benchmarks its own causal discovery methods
+
+---
+
+### 22.5 WFP ADAM (Automatic Disaster Analysis & Mapping)
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://geonode.wfp.org/adam.html |
+| **Organisation** | World Food Programme |
+| **Coverage** | Global (floods, earthquakes, tropical storms) |
+| **Status** | Operational; ADAM+ in testing 2024-2025 |
+
+**What it Does:**
+ADAM collects, analyses, and maps geospatial and socio-economic information following sudden-onset humanitarian emergencies. Within minutes of an earthquake, it automatically creates a dashboard with magnitude, location, depth, estimated affected population, nearby infrastructure, and distance to the closest WFP facility.
+
+**Data Feeds:**
+- Seismic data (USGS, regional networks)
+- Tropical storm tracking data (NOAA, JTWC)
+- Flood detection (satellite imagery, river gauge networks)
+- Population density data (WorldPop, GPW)
+- WFP operational presence and facility locations
+- Infrastructure data (roads, airports, ports)
+
+**Methods:**
+- Automated trigger rules based on event magnitude/severity thresholds
+- Spatial intersection of hazard footprints with population and infrastructure layers
+- **ADAM+ (2024-2025):** Partnering with the Global Earthquake Model Foundation (GEM) to integrate ground shake data and GEM's structural risk model. Being tested in Afghanistan, Syria, Turkey, Myanmar, and the Philippines.
+
+**Lead Time:** Near-real-time for sudden-onset events (minutes for earthquakes, hours for tropical storms). Essentially reactive, not predictive.
+
+**Output Format:** Automated dashboards with maps, population exposure estimates, infrastructure impact assessments. Published on HDX.
+
+**Relevance to Causal Atlas:**
+- ADAM demonstrates automated rapid assessment -- Causal Atlas could complement this with pre-disaster causal risk assessment
+- Integration of hazard footprints with socioeconomic data is a pattern Causal Atlas should replicate
+- ADAM is reactive; Causal Atlas is analytical/causal -- they serve different but complementary purposes
+
+---
+
+### 22.6 INFORM Severity Index (Global Crisis Severity Index)
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://www.acaps.org/en/thematics/all-topics/inform-severity-index |
+| **Methodology** | https://www.acaps.org/fileadmin/Dataset/Methodology_files/20240930_ACAPS_Severity_index_data_collection_manual.pdf |
+| **Organisation** | ACAPS (managed on behalf of the IASC) |
+| **Coverage** | All ongoing humanitarian crises globally |
+| **Status** | Operational; updated monthly |
+
+**What it Does:**
+Measures the severity of ongoing humanitarian crises (distinct from INFORM Risk, which measures potential future risk). Ranks crises by severity to inform priority-setting and resource allocation.
+
+**Data Feeds:**
+- 31 core indicators across three dimensions:
+  1. **Impact:** Deaths, displacement, affected population
+  2. **Conditions of affected people:** Food security (IPC data), health, WASH, shelter, protection
+  3. **Complexity:** Access constraints, operating environment, information landscape
+- Data from: IPC, UNHCR, IOM DTM, OCHA, FSNAU, WFP, government sources
+- Multi-Sectoral Needs Assessments (MSNAs)
+- When main crisis driver is food insecurity: IPC figures used directly
+
+**Methods:**
+- All indicators scored on a 1-5 scale
+- Aggregation into components, dimensions, and overall severity category
+- Mixed-method: quantitative indicators + qualitative analyst assessment
+- Compatible with IPC methodology for food security indicators
+
+**Output Format:** Monthly severity rankings, country profiles, downloadable datasets (available on HDX). API access via https://api.acaps.org/
+
+**Relevance to Causal Atlas:**
+- The severity scoring framework provides a standardised outcome variable that Causal Atlas could attempt to predict causally
+- Monthly cadence matches Causal Atlas's temporal resolution
+- Open data via API makes integration straightforward
+
+---
+
+### 22.7 IPC Alert System (Integrated Food Security Phase Classification)
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://www.ipcinfo.org/ |
+| **Organisation** | IPC Global Partnership (FAO, WFP, UNICEF, + others) |
+| **Coverage** | 30+ countries |
+| **Status** | Fully operational; the global standard for food security classification |
+
+**What it Does:**
+Classifies food security conditions into five phases and triggers humanitarian response protocols at specific thresholds:
+- **Phase 1 (Minimal):** No acute food insecurity
+- **Phase 2 (Stressed):** Livelihoods under stress; food assistance may be needed
+- **Phase 3 (Crisis):** Acute food insecurity; emergency food assistance required
+- **Phase 4 (Emergency):** Severe acute food insecurity; urgent action needed
+- **Phase 5 (Famine):** Mass starvation and death; immediate full-scale response
+
+**Alert Mechanisms:**
+- **Risk of Worsening Phase:** Three alert levels -- Watch, Moderate Risk, High Risk
+- **Famine Likely:** Applied to projections as an early warning when evidence is insufficient to confirm Phase 5 but highly suggestive
+- **Humanitarian food assistance mapping:** Areas receiving significant food aid are flagged; areas that would be one Phase worse without aid are identified
+
+**Data Feeds:**
+- Convergence of evidence from: production data, livestock prices, market prices, civil insecurity, malnutrition rates, WASH indicators, mortality data
+- FEWS NET analysis (IPC-compatible)
+- National food security surveys and assessments
+
+**Methods:**
+- Consensus-based analysis (multiple organisations must agree)
+- Evidence convergence using IPC Acute Food Insecurity (AFI) Reference Tables
+- Analysis adheres to protocols for units of analysis, humanitarian assistance accounting, evidence documentation, and mapping standards
+
+**Response Trigger:** Phase 3+ classifications trigger humanitarian response planning cycles. Phase 5 (Famine) declarations mobilise maximum international response.
+
+**Relevance to Causal Atlas:**
+- IPC phases are the most widely used outcome variable in food security research -- Causal Atlas should support IPC-compatible output
+- The "convergence of evidence" methodology is conceptually similar to what Causal Atlas does statistically, but IPC does it through expert consensus
+- IPC data is available via FEWS NET and HDX APIs
+
+---
+
+### 22.8 IOM DTM (Displacement Tracking Matrix) Early Warning
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://dtm.iom.int/ |
+| **Methodology** | https://dtm.iom.int/about/methodological-framework (2nd Edition) |
+| **Organisation** | International Organization for Migration (IOM) |
+| **Coverage** | 90+ countries |
+| **Status** | Operational; DTM Methodological Framework 2nd Edition published |
+
+**What it Does:**
+Tracks and monitors displacement and population mobility. Issues Early Warning Flash Alerts and Emergency Event Tracking Reports when displacement events escalate.
+
+**Data Collection:**
+- In-depth interviews with community leaders, local government, health workers, teachers, Red Cross workers
+- Site assessments for displacement camps and settlement areas
+- Flow monitoring at key transit points
+- Survey-based needs assessments
+- Customisable tool selection per context -- the framework emphasises flexibility to combine methods
+
+**Early Warning Components:**
+- **Flash Alerts:** Rapid notifications via mailing lists when displacement events detected
+- **Emergency Event Tracking:** Focused reports on escalating situations (e.g., extensively used in Sudan crisis)
+- **Baseline assessments:** Population counts and location tracking for ongoing displacement
+
+**Output Format:** Reports, datasets, interactive dashboards. Progress reports published annually. Data available on HDX.
+
+**2024 Performance:** DTM tracked displacement across 90+ countries; Progress 2024 report documents operational reach and data coverage. Natural Hazard Displacement Overview 2025 published covering displacement from natural hazards.
+
+**Relevance to Causal Atlas:**
+- DTM displacement data is a key outcome variable for Causal Atlas -- displacement is often the result of causal chains (drought -> food insecurity -> displacement, or conflict -> displacement)
+- The flexibility of DTM's methodological framework (combining tools per context) is a design principle Causal Atlas should consider
+- DTM data available via DTM API and HDX
+
+---
+
+### 22.9 WFP Conflict Forecast
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://innovation.wfp.org/project/conflict-forecast |
+| **Organisation** | World Food Programme |
+| **Status** | Operational |
+
+**What it Does:**
+Predicts armed conflict and disruptive events (protests, riots) by combining ML panel forecasting with NLP analysis. Helps WFP decision-makers visualise conflict events and plan operations.
+
+**Data Feeds:**
+- Multiple conflict datasets (ACLED primary)
+- Socio-economic indicators
+- Population density
+- Critical infrastructure and services data
+- Subnational-level resolution
+
+**Methods:**
+- Machine learning panel forecasting models
+- Natural Language Processing for text-based conflict signals
+- Subnational predictions
+
+**Related Tool -- PREDICT:**
+- Developed in partnership with Danish Refugee Council
+- Uses ML to anticipate displacement patterns up to 4 months ahead
+- Integrates open-source conflict, food security, and climate data
+
+**Relevance to Causal Atlas:**
+- WFP's cross-domain integration (conflict + food security + climate) is the closest operational use case to Causal Atlas's analytical vision
+- PREDICT's 4-month displacement forecasting demonstrates practical demand for the kind of causal chain analysis Causal Atlas aims to provide
+
+---
+
+## 23. Data Visualization Platforms Used by Humanitarian Actors
+
+> **Date of findings:** March 2025
+
+What do practitioners ACTUALLY use for decision-making? Understanding operational visualization tools informs Causal Atlas's UI design.
+
+---
+
+### 23.1 HDX Quick Charts
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://data.humdata.org/ |
+| **Documentation** | https://humanitarian.atlassian.net/wiki/spaces/HDX/pages/40758624/Quick+Charts+JSON+formats |
+| **Organisation** | OCHA Centre for Humanitarian Data |
+
+**What it Does:**
+Automatically generates up to three charts from any HXL-tagged dataset uploaded to HDX. Users can customise titles, axis labels, and descriptions.
+
+**Technical Architecture:**
+- Uses JSON configuration files to define chart types
+- Three-level hierarchy: **bites** (single chart definitions) -> **recipes** (collections of bites) -> **cookbooks** (collections of recipes)
+- Charts generated based on HXL (Humanitarian Exchange Language) tags in the data
+- Supported types: bar charts, line charts, pie charts, choropleth maps
+
+**How It's Used:**
+- Rapid data exploration when datasets are uploaded to HDX
+- Quick storytelling for situation reports
+- Embedded in HDX dataset pages for immediate visual context
+- Not designed for deep analysis -- more for quick sense-making
+
+**Relevance to Causal Atlas:**
+- HXL tagging convention is worth adopting for interoperability with the humanitarian data ecosystem
+- The "auto-generate charts from data tags" concept could inform Causal Atlas's automated visualization of causal relationships
+- HDX Quick Charts demonstrates that humanitarians value *speed* over *depth* in initial data exploration
+
+---
+
+### 23.2 ReliefWeb Crisis Figures
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://reliefweb.int/ |
+| **Data** | https://data.humdata.org/dataset/reliefweb-crisis-figures |
+| **Organisation** | OCHA |
+| **Status** | Dataset archived; platform continues to operate with alternative approaches |
+
+**What it Does:**
+Curated collection of "topline numbers" -- people in need, internally displaced, refugees, food insecure -- for the world's most pressing humanitarian crises. Manually curated by ReliefWeb's editorial team and updated daily.
+
+**Data Sources:**
+- CCCM Cluster, FSNAU, FTS, IOM, IPC, OCHA, UNHCR, UNICEF, WFP, and government sources
+
+**Note:** The ReliefWeb Crisis Figures dataset is now archived and no longer updated as a standalone dataset, though ReliefWeb continues to publish thematic figures and visualisations through its main platform.
+
+**Relevance to Causal Atlas:**
+- Topline humanitarian metrics (people in need, displaced, food insecure) are key outcome variables for causal analysis
+- The standardised metrics demonstrate what policymakers consider "decision-relevant" -- Causal Atlas output should map to these
+- The ReliefWeb API remains active for accessing reports and updates
+
+---
+
+### 23.3 OCHA Financial Tracking Service (FTS)
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://fts.unocha.org/ |
+| **Data on HDX** | https://data.humdata.org/organization/ocha-fts (227 datasets) |
+| **Organisation** | OCHA |
+| **Status** | Operational; underwent results-oriented transformation since 2022 |
+
+**What it Does:**
+Centralised hub for tracking humanitarian funding flows. Provides visibility on where funds come from, where they go, and progress against coordinated plans (Humanitarian Response Plans, Flash Appeals).
+
+**2024 Figures:**
+- Total GHO funding tracked: US$23.83bn against US$49.47bn requirements (48.2% coverage)
+- Over US$100bn processed since 2022 transformation
+
+**Visualizations:**
+- Interactive funding flow dashboards (donor -> recipient -> country/sector)
+- Progress bars against plan requirements
+- Time-series tracking of funding trends
+- Country and sector breakdowns
+
+**Relevance to Causal Atlas:**
+- Funding flow data could be a causal variable: does increased funding lead to improved outcomes? What is the lag structure?
+- FTS data available via API and on HDX (227 datasets)
+- The gap between requirements and funding is itself an outcome Causal Atlas could model causally
+
+---
+
+### 23.4 iMMAP Open Data Cube and Humanitarian Data Infrastructure
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://immap.org/ |
+| **Organisation** | iMMAP |
+| **Status** | Active; phased ODC implementation |
+
+**What it Does:**
+iMMAP initiated an Open Data Cube (ODC) project in three phases: Design, Prototype, and Operationalisation. Enables in-house geospatial analytics combining Earth observation data with humanitarian indicators.
+
+**Relevance to Causal Atlas:**
+- Demonstrates that humanitarian organisations are actively investing in data cube architectures for integrated analysis
+- iMMAP's approach of combining satellite EO with ground-truth humanitarian data is analogous to Causal Atlas's multi-source integration
+
+---
+
+### 23.5 UNHCR Data Visualization Platform
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://dataviz.unhcr.org/ |
+| **GitHub** | https://github.com/unhcr-dataviz |
+| **Organisation** | UNHCR |
+| **Status** | Active; 2025 guidelines revision |
+
+**What it Does:**
+Provides tools, templates, and guidelines for creating data visualisations within UNHCR. Uses a mix of D3.js custom visualisations and Power BI dashboards.
+
+**Key Features:**
+- Standardised chart templates following UNHCR style guidelines
+- Animated visualisations of forced displacement over time
+- Country-level refugee data dashboards
+- IDP crisis tracking visualisations
+- 2025 revision updating all chart types, resources, tutorials, and templates
+
+**Relevance to Causal Atlas:**
+- UNHCR's approach to standardised visualization templates demonstrates the importance of consistent, branded visual outputs in the humanitarian sector
+- Their GitHub repos provide open-source examples of humanitarian data visualization that could inform Causal Atlas's UI
+
+---
+
+### 23.6 Power BI in the Humanitarian Sector
+
+Many UN agencies and humanitarian organisations use Microsoft Power BI for operational dashboards. Key examples:
+
+- **ACAPS:** Published Power BI Training Guide for the Humanitarian Analysis Program (HAP)
+- **UNHCR:** Uses Power BI for refugee statistics dashboards alongside custom D3.js visualisations
+- **WFP:** VAM (Vulnerability Analysis and Mapping) team uses Power BI for food security monitoring
+- **WHO:** Health emergency dashboards (COVID-19, mpox, etc.)
+- **OCHA:** Various operational coordination dashboards
+
+**Why Power BI dominates:** Free licensing for nonprofits via Microsoft's Technology for Social Impact programme, low barrier to entry for non-technical analysts, integration with SharePoint and Teams, and embedded publishing for web sharing.
+
+**Relevance to Causal Atlas:**
+- The prevalence of Power BI in the sector means Causal Atlas should consider export/embed compatibility with Power BI
+- However, Power BI dashboards are typically static (no causal analysis, no temporal lag exploration) -- this is a clear gap Causal Atlas fills
+- The fact that most humanitarian visualisation is done in Power BI (a general-purpose BI tool) underscores the lack of purpose-built causal analysis platforms
+
+---
+
+## 24. Novel Platform Ideas Relevant to Causal Atlas
+
+> **Date of findings:** March 2025
+
+Emerging concepts and technologies that could inform Causal Atlas's design or represent future competitive landscape.
+
+---
+
+### 24.1 Digital Twins for Humanitarian Response
+
+**Current State:** Active research area with practical pilots emerging in 2024-2025, but no production-grade humanitarian digital twin exists yet.
+
+**Key Developments:**
+
+- **Digital Risk Twins (DRT):** A 2025 concept (published in npj Natural Hazards) adapting digital twin technology for disaster risk management. Integrates IoT, remote sensing, surveys, and field observations with human-in-the-loop decision-making. URL: https://www.nature.com/articles/s44304-025-00135-x
+
+- **Humanitarian Supply Chain Digital Twins:** Framework demonstrated to significantly reduce response times, optimise resource allocation, and improve multi-agency coordination. Validated using real-world data from UN and Red Cross operations.
+
+- **Crisis Communication Digital Twins:** Frontiers in AI (2026) published research on testing crisis messaging in synthetic populations built from real-world data. Autonomous AI agents embedded in digital twins for emergency preparedness.
+
+- **AR-Digital Twin Framework:** Modular framework linking live data ingestion, hybrid modelling/simulation, and AR interfaces for first responders. Practitioners prioritised situational awareness (71.4%) and real-time information overlays (64.3%).
+
+**Relevance to Causal Atlas:**
+- Digital twins require exactly the kind of multi-domain, causally-linked data models that Causal Atlas produces
+- Causal Atlas could serve as the "causal engine" powering a humanitarian digital twin
+- The synthetic population concept could be used to test how causal chain disruptions propagate through populations
+
+---
+
+### 24.2 Predictive Analytics for Aid Delivery
+
+**Current State:** Growing adoption but significant barriers remain. A 2025 review in ScienceDirect systematically assessed AI in humanitarian aid.
+
+**Key Projects:**
+- **WFP PREDICT:** ML-based displacement forecasting (up to 4 months ahead) in partnership with Danish Refugee Council. Uses open-source conflict, food security, and climate data.
+- **Forecast-based preparedness:** XGBoost models used to activate agricultural crisis preparedness before events emerge (2024)
+- **Fuzzy inference systems:** Used for dynamic shelter activation and evacuation routing decisions (2025)
+- **Supply chain optimisation:** AI tested for aid delivery route optimisation, resource allocation across distributed networks, and scenario planning
+
+**Barriers:**
+- High cost of AI infrastructure; few humanitarian organisations can invest in specialised skills and tech architecture
+- Limited trust in predictive model outputs -- uptake remains constrained by concerns about reliability and validation
+- Data availability in crisis contexts is inherently unreliable
+
+**Relevance to Causal Atlas:**
+- Causal Atlas's causal chains could improve predictive models by identifying which input variables actually cause outcomes (vs. spurious correlations)
+- The trust/validation barrier is critical: Causal Atlas must provide transparent, explainable causal reasoning to gain adoption
+
+---
+
+### 24.3 Causal AI Platforms -- Commercial and Open Source
+
+**The Causal AI landscape as of 2025** has expanded significantly, with both commercial and open-source options:
+
+**Commercial:**
+
+| Platform | Organisation | Key Capability |
+|---|---|---|
+| **decisionOS** | causaLens | Enterprise Causal AI operating system; cause-and-effect reasoning for business decisions |
+| **Dara** (open-source) | causaLens | Python framework for building Causal AI apps; visualise causal graphs interactively |
+| **Causaly** | Causaly | Causal AI for life sciences; biomedical knowledge graph with causal reasoning |
+| **Databricks Causal AI** | Databricks | Manufacturing root cause analysis using causal inference |
+
+**Open Source (State of the Art):**
+
+| Library | Organisation | Key Capability | Stars | Status |
+|---|---|---|---|---|
+| **DoWhy** | PyWhy/Microsoft | End-to-end causal inference; graphical causal models + potential outcomes | 7k+ | Active; v0.14 (Nov 2025); time-series support added in v0.13 |
+| **EconML** | PyWhy/Microsoft | Heterogeneous treatment effects; ML + econometrics | 4k+ | Active; v0.16.0 (Jul 2025) |
+| **Tigramite** | DLR/J. Runge | Time-series causal discovery (PCMCI, PCMCIplus, LPCMCI) | 1.5k+ | Active; v5.2 |
+| **CausalNex** | QuantumBlack | Bayesian Networks + causal inference | 2k+ | Maintenance mode |
+| **Salesforce CausalAI** | Salesforce | Time series + tabular causal analysis | 600+ | Archived |
+| **causal-learn** | CMU | PC, FCI, GES and other discovery algorithms | 1k+ | Active |
+| **Tetrad** | CMU | Comprehensive causal discovery (Java, GUI) | -- | Active; longest-standing tool |
+
+**Key Trend:** DoWhy v0.13 (2025) added support for effect estimation over time-series data, making it more directly relevant to Causal Atlas's use case. The PyWhy ecosystem is converging as the primary open-source causal inference stack.
+
+**Relevance to Causal Atlas:**
+- Tigramite remains the best fit for Causal Atlas's time-series causal discovery needs (PCMCI specifically designed for large-scale time series)
+- DoWhy's new time-series support could complement Tigramite for effect estimation
+- The commercial platforms (causaLens, Causaly) demonstrate market demand for causal reasoning tools -- Causal Atlas fills this niche for the humanitarian/research sector at no cost
+
+---
+
+### 24.4 Knowledge Graph Platforms for Crisis Data
+
+**Key Project: KnowWhereGraph**
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://knowwheregraph.org/ |
+| **Paper** | https://arxiv.org/html/2502.13874v2 |
+| **Organisation** | Multi-university consortium (UC Santa Barbara, Wright State, others) |
+| **Status** | Active; one of the largest publicly available geospatial knowledge graphs |
+
+**What it is:** A large-scale geospatial knowledge graph integrating 30+ data layers on natural hazards (hurricanes, wildfires), climate variables, soil properties, crop/land cover types, demographics, and human health.
+
+**Applications:**
+- Food security and agricultural supply chain analysis
+- Sustainability analysis for soil conservation and farm labour
+- Delivery of emergency humanitarian aid post-disaster
+
+**Technical Approach:**
+- Ontology co-designed with partners in humanitarian relief, food supply chain, and agriculture
+- Knowledge graph construction driven by use case demands, data standards, and querying performance
+- Semantic web standards (RDF, SPARQL) for interoperability
+
+**Relevance to Causal Atlas:**
+- KnowWhereGraph demonstrates that knowledge graphs can integrate the kind of multi-domain geospatial data Causal Atlas needs
+- A knowledge graph layer could enhance Causal Atlas by encoding domain knowledge about known causal relationships
+- The ontology design methodology (use-case-driven, co-designed with practitioners) is a pattern Causal Atlas should consider
+- However, knowledge graphs capture *structural relationships* -- Causal Atlas adds the *statistical/temporal causal discovery* layer on top
 
 ---
 

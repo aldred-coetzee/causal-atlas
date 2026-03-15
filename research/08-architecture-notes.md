@@ -33,6 +33,11 @@
 23. [Plugin/Extension Architecture](#23-pluginextension-architecture)
 24. [Claude API Integration Design](#24-claude-api-integration-design)
 25. [Novel Architecture Ideas](#25-novel-architecture-ideas)
+26. [Detailed Data Model](#26-detailed-data-model)
+27. [Adapter Specification (Detailed)](#27-adapter-specification-detailed)
+28. [Deployment Architecture](#28-deployment-architecture)
+29. [Data Pipeline Scheduling](#29-data-pipeline-scheduling)
+30. [Claude API Integration -- Detailed Design](#30-claude-api-integration----detailed-design)
 
 ---
 
@@ -2057,6 +2062,2217 @@ async def scan_for_new_discoveries(updated_cells: list[int], updated_months: lis
 
 ---
 
+## 26. Detailed Data Model
+
+> **Checked:** March 2025
+
+### 26.1 Entity-Relationship Diagram
+
+```
+┌─────────────────────────┐         ┌─────────────────────────────┐
+│       grid_cells        │         │          variables          │
+├─────────────────────────┤         ├─────────────────────────────┤
+│ gid         INT32   PK  │    ┌───>│ name        VARCHAR    PK   │
+│ row         INT16       │    │    │ domain      VARCHAR         │
+│ col         INT16       │    │    │ unit        VARCHAR         │
+│ lat_centre  FLOAT64     │    │    │ description VARCHAR         │
+│ lon_centre  FLOAT64     │    │    │ aggregation VARCHAR         │
+│ geometry    GEOMETRY    │    │    │   (sum|mean|max|min|mode)    │
+│ country_iso3 VARCHAR    │    │    │ temporal_res VARCHAR         │
+│ is_land     BOOLEAN     │    │    │   (daily|monthly|annual)     │
+│ area_km2    FLOAT64     │    │    │ source_id   VARCHAR    FK──>│──┐
+│ elevation_m FLOAT64     │    │    │ created_at  TIMESTAMP       │  │
+│ pop_2020    FLOAT64     │    │    └─────────────────────────────┘  │
+└────────┬────────────────┘    │                                     │
+         │                     │    ┌─────────────────────────────┐  │
+         │  1:N                │    │          sources            │  │
+         │                     │    ├─────────────────────────────┤  │
+         ▼                     │    │ source_id   VARCHAR    PK   │<─┘
+┌─────────────────────────┐    │    │ name        VARCHAR         │
+│      observations       │    │    │ version     VARCHAR         │
+├─────────────────────────┤    │    │ url         VARCHAR         │
+│ gid         INT32   FK──│───>│    │ licence     VARCHAR         │
+│ year        INT16       │    │    │ licence_url VARCHAR         │
+│ month       INT8        │    │    │ update_freq VARCHAR         │
+│ variable    VARCHAR FK──│────┘    │   (daily|weekly|monthly|    │
+│ value       FLOAT64     │         │    annual|irregular)        │
+│ source_id   VARCHAR FK──│────────>│ api_base_url VARCHAR        │
+│ quality_flag INT8       │         │ requires_key BOOLEAN        │
+│   (0=observed,          │         │ citation    VARCHAR         │
+│    1=interpolated,      │         │ notes       VARCHAR         │
+│    2=modelled,          │         │ last_checked DATE           │
+│    3=imputed)           │         └─────────────────────────────┘
+│ quality_composite FLOAT │
+│ ingested_at TIMESTAMP   │
+└────────┬────────────────┘
+         │
+         │  N:N (via analysis)
+         │
+         ▼
+┌──────────────────────────────────┐    ┌──────────────────────────┐
+│      causal_relationships        │    │      analysis_runs       │
+├──────────────────────────────────┤    ├──────────────────────────┤
+│ id            UUID          PK   │    │ id          UUID     PK  │
+│ source_var    VARCHAR       FK   │    │ started_at  TIMESTAMP    │
+│ target_var    VARCHAR       FK   │    │ completed_at TIMESTAMP   │
+│ lag_months    INT8               │    │ method      VARCHAR      │
+│ strength      FLOAT64            │    │   (granger|pcmci|       │
+│   (correlation coefficient)      │    │    transfer_entropy|     │
+│ p_value       FLOAT64            │    │    pearson|ccm)          │
+│ ci_lower      FLOAT64            │    │ parameters  JSON         │
+│ ci_upper      FLOAT64            │    │   {"tau_max": 12,        │
+│ method        VARCHAR            │    │    "alpha": 0.05,        │
+│ analysis_run_id UUID        FK──>│───>│    "ci_test": "ParCorr"} │
+│ spatial_extent VARCHAR           │    │ status      VARCHAR      │
+│   (global|continent|country|     │    │   (pending|running|      │
+│    region|single_cell)           │    │    completed|failed)     │
+│ region_name   VARCHAR            │    │ n_cells     INT32        │
+│ n_cells       INT32              │    │ n_variables INT16        │
+│ n_observations INT32             │    │ error_msg   VARCHAR      │
+│ discovered_at TIMESTAMP          │    │ triggered_by VARCHAR     │
+│ confidence    VARCHAR            │    │   (manual|schedule|      │
+│   (HIGH|MEDIUM|LOW)              │    │    sensor|api)           │
+│ interpretation TEXT              │    └──────────────────────────┘
+│ interpretation_model VARCHAR     │
+└──────────────────────────────────┘
+```
+
+### 26.2 Parquet File Organization
+
+The complete directory structure on disk, using Hive-style partitioning for DuckDB auto-discovery:
+
+```
+data/
+├── raw/                                    # Downloaded files, original format
+│   ├── acled/
+│   │   ├── acled_2024-01_2024-06.csv
+│   │   └── checksums.sha256
+│   ├── chirps/
+│   │   ├── chirps-v2.0.2024.01.01.tif
+│   │   ├── chirps-v2.0.2024.01.02.tif
+│   │   └── ...
+│   ├── usgs/
+│   │   └── earthquakes_2024-01.geojson
+│   └── ...
+│
+├── processed/                              # Canonical Parquet, long format
+│   ├── domain=conflict/
+│   │   ├── year=2020/
+│   │   │   ├── acled_events.parquet        # ~259,200 rows (12 months x 21,600 land cells)
+│   │   │   ├── acled_fatalities.parquet
+│   │   │   └── ucdp_ged_events.parquet
+│   │   ├── year=2021/
+│   │   │   └── ...
+│   │   └── year=2024/
+│   │       └── ...
+│   ├── domain=climate/
+│   │   ├── year=2020/
+│   │   │   ├── chirps_precip_mm.parquet
+│   │   │   ├── ndvi_mean.parquet
+│   │   │   └── temperature_mean.parquet
+│   │   └── ...
+│   ├── domain=food_security/
+│   │   ├── year=2020/
+│   │   │   ├── wfp_price_maize.parquet
+│   │   │   ├── wfp_price_rice.parquet
+│   │   │   └── fao_crop_production.parquet
+│   │   └── ...
+│   ├── domain=natural_hazards/
+│   │   ├── year=2020/
+│   │   │   ├── usgs_earthquake_count.parquet
+│   │   │   ├── usgs_earthquake_max_mag.parquet
+│   │   │   └── emdat_disaster_count.parquet
+│   │   └── ...
+│   ├── domain=environment/
+│   │   ├── year=2020/
+│   │   │   ├── openaq_pm25_mean.parquet
+│   │   │   └── nightlights_mean.parquet
+│   │   └── ...
+│   └── domain=socioeconomic/
+│       ├── year=2020/
+│       │   ├── wb_gdp_per_capita.parquet
+│       │   └── wb_population.parquet
+│       └── ...
+│
+├── grid/                                   # Static reference data
+│   ├── prio_grid_cells.geoparquet          # 259,200 cells with geometries
+│   ├── prio_grid_land_mask.parquet         # Boolean land mask
+│   ├── country_grid_lookup.parquet         # gid -> ISO3 mapping
+│   └── grid_static_variables.parquet       # Elevation, terrain, distance to border
+│
+├── analysis/                               # Analysis outputs
+│   ├── correlations/
+│   │   ├── run=20250315_143022/
+│   │   │   ├── metadata.json              # Run parameters, status, timing
+│   │   │   ├── results.parquet            # Causal relationship table
+│   │   │   └── diagnostics.parquet        # Per-cell diagnostics
+│   │   └── run=20250401_091500/
+│   │       └── ...
+│   ├── pcmci/
+│   │   ├── run=20250320_060000/
+│   │   │   ├── metadata.json
+│   │   │   ├── causal_graph.parquet       # Full causal graph
+│   │   │   └── link_strengths.parquet     # Pairwise link strengths
+│   │   └── ...
+│   └── interpretations/
+│       └── cache.parquet                  # Cached Claude interpretations
+│
+├── tiles/                                  # Pre-rendered map tiles
+│   ├── grid_overview.pmtiles              # All cells, single layer
+│   └── variable_layers/
+│       ├── acled_fatalities_2024.pmtiles
+│       └── chirps_precip_2024.pmtiles
+│
+└── exports/                                # User-requested data exports
+    └── ...
+```
+
+### 26.3 DuckDB Views and Materialized Tables
+
+DuckDB reads Parquet files directly but benefits from pre-defined views for common query patterns:
+
+```sql
+-- View: All processed data across all domains and years
+CREATE OR REPLACE VIEW observations AS
+SELECT *
+FROM read_parquet(
+    'data/processed/domain=*/year=*/**.parquet',
+    hive_partitioning = true,
+    union_by_name = true
+);
+
+-- View: Grid cell reference with geometries
+CREATE OR REPLACE VIEW grid_cells AS
+SELECT * FROM read_parquet('data/grid/prio_grid_cells.geoparquet');
+
+-- View: Land cells only (skip ocean)
+CREATE OR REPLACE VIEW land_cells AS
+SELECT * FROM read_parquet('data/grid/prio_grid_land_mask.parquet')
+WHERE is_land = true;
+
+-- View: Latest available data per variable
+CREATE OR REPLACE VIEW latest_observations AS
+SELECT o.*
+FROM observations o
+INNER JOIN (
+    SELECT variable, MAX(year * 100 + month) AS max_period
+    FROM observations
+    GROUP BY variable
+) latest ON o.variable = latest.variable
+    AND (o.year * 100 + o.month) = latest.max_period;
+
+-- View: Wide-format pivot for analysis (example: East Africa, 3 variables)
+CREATE OR REPLACE VIEW east_africa_wide AS
+PIVOT (
+    SELECT gid, year, month, variable, value
+    FROM observations
+    WHERE gid IN (SELECT gid FROM read_parquet('data/grid/country_grid_lookup.parquet')
+                  WHERE country_iso3 IN ('KEN', 'ETH', 'SOM', 'SSD', 'UGA', 'TZA'))
+)
+ON variable
+USING FIRST(value)
+GROUP BY gid, year, month;
+
+-- Materialized table: Pre-computed monthly aggregates by country
+CREATE TABLE IF NOT EXISTS country_monthly_agg AS
+SELECT
+    l.country_iso3,
+    o.year,
+    o.month,
+    o.variable,
+    AVG(o.value) AS mean_value,
+    MIN(o.value) AS min_value,
+    MAX(o.value) AS max_value,
+    STDDEV(o.value) AS stddev_value,
+    COUNT(*) AS n_cells,
+    AVG(o.quality_composite) AS mean_quality
+FROM observations o
+JOIN read_parquet('data/grid/country_grid_lookup.parquet') l
+    ON o.gid = l.gid
+GROUP BY l.country_iso3, o.year, o.month, o.variable;
+
+-- Materialized table: Causal relationship catalogue
+CREATE TABLE IF NOT EXISTS causal_catalogue AS
+SELECT * FROM read_parquet('data/analysis/correlations/run=*/results.parquet',
+                           hive_partitioning = true,
+                           union_by_name = true);
+
+-- View: Variable catalogue with metadata
+CREATE OR REPLACE VIEW variable_catalogue AS
+SELECT
+    variable,
+    domain,
+    COUNT(DISTINCT gid) AS n_cells,
+    MIN(year) AS first_year,
+    MAX(year) AS last_year,
+    COUNT(*) AS n_observations,
+    AVG(quality_composite) AS mean_quality
+FROM observations
+GROUP BY variable, domain;
+```
+
+These views are defined in a `setup_views.sql` file that runs on application startup. DuckDB's lazy evaluation means views do not materialise data until queried.
+
+---
+
+## 27. Adapter Specification (Detailed)
+
+> **Checked:** March 2025
+
+### 27.1 Abstract Base Class (Full Definition)
+
+```python
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from datetime import date, datetime
+from enum import Enum
+from pathlib import Path
+from typing import Any, Optional
+
+import pyarrow as pa
+import pyarrow.parquet as pq
+import structlog
+
+logger = structlog.get_logger()
+
+
+class AdapterState(Enum):
+    IDLE = "idle"
+    DISCOVERING = "discovering"
+    FETCHING = "fetching"
+    PARSING = "parsing"
+    VALIDATING = "validating"
+    TRANSFORMING = "transforming"
+    STORING = "storing"
+    VERIFYING = "verifying"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+@dataclass
+class AdapterConfig:
+    source_id: str                          # e.g., "acled_v24"
+    domain: str                             # e.g., "conflict"
+    variables: list[str] = field(           # Variables this adapter produces
+        default_factory=list)
+    api_key: str | None = None
+    api_key_env_var: str | None = None      # e.g., "ACLED_API_KEY"
+    base_url: str | None = None
+    rate_limit_rps: float = 1.0             # Requests per second
+    max_retries: int = 3
+    retry_backoff_base: float = 2.0         # Exponential backoff base (seconds)
+    retry_backoff_max: float = 300.0        # Max backoff (5 minutes)
+    timeout_seconds: float = 60.0           # Per-request timeout
+    chunk_size_days: int = 30               # How many days to fetch per request
+    user_agent: str = "CausalAtlas/0.1 (https://github.com/aldred-coetzee/causal-atlas)"
+
+
+@dataclass
+class AdapterCheckpoint:
+    source_id: str
+    last_successful_date: date | None = None
+    last_run_at: datetime | None = None
+    last_content_hash: str | None = None    # SHA-256 of last fetched data
+    last_etag: str | None = None            # HTTP ETag for change detection
+    last_modified: str | None = None        # HTTP Last-Modified header
+    rows_ingested: int = 0
+    status: str = "never_run"
+
+
+@dataclass
+class ValidationReport:
+    total_rows: int
+    valid_rows: int
+    invalid_rows: int
+    null_counts: dict[str, int]             # Column -> null count
+    out_of_range: dict[str, int]            # Column -> out-of-range count
+    warnings: list[str]
+    errors: list[str]
+    quality_mean: float
+
+
+class BaseAdapter(ABC):
+    """Abstract base class for all data source adapters.
+
+    Lifecycle: discover -> fetch -> parse -> validate -> transform -> store -> verify
+
+    Each method can be called independently for debugging, or chained via run().
+    """
+
+    def __init__(self, config: AdapterConfig, output_dir: Path):
+        self.config = config
+        self.output_dir = output_dir
+        self.state = AdapterState.IDLE
+        self._checkpoint: AdapterCheckpoint | None = None
+        self._log = logger.bind(source=config.source_id)
+
+    # ── Lifecycle Methods ──────────────────────────────────────────────
+
+    @abstractmethod
+    def discover(self) -> dict[str, Any]:
+        """Discover what data is available from the source.
+
+        Returns metadata about available date ranges, variables, and coverage.
+        Used to determine what needs to be fetched.
+
+        Returns:
+            {"available_range": (date, date), "variables": [...],
+             "last_updated": date, "estimated_size_mb": float}
+        """
+        ...
+
+    @abstractmethod
+    def fetch(self, start_date: date, end_date: date) -> bytes | Path:
+        """Download raw data from the source.
+
+        Handles pagination, rate limiting, and authentication.
+        Returns raw bytes (for small responses) or a Path to a temp file.
+
+        Raises:
+            FetchError: Network errors, auth failures, rate limiting
+        """
+        ...
+
+    @abstractmethod
+    def parse(self, raw_data: bytes | Path) -> pa.Table:
+        """Parse raw data into a PyArrow Table with source-native schema.
+
+        Preserves all original fields -- no transformation yet.
+        Handles CSV, JSON, GeoJSON, NetCDF, GeoTIFF, etc.
+
+        Raises:
+            ParseError: Malformed data, unexpected schema
+        """
+        ...
+
+    @abstractmethod
+    def validate(self, table: pa.Table) -> tuple[pa.Table, ValidationReport]:
+        """Validate data quality.
+
+        Checks: null counts, value ranges, temporal completeness,
+        spatial coverage, duplicate detection.
+        Adds quality_flag and quality_composite columns.
+        Returns the table with quality columns and a validation report.
+
+        Raises:
+            ValidationError: Critical data quality issues (>50% invalid)
+        """
+        ...
+
+    @abstractmethod
+    def transform(self, table: pa.Table) -> pa.Table:
+        """Transform to canonical schema.
+
+        Operations:
+        - Point-to-grid aggregation (lat/lon -> PRIO-GRID gid)
+        - Raster resampling (fine grid -> 0.5-degree cells)
+        - Temporal alignment (daily -> monthly, annual -> monthly)
+        - Column renaming to canonical names
+        - Unit conversion if needed
+
+        Output schema: gid, year, month, variable, value, source_id,
+                       quality_flag, quality_composite, ingested_at
+        """
+        ...
+
+    def store(self, table: pa.Table) -> Path:
+        """Write to partitioned Parquet files.
+
+        Common implementation -- rarely needs overriding.
+        Partitions by domain and year (Hive-style).
+        Uses Snappy compression, row groups of 100K rows.
+        """
+        self.state = AdapterState.STORING
+
+        # Group by year for partitioned output
+        years = table.column("year").to_pylist()
+        unique_years = sorted(set(years))
+
+        output_paths = []
+        for year in unique_years:
+            year_mask = pa.compute.equal(table.column("year"), year)
+            year_table = table.filter(year_mask)
+
+            partition_dir = (
+                self.output_dir
+                / f"domain={self.config.domain}"
+                / f"year={year}"
+            )
+            partition_dir.mkdir(parents=True, exist_ok=True)
+
+            # One file per variable per year
+            variables = year_table.column("variable").to_pylist()
+            for var in sorted(set(variables)):
+                var_mask = pa.compute.equal(year_table.column("variable"), var)
+                var_table = year_table.filter(var_mask)
+
+                output_path = partition_dir / f"{var}.parquet"
+                pq.write_table(
+                    var_table,
+                    output_path,
+                    compression="snappy",
+                    row_group_size=100_000,
+                    write_statistics=True,
+                    # Sort by gid for optimal predicate pushdown
+                    use_dictionary=["variable", "source_id", "quality_flag"],
+                )
+                output_paths.append(output_path)
+
+        self._log.info("store_completed", n_files=len(output_paths),
+                       years=unique_years)
+        return output_paths[0].parent.parent  # Return base partition dir
+
+    def verify(self, output_dir: Path) -> bool:
+        """Verify written Parquet files are readable and internally consistent.
+
+        Checks:
+        - Files are valid Parquet (readable by DuckDB)
+        - Row counts match expected
+        - Schema matches canonical schema
+        - No corruption (Parquet footer is valid)
+        """
+        self.state = AdapterState.VERIFYING
+        import duckdb
+
+        con = duckdb.connect()
+        try:
+            result = con.execute(f"""
+                SELECT COUNT(*) AS n_rows,
+                       COUNT(DISTINCT gid) AS n_cells,
+                       MIN(year) AS min_year,
+                       MAX(year) AS max_year
+                FROM read_parquet('{output_dir}/domain=*/year=*/**.parquet',
+                                  hive_partitioning=true)
+                WHERE source_id = ?
+            """, [self.config.source_id]).fetchone()
+
+            self._log.info("verify_completed",
+                           n_rows=result[0], n_cells=result[1],
+                           year_range=f"{result[2]}-{result[3]}")
+            return result[0] > 0
+        except Exception as e:
+            self._log.error("verify_failed", error=str(e))
+            return False
+        finally:
+            con.close()
+
+    def run(self, start_date: date, end_date: date) -> Path:
+        """Full pipeline: discover -> fetch -> parse -> validate ->
+           transform -> store -> verify.
+
+        This is the primary entry point for adapter execution.
+        """
+        run_start = datetime.utcnow()
+        self._log.info("run_started", start_date=str(start_date),
+                       end_date=str(end_date))
+        try:
+            self.state = AdapterState.DISCOVERING
+            metadata = self.discover()
+            self._log.info("discover_completed", metadata=metadata)
+
+            self.state = AdapterState.FETCHING
+            raw = self.fetch(start_date, end_date)
+
+            self.state = AdapterState.PARSING
+            parsed = self.parse(raw)
+            self._log.info("parse_completed", n_rows=parsed.num_rows)
+
+            self.state = AdapterState.VALIDATING
+            validated, report = self.validate(parsed)
+            self._log.info("validate_completed",
+                           valid=report.valid_rows,
+                           invalid=report.invalid_rows,
+                           quality_mean=report.quality_mean)
+            if report.errors:
+                for err in report.errors:
+                    self._log.error("validation_error", error=err)
+
+            self.state = AdapterState.TRANSFORMING
+            transformed = self.transform(validated)
+            self._log.info("transform_completed", n_rows=transformed.num_rows)
+
+            output = self.store(transformed)
+            verified = self.verify(self.output_dir)
+
+            self.state = AdapterState.COMPLETED
+            duration = (datetime.utcnow() - run_start).total_seconds()
+            self._log.info("run_completed",
+                           duration_seconds=duration,
+                           n_rows=transformed.num_rows,
+                           verified=verified)
+
+            # Update checkpoint
+            self._save_checkpoint(end_date, transformed.num_rows)
+            return output
+
+        except Exception as e:
+            self.state = AdapterState.FAILED
+            self._log.error("run_failed", error=str(e),
+                            state=self.state.value)
+            raise
+
+    # ── Checkpoint Management ──────────────────────────────────────────
+
+    def _load_checkpoint(self) -> AdapterCheckpoint:
+        """Load checkpoint from JSON file."""
+        checkpoint_path = self.output_dir / ".checkpoints" / f"{self.config.source_id}.json"
+        if checkpoint_path.exists():
+            import json
+            data = json.loads(checkpoint_path.read_text())
+            return AdapterCheckpoint(**data)
+        return AdapterCheckpoint(source_id=self.config.source_id)
+
+    def _save_checkpoint(self, last_date: date, rows: int):
+        """Save checkpoint after successful run."""
+        import json
+        checkpoint_dir = self.output_dir / ".checkpoints"
+        checkpoint_dir.mkdir(parents=True, exist_ok=True)
+        checkpoint = AdapterCheckpoint(
+            source_id=self.config.source_id,
+            last_successful_date=last_date,
+            last_run_at=datetime.utcnow(),
+            rows_ingested=rows,
+            status="completed"
+        )
+        path = checkpoint_dir / f"{self.config.source_id}.json"
+        path.write_text(json.dumps(
+            {k: str(v) if isinstance(v, (date, datetime)) else v
+             for k, v in checkpoint.__dict__.items()},
+            indent=2
+        ))
+```
+
+### 27.2 Error Taxonomy
+
+```python
+class AdapterError(Exception):
+    """Base exception for all adapter errors."""
+    def __init__(self, message: str, source_id: str, recoverable: bool = False):
+        self.source_id = source_id
+        self.recoverable = recoverable
+        super().__init__(f"[{source_id}] {message}")
+
+
+class FetchError(AdapterError):
+    """Errors during data download."""
+    pass
+
+class NetworkError(FetchError):
+    """Connection timeout, DNS failure, SSL error."""
+    def __init__(self, source_id: str, url: str, status_code: int | None = None):
+        self.url = url
+        self.status_code = status_code
+        super().__init__(f"Network error fetching {url} (status={status_code})",
+                         source_id, recoverable=True)
+
+class RateLimitError(FetchError):
+    """HTTP 429 or equivalent rate limiting."""
+    def __init__(self, source_id: str, retry_after: float | None = None):
+        self.retry_after = retry_after
+        super().__init__(f"Rate limited, retry after {retry_after}s",
+                         source_id, recoverable=True)
+
+class AuthenticationError(FetchError):
+    """HTTP 401/403, invalid API key."""
+    def __init__(self, source_id: str):
+        super().__init__("Authentication failed -- check API key",
+                         source_id, recoverable=False)
+
+class ParseError(AdapterError):
+    """Errors during data parsing."""
+    pass
+
+class SchemaError(ParseError):
+    """Unexpected columns, missing required fields."""
+    def __init__(self, source_id: str, expected: list[str], actual: list[str]):
+        missing = set(expected) - set(actual)
+        super().__init__(f"Schema mismatch: missing columns {missing}",
+                         source_id, recoverable=False)
+
+class FormatError(ParseError):
+    """Cannot parse file format (corrupt CSV, invalid JSON, etc.)."""
+    pass
+
+class ValidationError(AdapterError):
+    """Data quality below acceptable threshold."""
+    def __init__(self, source_id: str, report: "ValidationReport"):
+        self.report = report
+        pct_invalid = report.invalid_rows / max(report.total_rows, 1) * 100
+        super().__init__(f"Validation failed: {pct_invalid:.1f}% invalid rows",
+                         source_id, recoverable=False)
+
+class SpatialError(AdapterError):
+    """Errors in spatial operations (projection, aggregation)."""
+    pass
+
+class GridMappingError(SpatialError):
+    """Cannot map coordinates to PRIO-GRID cells."""
+    def __init__(self, source_id: str, lat: float, lon: float):
+        super().__init__(f"Cannot map ({lat}, {lon}) to grid cell",
+                         source_id, recoverable=False)
+```
+
+### 27.3 Retry and Backoff Strategy
+
+```python
+import tenacity
+import httpx
+
+def create_retry_policy(config: AdapterConfig) -> tenacity.Retrying:
+    """Create a tenacity retry policy from adapter config.
+
+    Strategy:
+    - Exponential backoff with full jitter: wait = random(0, base^attempt)
+    - Max retries: config.max_retries (default 3)
+    - Max wait: config.retry_backoff_max (default 300s)
+    - Retry on: NetworkError, RateLimitError, HTTP 5xx, HTTP 429
+    - Do NOT retry on: AuthenticationError, ParseError, ValidationError
+    """
+    return tenacity.Retrying(
+        retry=tenacity.retry_if_exception_type((
+            NetworkError,
+            RateLimitError,
+            httpx.TimeoutException,
+            httpx.ConnectError,
+        )),
+        wait=tenacity.wait_exponential_jitter(
+            initial=1,
+            exp_base=config.retry_backoff_base,
+            max=config.retry_backoff_max,
+            jitter=5,
+        ),
+        stop=tenacity.stop_after_attempt(config.max_retries),
+        before_sleep=tenacity.before_sleep_log(logger, log_level=20),
+        reraise=True,
+    )
+```
+
+### 27.4 Incremental Update Detection
+
+Adapters detect whether remote data has changed before downloading, using three mechanisms:
+
+```python
+import hashlib
+import httpx
+
+async def check_for_updates(config: AdapterConfig,
+                            checkpoint: AdapterCheckpoint,
+                            url: str) -> bool:
+    """Check if remote data has changed since last fetch.
+
+    Methods (in order of preference):
+    1. HTTP ETag comparison (cheapest -- single HEAD request)
+    2. HTTP Last-Modified comparison
+    3. Content hash comparison (most expensive -- must download)
+    """
+    async with httpx.AsyncClient() as client:
+        # Method 1: ETag
+        head = await client.head(url, headers={
+            "If-None-Match": checkpoint.last_etag or ""
+        })
+        if head.status_code == 304:
+            logger.info("no_update_detected", method="etag", source=config.source_id)
+            return False
+
+        new_etag = head.headers.get("ETag")
+        if new_etag and new_etag == checkpoint.last_etag:
+            return False
+
+        # Method 2: Last-Modified
+        last_modified = head.headers.get("Last-Modified")
+        if last_modified and last_modified == checkpoint.last_modified:
+            logger.info("no_update_detected", method="last-modified",
+                        source=config.source_id)
+            return False
+
+        # If we reach here, data may have changed
+        return True
+
+
+def compute_content_hash(data: bytes) -> str:
+    """SHA-256 hash for content comparison."""
+    return hashlib.sha256(data).hexdigest()
+```
+
+### 27.5 Adapter Registry with Plugin Discovery
+
+```python
+from importlib.metadata import entry_points
+from typing import Type
+
+ADAPTER_REGISTRY: dict[str, Type[BaseAdapter]] = {}
+
+
+def register_adapter(source_id: str):
+    """Decorator to register an adapter class."""
+    def decorator(cls: Type[BaseAdapter]):
+        if source_id in ADAPTER_REGISTRY:
+            logger.warning("adapter_overwritten", source_id=source_id,
+                           old=ADAPTER_REGISTRY[source_id].__name__,
+                           new=cls.__name__)
+        ADAPTER_REGISTRY[source_id] = cls
+        return cls
+    return decorator
+
+
+def discover_plugins():
+    """Discover adapter plugins installed via entry_points.
+
+    Third-party packages register adapters in pyproject.toml:
+
+        [project.entry-points."causal_atlas.adapters"]
+        era5 = "causal_atlas_era5:ERA5Adapter"
+    """
+    eps = entry_points(group="causal_atlas.adapters")
+    for ep in eps:
+        try:
+            adapter_class = ep.load()
+            ADAPTER_REGISTRY[ep.name] = adapter_class
+            logger.info("plugin_loaded", source_id=ep.name,
+                        class_name=adapter_class.__name__)
+        except Exception as e:
+            logger.error("plugin_load_failed", source_id=ep.name, error=str(e))
+
+
+def get_adapter(source_id: str, output_dir: Path,
+                **config_kwargs) -> BaseAdapter:
+    """Get an adapter instance by source ID."""
+    if source_id not in ADAPTER_REGISTRY:
+        discover_plugins()
+    if source_id not in ADAPTER_REGISTRY:
+        raise ValueError(f"No adapter registered for '{source_id}'. "
+                         f"Available: {list(ADAPTER_REGISTRY.keys())}")
+    cls = ADAPTER_REGISTRY[source_id]
+    config = AdapterConfig(source_id=source_id, **config_kwargs)
+    return cls(config, output_dir)
+```
+
+### 27.6 Complete Example Adapter: ACLED
+
+```python
+"""ACLED adapter -- complete pseudocode showing the full ingestion flow.
+
+ACLED (Armed Conflict Location & Event Data) provides geocoded conflict
+event data via a REST API. Events are points with lat/lon, event type,
+fatality count, and other attributes.
+
+API docs: https://apidocs.acleddata.com/
+"""
+
+import io
+from datetime import date
+from pathlib import Path
+
+import httpx
+import numpy as np
+import pandas as pd
+import pyarrow as pa
+import pyarrow.compute as pc
+
+from causal_atlas.adapters.base import (
+    BaseAdapter, AdapterConfig, ValidationReport,
+    register_adapter, create_retry_policy
+)
+from causal_atlas.spatial import latlon_to_gid
+
+
+@register_adapter("acled")
+class ACLEDAdapter(BaseAdapter):
+    """Ingest ACLED conflict events into PRIO-GRID monthly aggregates.
+
+    Produces variables:
+    - acled_event_count: Number of conflict events per cell per month
+    - acled_fatalities: Total fatalities per cell per month
+    - acled_battle_count: Battle events only
+    - acled_protest_count: Protest events only
+    """
+
+    ACLED_API_URL = "https://api.acleddata.com/acled/read"
+    PAGE_SIZE = 5000  # ACLED max per request
+
+    def discover(self) -> dict:
+        """Check ACLED API for available date range."""
+        # ACLED API supports a metadata endpoint
+        response = httpx.get(
+            self.ACLED_API_URL,
+            params={
+                "key": self.config.api_key,
+                "email": "user@example.com",
+                "limit": 1,
+                "fields": "event_date",
+                "order": "desc",
+            },
+            timeout=self.config.timeout_seconds,
+        )
+        response.raise_for_status()
+        data = response.json()
+        latest_date = data["data"][0]["event_date"]
+
+        return {
+            "available_range": (date(1997, 1, 1), date.fromisoformat(latest_date)),
+            "variables": ["acled_event_count", "acled_fatalities",
+                          "acled_battle_count", "acled_protest_count"],
+            "last_updated": date.fromisoformat(latest_date),
+            "estimated_size_mb": 1.5,  # Per month, approximate
+        }
+
+    def fetch(self, start_date: date, end_date: date) -> bytes:
+        """Fetch ACLED events with pagination and retry.
+
+        ACLED API returns JSON with max 5000 records per request.
+        We paginate through the full date range.
+        """
+        retry = create_retry_policy(self.config)
+        all_records = []
+        page = 1
+
+        while True:
+            @retry
+            def _fetch_page(page_num):
+                response = httpx.get(
+                    self.ACLED_API_URL,
+                    params={
+                        "key": self.config.api_key,
+                        "email": "user@example.com",
+                        "event_date": f"{start_date}|{end_date}",
+                        "event_date_where": "BETWEEN",
+                        "limit": self.PAGE_SIZE,
+                        "page": page_num,
+                        "fields": "event_id_cnty|event_date|year|"
+                                  "event_type|sub_event_type|"
+                                  "country|iso3|latitude|longitude|"
+                                  "fatalities|source",
+                    },
+                    timeout=self.config.timeout_seconds,
+                )
+                response.raise_for_status()
+                return response.json()
+
+            result = _fetch_page(page)
+            records = result.get("data", [])
+            all_records.extend(records)
+
+            self._log.info("fetch_page", page=page, records=len(records),
+                           total_so_far=len(all_records))
+
+            if len(records) < self.PAGE_SIZE:
+                break  # Last page
+            page += 1
+
+        # Serialize to bytes for the parse step
+        import json
+        return json.dumps(all_records).encode("utf-8")
+
+    def parse(self, raw_data: bytes) -> pa.Table:
+        """Parse ACLED JSON into a PyArrow Table."""
+        import json
+        records = json.loads(raw_data)
+
+        df = pd.DataFrame(records)
+        # Type conversions
+        df["latitude"] = pd.to_numeric(df["latitude"], errors="coerce")
+        df["longitude"] = pd.to_numeric(df["longitude"], errors="coerce")
+        df["fatalities"] = pd.to_numeric(df["fatalities"], errors="coerce").fillna(0).astype(int)
+        df["event_date"] = pd.to_datetime(df["event_date"])
+        df["year"] = df["event_date"].dt.year.astype("int16")
+        df["month"] = df["event_date"].dt.month.astype("int8")
+
+        return pa.Table.from_pandas(df)
+
+    def validate(self, table: pa.Table) -> tuple[pa.Table, ValidationReport]:
+        """Validate ACLED data quality."""
+        df = table.to_pandas()
+        warnings = []
+        errors = []
+
+        # Check for null coordinates
+        null_lat = df["latitude"].isna().sum()
+        null_lon = df["longitude"].isna().sum()
+        if null_lat > 0:
+            warnings.append(f"{null_lat} events with null latitude")
+
+        # Check coordinate ranges
+        out_of_range_lat = ((df["latitude"] < -90) | (df["latitude"] > 90)).sum()
+        out_of_range_lon = ((df["longitude"] < -180) | (df["longitude"] > 180)).sum()
+        if out_of_range_lat > 0:
+            errors.append(f"{out_of_range_lat} events with latitude out of range")
+
+        # Check fatalities are non-negative
+        negative_fat = (df["fatalities"] < 0).sum()
+        if negative_fat > 0:
+            errors.append(f"{negative_fat} events with negative fatalities")
+
+        # Remove invalid rows
+        valid_mask = (
+            df["latitude"].notna() &
+            df["longitude"].notna() &
+            df["latitude"].between(-90, 90) &
+            df["longitude"].between(-180, 180) &
+            (df["fatalities"] >= 0)
+        )
+        valid_df = df[valid_mask].copy()
+
+        # Assign quality flags
+        # 0 = observed (precise coordinates), 1 = interpolated (centroid-coded)
+        # ACLED uses "GEO_PRECISION" but we approximate: if coordinates are
+        # exact integers, likely centroid-coded
+        valid_df["quality_flag"] = np.where(
+            (valid_df["latitude"] % 1 == 0) & (valid_df["longitude"] % 1 == 0),
+            1,  # Likely admin-unit centroid
+            0   # Precise coordinate
+        )
+        valid_df["quality_composite"] = np.where(
+            valid_df["quality_flag"] == 0, 0.9, 0.6
+        )
+
+        report = ValidationReport(
+            total_rows=len(df),
+            valid_rows=len(valid_df),
+            invalid_rows=len(df) - len(valid_df),
+            null_counts={"latitude": int(null_lat), "longitude": int(null_lon)},
+            out_of_range={"latitude": int(out_of_range_lat),
+                          "longitude": int(out_of_range_lon)},
+            warnings=warnings,
+            errors=errors,
+            quality_mean=float(valid_df["quality_composite"].mean()),
+        )
+
+        return pa.Table.from_pandas(valid_df), report
+
+    def transform(self, table: pa.Table) -> pa.Table:
+        """Transform ACLED events to PRIO-GRID monthly aggregates.
+
+        Point events -> grid cell aggregation:
+        - Map each event to a PRIO-GRID cell ID via latlon_to_gid()
+        - Aggregate by (gid, year, month) with SUM for counts and fatalities
+        - Produce one row per (gid, year, month, variable) in long format
+        """
+        df = table.to_pandas()
+
+        # Map events to grid cells
+        df["gid"] = df.apply(
+            lambda r: latlon_to_gid(r["latitude"], r["longitude"]),
+            axis=1
+        ).astype("int32")
+
+        # Aggregate by grid cell and month
+        agg = df.groupby(["gid", "year", "month"]).agg(
+            event_count=("event_id_cnty", "count"),
+            fatalities=("fatalities", "sum"),
+            battle_count=("event_type", lambda x: (x == "Battles").sum()),
+            protest_count=("event_type", lambda x: (x == "Protests").sum()),
+            quality_composite=("quality_composite", "mean"),
+        ).reset_index()
+
+        # Pivot to long format
+        records = []
+        variable_map = {
+            "acled_event_count": "event_count",
+            "acled_fatalities": "fatalities",
+            "acled_battle_count": "battle_count",
+            "acled_protest_count": "protest_count",
+        }
+        for var_name, col_name in variable_map.items():
+            var_df = agg[["gid", "year", "month", col_name, "quality_composite"]].copy()
+            var_df = var_df.rename(columns={col_name: "value"})
+            var_df["variable"] = var_name
+            var_df["source_id"] = self.config.source_id
+            var_df["quality_flag"] = 0  # Direct observation
+            var_df["ingested_at"] = pd.Timestamp.utcnow()
+            records.append(var_df)
+
+        result = pd.concat(records, ignore_index=True)
+        result = result[["gid", "year", "month", "variable", "value",
+                         "source_id", "quality_flag", "quality_composite",
+                         "ingested_at"]]
+
+        return pa.Table.from_pandas(result)
+```
+
+---
+
+## 28. Deployment Architecture
+
+> **Checked:** March 2025
+
+### 28.1 Development Environment
+
+Local machine with DuckDB and Parquet files. No services to manage.
+
+```
+Developer laptop/desktop
+├── Python venv with all dependencies
+├── DuckDB (embedded, in-process)
+├── data/processed/ (Parquet files on NVMe)
+├── data/raw/ (downloaded source files)
+├── Jupyter notebooks for exploration
+└── FastAPI dev server (uvicorn --reload)
+```
+
+No Docker required for development. `python -m causal_atlas.ingest --source acled` runs adapters directly.
+
+### 28.2 Staging: Single Hetzner Server with Docker Compose
+
+**Target:** Hetzner AX102 (Ryzen 9 7950X3D, 128 GB DDR5 ECC, 2x 1.92 TB NVMe, ~$130/month).
+
+```yaml
+# docker-compose.yml
+# Causal Atlas -- staging deployment
+
+version: "3.9"
+
+services:
+  # ── Reverse Proxy ──────────────────────────────────────────
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: ca-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./certbot/www:/var/www/certbot:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - frontend_build:/usr/share/nginx/html:ro
+    depends_on:
+      - api
+      - frontend
+    restart: unless-stopped
+    networks:
+      - ca-network
+
+  # ── SSL Certificate Management ─────────────────────────────
+  certbot:
+    image: certbot/certbot:latest
+    container_name: ca-certbot
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+    # Renew certificates every 12 hours
+    entrypoint: >
+      sh -c "trap exit TERM;
+      while :; do
+        certbot renew --webroot -w /var/www/certbot --quiet;
+        sleep 43200;
+      done"
+    restart: unless-stopped
+
+  # ── FastAPI Backend ────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: ca-api
+    environment:
+      - ACLED_API_KEY=${ACLED_API_KEY}
+      - CLAUDE_API_KEY=${CLAUDE_API_KEY}
+      - DATA_DIR=/data
+      - DUCKDB_MEMORY_LIMIT=32GB
+      - DUCKDB_THREADS=8
+      - LOG_LEVEL=info
+    volumes:
+      - parquet_data:/data:ro        # Read-only access to Parquet files
+      - analysis_output:/data/analysis
+    expose:
+      - "8000"
+    command: >
+      uvicorn causal_atlas.api.main:app
+        --host 0.0.0.0
+        --port 8000
+        --workers 4
+        --loop uvloop
+        --access-log
+    restart: unless-stopped
+    networks:
+      - ca-network
+    deploy:
+      resources:
+        limits:
+          memory: 48G
+        reservations:
+          memory: 16G
+
+  # ── React Frontend (build stage) ───────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ca-frontend
+    volumes:
+      - frontend_build:/app/dist
+    # Frontend is a build-only container; nginx serves the static files
+    command: ["npm", "run", "build"]
+    profiles:
+      - build
+
+  # ── Data Pipeline Scheduler ────────────────────────────────
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: ca-scheduler
+    environment:
+      - ACLED_API_KEY=${ACLED_API_KEY}
+      - DATA_DIR=/data
+      - LOG_LEVEL=info
+    volumes:
+      - parquet_data:/data            # Read-write access for ingestion
+      - raw_data:/data/raw
+    # Run as Dagster daemon or simple cron scheduler
+    command: >
+      python -m causal_atlas.scheduler
+    restart: unless-stopped
+    networks:
+      - ca-network
+    deploy:
+      resources:
+        limits:
+          memory: 32G
+
+  # ── Monitoring: Prometheus ─────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: ca-prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
+      - prometheus_data:/prometheus
+    expose:
+      - "9090"
+    restart: unless-stopped
+    networks:
+      - ca-network
+
+  # ── Monitoring: Grafana ────────────────────────────────────
+  grafana:
+    image: grafana/grafana:11.4.0
+    container_name: ca-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-changeme}
+      - GF_SERVER_ROOT_URL=https://atlas.example.com/grafana/
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    expose:
+      - "3000"
+    restart: unless-stopped
+    networks:
+      - ca-network
+
+  # ── Monitoring: Loki (log aggregation) ─────────────────────
+  loki:
+    image: grafana/loki:3.3.0
+    container_name: ca-loki
+    volumes:
+      - ./monitoring/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - loki_data:/loki
+    expose:
+      - "3100"
+    restart: unless-stopped
+    networks:
+      - ca-network
+
+  # ── Node Exporter (system metrics) ─────────────────────────
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: ca-node-exporter
+    pid: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+    expose:
+      - "9100"
+    restart: unless-stopped
+    networks:
+      - ca-network
+
+volumes:
+  parquet_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /data/processed
+      o: bind
+  raw_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /data/raw
+      o: bind
+  analysis_output:
+    driver: local
+    driver_opts:
+      type: none
+      device: /data/analysis
+      o: bind
+  frontend_build:
+  prometheus_data:
+  grafana_data:
+  loki_data:
+
+networks:
+  ca-network:
+    driver: bridge
+```
+
+### 28.3 Nginx Configuration
+
+```nginx
+# nginx/conf.d/causal-atlas.conf
+
+upstream api_backend {
+    server api:8000;
+}
+
+# Redirect HTTP to HTTPS
+server {
+    listen 80;
+    server_name atlas.example.com;
+
+    # ACME challenge for Let's Encrypt
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl http2;
+    server_name atlas.example.com;
+
+    # SSL certificates (managed by certbot)
+    ssl_certificate /etc/letsencrypt/live/atlas.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/atlas.example.com/privkey.pem;
+
+    # SSL hardening
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+    ssl_session_tickets off;
+
+    # Security headers
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # Frontend (React SPA)
+    location / {
+        root /usr/share/nginx/html;
+        try_files $uri $uri/ /index.html;
+
+        # Cache static assets aggressively (hashed filenames)
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff2?)$ {
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+        }
+    }
+
+    # API proxy
+    location /api/ {
+        proxy_pass http://api_backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Timeouts for long-running queries
+        proxy_read_timeout 120s;
+        proxy_connect_timeout 10s;
+
+        # Response caching for common queries
+        proxy_cache_valid 200 5m;
+    }
+
+    # Grafana (monitoring dashboard)
+    location /grafana/ {
+        proxy_pass http://grafana:3000/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    # Rate limiting
+    limit_req_zone $binary_remote_addr zone=api_limit:10m rate=100r/m;
+    location /api/v1/interpret {
+        limit_req zone=api_limit burst=5 nodelay;
+        proxy_pass http://api_backend;
+    }
+}
+```
+
+### 28.4 Production: Hetzner Dedicated + Optional Cloud Burst
+
+**Primary:** Hetzner AX162-S (EPYC 9454P 48C/96T, 128 GB DDR5 ECC, 2x NVMe, ~$200/month).
+
+Production deployment uses the same Docker Compose structure as staging with these additions:
+
+**Systemd service for Docker Compose:**
+
+```ini
+# /etc/systemd/system/causal-atlas.service
+[Unit]
+Description=Causal Atlas Application Stack
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/causal-atlas
+EnvironmentFile=/opt/causal-atlas/.env
+ExecStart=/usr/bin/docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+ExecStop=/usr/bin/docker compose -f docker-compose.yml -f docker-compose.prod.yml down
+ExecReload=/usr/bin/docker compose -f docker-compose.yml -f docker-compose.prod.yml restart
+TimeoutStartSec=120
+
+[Install]
+WantedBy=multi-user.target
+```
+
+**Let's Encrypt initial setup:**
+
+```bash
+#!/bin/bash
+# scripts/init-letsencrypt.sh
+# Run once to obtain initial SSL certificates
+
+DOMAIN="atlas.example.com"
+EMAIL="admin@example.com"
+
+# Start nginx with self-signed dummy cert
+docker compose up -d nginx
+
+# Obtain real certificate
+docker compose run --rm certbot certonly \
+    --webroot \
+    --webroot-path=/var/www/certbot \
+    --email "$EMAIL" \
+    --agree-tos \
+    --no-eff-email \
+    -d "$DOMAIN"
+
+# Reload nginx to use real cert
+docker compose exec nginx nginx -s reload
+```
+
+### 28.5 Monitoring Stack: Prometheus + Grafana + Loki
+
+**Prometheus scrape configuration:**
+
+```yaml
+# monitoring/prometheus.yml
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "alert_rules.yml"
+
+scrape_configs:
+  - job_name: "node"
+    static_configs:
+      - targets: ["node-exporter:9100"]
+
+  - job_name: "fastapi"
+    static_configs:
+      - targets: ["api:8000"]
+    metrics_path: /metrics
+
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+```
+
+**Alert rules:**
+
+```yaml
+# monitoring/alert_rules.yml
+groups:
+  - name: causal_atlas
+    rules:
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes{mountpoint="/data"} / node_filesystem_size_bytes{mountpoint="/data"}) < 0.10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Disk space below 10% on /data"
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.90
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Memory usage above 90%"
+
+      - alert: APIHighLatency
+        expr: histogram_quantile(0.95, rate(ca_api_request_duration_seconds_bucket[5m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API P95 latency above 10 seconds"
+
+      - alert: IngestionFailure
+        expr: increase(ca_ingestion_errors_total[1h]) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "Data ingestion errors detected"
+```
+
+### 28.6 Backup: Automated Parquet Snapshots to Backblaze B2
+
+```bash
+#!/bin/bash
+# scripts/backup-to-b2.sh
+# Automated daily backup of processed data to Backblaze B2
+# Called by cron: 0 2 * * * /opt/causal-atlas/scripts/backup-to-b2.sh
+
+set -euo pipefail
+
+B2_REMOTE="b2-causal-atlas"       # rclone remote name
+BUCKET="causal-atlas-backups"
+DATA_DIR="/data/processed"
+ANALYSIS_DIR="/data/analysis"
+LOG_FILE="/var/log/causal-atlas/backup.log"
+
+log() {
+    echo "$(date -u '+%Y-%m-%dT%H:%M:%SZ') $*" >> "$LOG_FILE"
+}
+
+log "Backup started"
+
+# Sync processed Parquet files (incremental -- only changed files)
+rclone sync "$DATA_DIR" "${B2_REMOTE}:${BUCKET}/processed/" \
+    --fast-list \
+    --transfers 8 \
+    --checkers 16 \
+    --log-file "$LOG_FILE" \
+    --log-level INFO \
+    --stats 60s \
+    --stats-one-line
+
+# Sync analysis results (these are irreplaceable)
+rclone sync "$ANALYSIS_DIR" "${B2_REMOTE}:${BUCKET}/analysis/" \
+    --fast-list \
+    --transfers 4 \
+    --log-file "$LOG_FILE" \
+    --log-level INFO
+
+# Verify backup integrity (spot-check 5 random files)
+rclone check "$DATA_DIR" "${B2_REMOTE}:${BUCKET}/processed/" \
+    --one-way \
+    --size-only \
+    --log-file "$LOG_FILE" \
+    2>&1 | tail -1 >> "$LOG_FILE"
+
+log "Backup completed"
+
+# Alert on failure
+if [ $? -ne 0 ]; then
+    curl -X POST "$SLACK_WEBHOOK_URL" \
+        -H 'Content-type: application/json' \
+        -d '{"text":"Causal Atlas backup FAILED. Check /var/log/causal-atlas/backup.log"}'
+fi
+```
+
+---
+
+## 29. Data Pipeline Scheduling
+
+> **Checked:** March 2025
+
+### 29.1 Adapter Schedule
+
+| Adapter | Schedule | Mode | Dependencies | Typical Duration | Data Volume |
+|---------|----------|------|-------------|-----------------|-------------|
+| ACLED | Weekly (Monday 02:00 UTC) | Incremental | None | 5-15 min | 5-50 MB |
+| CHIRPS | Monthly (1st, 03:00 UTC) | Full month | None | 30-60 min | 500 MB - 2 GB |
+| WFP food prices | Weekly (Monday 04:00 UTC) | Incremental | None | 2-5 min | 1-10 MB |
+| USGS earthquakes | Daily (05:00 UTC) | Incremental | None | 1-3 min | 1-5 MB |
+| OpenAQ | Daily (06:00 UTC) | Incremental | None | 10-30 min | 50-200 MB |
+| MODIS/VIIRS NDVI | Monthly (5th, 04:00 UTC) | Full composite | None | 60-120 min | 1-3 GB |
+| VIIRS nightlights | Monthly (10th, 04:00 UTC) | Full composite | None | 30-60 min | 500 MB - 1 GB |
+| UCDP GED | Annual (February) | Full refresh | None | 5-10 min | 100-300 MB |
+| World Bank | Annual (April) | Full refresh | None | 10-30 min | 50-200 MB |
+| FAO | Annual (March) | Full refresh | None | 10-30 min | 100-500 MB |
+| EM-DAT | Monthly (1st, 05:00 UTC) | Full refresh | None | 2-5 min | 10-50 MB |
+| HDX HAPI | Weekly (Wednesday 03:00 UTC) | Incremental | None | 5-15 min | 10-50 MB |
+| **Integration** | After any adapter | Merge | Upstream adapter | 5-15 min | -- |
+| **Correlation scan** | After integration | Analysis | Integration | 10-60 min | -- |
+| **Interpretation** | After correlation | Claude API | Correlation scan | 1-5 min | -- |
+
+### 29.2 Dependency Graph
+
+```
+                    ┌─────────┐
+                    │  ACLED   │──┐
+                    └─────────┘  │
+                    ┌─────────┐  │
+                    │  CHIRPS  │──┤
+                    └─────────┘  │
+                    ┌─────────┐  │     ┌──────────────┐     ┌────────────────┐
+                    │   WFP   │──┼────>│  Integration │────>│  Correlation   │
+                    └─────────┘  │     │  (merge all  │     │  Scan          │
+                    ┌─────────┐  │     │   domains)   │     │  (updated      │
+                    │  USGS   │──┤     └──────────────┘     │   cells only)  │
+                    └─────────┘  │                          └───────┬────────┘
+                    ┌─────────┐  │                                  │
+                    │ OpenAQ  │──┤                                  ▼
+                    └─────────┘  │                          ┌────────────────┐
+                    ┌─────────┐  │                          │  Claude API    │
+                    │  NDVI   │──┤                          │  Interpretation│
+                    └─────────┘  │                          └───────┬────────┘
+                    ┌─────────┐  │                                  │
+                    │Nightlts │──┘                                  ▼
+                    └─────────┘                             ┌────────────────┐
+                                                            │  Notify        │
+                                                            │  (email/Slack) │
+                                                            └────────────────┘
+```
+
+**Key design decisions:**
+
+- Each source adapter is independent -- no adapter depends on another adapter's output
+- The integration step depends on ALL adapters having current data, but runs after any single adapter updates
+- Correlation scans are incremental -- they only re-analyse grid cells and time periods affected by the new data
+- Claude interpretation is triggered only for NEW significant findings (not previously seen correlations)
+
+### 29.3 Failure Handling and Retries
+
+| Failure Type | Behaviour | Retry Policy | Alert |
+|-------------|-----------|-------------|-------|
+| Network timeout | Retry with exponential backoff | 3 retries, max 5 min wait | Alert after all retries exhausted |
+| HTTP 429 (rate limit) | Wait for Retry-After header, then retry | Honour server directive | Alert if blocked > 1 hour |
+| HTTP 5xx (server error) | Retry with backoff | 3 retries | Alert after all retries exhausted |
+| HTTP 401/403 (auth) | Do NOT retry | Immediate failure | Alert immediately -- API key issue |
+| Parse error | Do NOT retry | Immediate failure | Alert with sample of malformed data |
+| Validation > 50% invalid | Do NOT retry | Immediate failure | Alert with validation report |
+| Disk full | Do NOT retry | Immediate failure | Critical alert -- requires human intervention |
+| Integration failure | Retry once | 1 retry after 5 min | Alert with error details |
+| Claude API error | Queue for batch | Retry via Batch API | No alert (graceful degradation) |
+
+**Dead letter queue:** Records that fail validation are written to `data/dead_letter/{source_id}/{date}/` as Parquet files with the original data plus the failure reason. These are reviewed manually and either fixed and re-ingested or permanently discarded.
+
+### 29.4 Alert Routing
+
+```yaml
+# monitoring/alertmanager.yml (for Prometheus Alertmanager integration)
+# Alternatively, implement in Python with structlog + webhook
+
+route:
+  receiver: "default"
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    - match:
+        severity: critical
+      receiver: "critical-alerts"
+    - match:
+        severity: warning
+      receiver: "warning-alerts"
+
+receivers:
+  - name: "default"
+    email_configs:
+      - to: "admin@example.com"
+        from: "alerts@causal-atlas.org"
+
+  - name: "critical-alerts"
+    email_configs:
+      - to: "admin@example.com"
+    slack_configs:
+      - api_url: "${SLACK_WEBHOOK_URL}"
+        channel: "#causal-atlas-alerts"
+        title: "CRITICAL: {{ .CommonAnnotations.summary }}"
+        text: "{{ .CommonAnnotations.description }}"
+
+  - name: "warning-alerts"
+    slack_configs:
+      - api_url: "${SLACK_WEBHOOK_URL}"
+        channel: "#causal-atlas-alerts"
+        title: "WARNING: {{ .CommonAnnotations.summary }}"
+```
+
+### 29.5 Dagster Asset Dependency Graph
+
+When graduating from cron to Dagster (Phase 2, 5+ adapters):
+
+```python
+from dagster import (
+    asset, AssetIn, MonthlyPartitionsDefinition,
+    WeeklyPartitionsDefinition, DailyPartitionsDefinition,
+    AutoMaterializePolicy, FreshnessPolicy,
+    define_asset_job, ScheduleDefinition, Definitions
+)
+from datetime import datetime
+
+# ── Partition Definitions ────────────────────────────────────
+
+monthly = MonthlyPartitionsDefinition(start_date="2015-01-01")
+weekly = WeeklyPartitionsDefinition(start_date="2020-01-06")
+daily = DailyPartitionsDefinition(start_date="2020-01-01")
+
+
+# ── Source Assets (independent) ──────────────────────────────
+
+@asset(
+    partitions_def=weekly,
+    group_name="conflict",
+    description="ACLED conflict events aggregated to PRIO-GRID cells",
+    freshness_policy=FreshnessPolicy(maximum_lag_minutes=7 * 24 * 60),  # 1 week
+)
+def acled_grid(context):
+    """Fetch and process ACLED data for the given week."""
+    partition_key = context.partition_key
+    adapter = get_adapter("acled", output_dir=Path("/data/processed"),
+                          domain="conflict")
+    start, end = week_bounds(partition_key)
+    return adapter.run(start, end)
+
+
+@asset(
+    partitions_def=monthly,
+    group_name="climate",
+    description="CHIRPS monthly precipitation aggregated to PRIO-GRID",
+    freshness_policy=FreshnessPolicy(maximum_lag_minutes=60 * 24 * 60),  # 60 days
+)
+def chirps_grid(context):
+    partition_key = context.partition_key
+    adapter = get_adapter("chirps", output_dir=Path("/data/processed"),
+                          domain="climate")
+    start, end = month_bounds(partition_key)
+    return adapter.run(start, end)
+
+
+@asset(
+    partitions_def=weekly,
+    group_name="food_security",
+    description="WFP food prices aggregated to PRIO-GRID cells",
+)
+def wfp_prices_grid(context):
+    partition_key = context.partition_key
+    adapter = get_adapter("wfp", output_dir=Path("/data/processed"),
+                          domain="food_security")
+    start, end = week_bounds(partition_key)
+    return adapter.run(start, end)
+
+
+@asset(
+    partitions_def=daily,
+    group_name="natural_hazards",
+    description="USGS earthquake data aggregated to PRIO-GRID cells",
+)
+def usgs_earthquakes_grid(context):
+    partition_key = context.partition_key
+    adapter = get_adapter("usgs", output_dir=Path("/data/processed"),
+                          domain="natural_hazards")
+    return adapter.run(
+        date.fromisoformat(partition_key),
+        date.fromisoformat(partition_key),
+    )
+
+
+# ── Derived Assets (depend on sources) ───────────────────────
+
+@asset(
+    ins={
+        "acled": AssetIn("acled_grid"),
+        "chirps": AssetIn("chirps_grid"),
+        "wfp": AssetIn("wfp_prices_grid"),
+    },
+    partitions_def=monthly,
+    group_name="integrated",
+    description="Integrated multi-domain dataset for analysis",
+    auto_materialize_policy=AutoMaterializePolicy.eager(),
+)
+def integrated_monthly(context, acled, chirps, wfp):
+    """Join conflict, climate, and food security data for a given month."""
+    import duckdb
+    con = duckdb.connect()
+    month = context.partition_key
+    result = con.execute(f"""
+        SELECT * FROM read_parquet('data/processed/domain=*/year={month[:4]}/*.parquet',
+                                    hive_partitioning=true)
+        WHERE month = {int(month[5:7])}
+    """).arrow()
+    return result
+
+
+@asset(
+    ins={"integrated": AssetIn("integrated_monthly")},
+    partitions_def=monthly,
+    group_name="analysis",
+    description="Correlation scan on updated data",
+)
+def correlation_scan(context, integrated):
+    """Run lag correlation analysis on newly integrated data."""
+    from causal_atlas.analysis import scan_correlations
+    month = context.partition_key
+    results = scan_correlations(month, max_lag=12)
+    context.log.info(f"Found {len(results)} significant correlations")
+    return results
+
+
+@asset(
+    ins={"correlations": AssetIn("correlation_scan")},
+    partitions_def=monthly,
+    group_name="analysis",
+    description="AI interpretation of significant new correlations",
+)
+def interpreted_findings(context, correlations):
+    """Generate Claude interpretations for new significant findings."""
+    from causal_atlas.ai import batch_interpret
+    new_findings = filter_new_findings(correlations)
+    if new_findings:
+        interpretations = batch_interpret(new_findings)
+        context.log.info(f"Interpreted {len(interpretations)} new findings")
+        return interpretations
+    return []
+
+
+# ── Schedules ────────────────────────────────────────────────
+
+acled_schedule = ScheduleDefinition(
+    name="weekly_acled",
+    target=define_asset_job("acled_job", selection=[acled_grid]),
+    cron_schedule="0 2 * * 1",  # Monday 02:00 UTC
+)
+
+chirps_schedule = ScheduleDefinition(
+    name="monthly_chirps",
+    target=define_asset_job("chirps_job", selection=[chirps_grid]),
+    cron_schedule="0 3 1 * *",  # 1st of month, 03:00 UTC
+)
+
+# ── Definitions (entry point) ────────────────────────────────
+
+defs = Definitions(
+    assets=[acled_grid, chirps_grid, wfp_prices_grid, usgs_earthquakes_grid,
+            integrated_monthly, correlation_scan, interpreted_findings],
+    schedules=[acled_schedule, chirps_schedule],
+)
+```
+
+---
+
+## 30. Claude API Integration -- Detailed Design
+
+> **Checked:** March 2025
+
+### 30.1 Prompt Engineering for Causal Interpretation
+
+**System prompt template (cached -- reused across all interpretation requests):**
+
+```python
+SYSTEM_PROMPT = """You are a research analyst for the Causal Atlas platform,
+specialising in cross-domain spatiotemporal analysis. Your expertise covers
+conflict dynamics, climate science, food security, public health, economics,
+and environmental monitoring.
+
+## Your Role
+You interpret statistical correlation and causal analysis results in the
+context of specific geographic regions and time periods. You provide
+scientifically grounded explanations that are useful to humanitarian
+researchers and policy analysts.
+
+## Guidelines
+1. ALWAYS ground your interpretation in the specific data provided. Do not
+   invent statistics or fabricate details not present in the input.
+2. Reference established academic research where relevant. Cite specific
+   authors and years (e.g., "Raleigh et al., 2015" or "Burke et al., 2009").
+   Only cite research you are confident exists.
+3. Distinguish clearly between correlation and causation. Use language like
+   "this correlation is consistent with..." rather than "X causes Y."
+4. Assess whether the observed lag structure is mechanistically plausible.
+   A 3-month lag between rainfall deficit and conflict is plausible via
+   food price transmission; a 1-day lag is not.
+5. Identify at least one plausible confounder that could produce the
+   observed correlation without a direct causal link.
+6. Rate your confidence as HIGH, MEDIUM, or LOW based on:
+   - HIGH: Strong statistical evidence (p < 0.001, |r| > 0.5), well-documented
+     mechanism in literature, plausible lag structure
+   - MEDIUM: Moderate evidence (p < 0.01, |r| > 0.3), plausible mechanism
+     but less documented, or possible confounders
+   - LOW: Weak evidence (p > 0.01 or |r| < 0.3), speculative mechanism,
+     or likely confounders
+7. Be concise. 300-500 words maximum per interpretation.
+8. If the data quality score is below 0.5, prominently note that the
+   results should be treated with additional caution.
+"""
+```
+
+**Few-shot examples for interpreting correlation results:**
+
+```python
+FEW_SHOT_EXAMPLES = [
+    {
+        "role": "user",
+        "content": """## Data Context
+- Region: Turkana County, Kenya (KEN)
+- Grid cells analysed: 12
+- Time period: 2015-01 to 2023-12
+- Variable A: chirps_precip_mm (Monthly precipitation in mm, CHIRPS v2.0)
+- Variable B: acled_fatalities (Monthly conflict fatalities, ACLED v24)
+
+## Statistical Results
+- Pearson correlation: -0.42
+- P-value: 0.000003
+- Optimal lag: 3 months (A leads B by 3 months)
+- 95% CI: [-0.56, -0.27]
+- N observations: 108
+- Data quality (mean composite): 0.82"""
+    },
+    {
+        "role": "assistant",
+        "content": """{
+  "summary": "Rainfall deficits in Turkana County precede increases in conflict fatalities by approximately 3 months, a pattern consistent with the well-documented climate-food-conflict pathway in pastoral regions of East Africa.",
+  "mechanism": "Turkana is a predominantly pastoral region where livelihoods depend directly on rainfall for livestock grazing. Below-average rainfall reduces pasture and water availability, intensifying competition between pastoral groups for remaining resources. This resource competition, combined with livelihood stress and potential food price increases, can escalate into violent conflict. The 3-month lag is mechanistically plausible: it takes approximately one season for drought conditions to deplete available resources and for inter-group tensions to escalate.",
+  "academic_references": [
+    "Raleigh, C. & Kniveton, D. (2012). Come rain or shine: An analysis of conflict and climate variability in East Africa. Journal of Peace Research.",
+    "Schilling, J. et al. (2012). Raiding pastoral livelihoods: motives and effects of violent conflict in north-western Kenya. Pastoralism: Research, Policy and Practice.",
+    "Theisen, O.M. (2012). Climate clashes? Weather variability, land pressure, and organized violence in Kenya. Journal of Peace Research."
+  ],
+  "confounders": [
+    "Seasonal patterns: Both rainfall and conflict may follow seasonal cycles without direct causal connection",
+    "Market dynamics: Food price changes driven by regional/global supply may co-occur with local rainfall deficits",
+    "Political events: Elections or policy changes may independently drive both livestock movements and conflict"
+  ],
+  "lag_assessment": "The 3-month lag is highly plausible for this region and mechanism. It aligns with the typical timescale for drought impacts to propagate through pastoral livelihoods to resource competition. Shorter lags (0-1 months) would be implausible for this mechanism; longer lags (6+ months) would be less consistent with direct resource competition but might reflect food price transmission.",
+  "confidence": "MEDIUM",
+  "follow_up": [
+    "Mediation analysis: test whether WFP food prices mediate the rainfall-conflict relationship",
+    "Granger causality test to assess temporal precedence more rigorously",
+    "Compare with adjacent counties (Marsabit, Samburu) to assess spatial consistency",
+    "Check if the relationship weakens or disappears during periods of humanitarian food aid"
+  ]
+}"""
+    }
+]
+```
+
+**Structured output schema (Pydantic):**
+
+```python
+from pydantic import BaseModel, Field
+from typing import Literal
+
+
+class CorrelationInterpretation(BaseModel):
+    """Schema for Claude's interpretation of a correlation result.
+
+    Used with Claude's structured output mode to guarantee parseable JSON.
+    """
+    summary: str = Field(
+        ...,
+        description="1-2 sentence headline summarising the finding",
+        max_length=500
+    )
+    mechanism: str = Field(
+        ...,
+        description="Plausible causal pathway explaining the correlation",
+        max_length=2000
+    )
+    academic_references: list[str] = Field(
+        ...,
+        description="Published research supporting the interpretation (author, year, journal)",
+        min_length=1,
+        max_length=5
+    )
+    confounders: list[str] = Field(
+        ...,
+        description="Variables that could produce a spurious correlation",
+        min_length=1,
+        max_length=5
+    )
+    lag_assessment: str = Field(
+        ...,
+        description="Whether the lag structure is mechanistically plausible",
+        max_length=1000
+    )
+    confidence: Literal["HIGH", "MEDIUM", "LOW"] = Field(
+        ...,
+        description="Confidence level based on evidence strength"
+    )
+    follow_up: list[str] = Field(
+        ...,
+        description="Suggested next analyses to strengthen or weaken the claim",
+        min_length=1,
+        max_length=5
+    )
+
+
+class NaturalLanguageQuery(BaseModel):
+    """Schema for parsing a natural language question into a structured query."""
+    intent: Literal["correlation", "timeseries", "comparison", "explanation", "prediction"]
+    variables: list[str] = Field(
+        ..., description="Variable names referenced (e.g., ['chirps_precip_mm', 'acled_fatalities'])"
+    )
+    region: str | None = Field(
+        None, description="Geographic region (country name, ISO3 code, or 'global')"
+    )
+    time_range: tuple[str, str] | None = Field(
+        None, description="Start and end dates as YYYY-MM strings"
+    )
+    lag_months: int | None = Field(
+        None, description="Specific lag to test, if mentioned"
+    )
+    sql_query: str = Field(
+        ..., description="DuckDB SQL query to retrieve the needed data"
+    )
+
+
+class HypothesisGeneration(BaseModel):
+    """Schema for automated hypothesis generation from significant findings."""
+    hypothesis: str = Field(..., description="Formal hypothesis statement")
+    mechanism: str = Field(..., description="Proposed causal mechanism")
+    required_evidence: list[str] = Field(
+        ..., description="What additional evidence would confirm or reject this hypothesis"
+    )
+    confidence_level: Literal["HIGH", "MEDIUM", "LOW"]
+    related_literature: list[str]
+    suggested_methods: list[str] = Field(
+        ..., description="Statistical methods to test the hypothesis"
+    )
+```
+
+### 30.2 Handling Hallucination: Grounding in Data
+
+Claude's interpretations must be grounded in the actual data. Strategies:
+
+1. **Data-first prompting:** Always include the exact statistical results in the prompt. Never ask Claude to "estimate" or "guess" values.
+
+2. **Citation verification:** After receiving Claude's response, cross-reference cited papers against a known bibliography database. Flag citations that do not appear in the database as "unverified."
+
+3. **Confidence calibration:** Automatically downgrade confidence if:
+   - p-value > 0.01 and Claude says HIGH
+   - Sample size < 50 and Claude says HIGH
+   - Data quality < 0.5
+
+4. **Output validation:**
+
+```python
+def validate_interpretation(result: CorrelationInterpretation,
+                           stats: dict) -> CorrelationInterpretation:
+    """Post-process Claude's interpretation to ensure grounding."""
+    # Force confidence downgrade if statistics are weak
+    if stats["p_value"] > 0.01 and result.confidence == "HIGH":
+        result.confidence = "MEDIUM"
+    if stats["p_value"] > 0.05:
+        result.confidence = "LOW"
+    if abs(stats["r_value"]) < 0.3 and result.confidence == "HIGH":
+        result.confidence = "MEDIUM"
+
+    # Prepend data quality warning if needed
+    if stats["quality_mean"] < 0.5:
+        result.summary = (
+            "[DATA QUALITY WARNING: Mean quality score is below 0.5. "
+            "Interpret with caution.] " + result.summary
+        )
+
+    return result
+```
+
+### 30.3 Natural Language Query Interface
+
+The full query pipeline: user question -> Claude parsing -> SQL generation -> DuckDB execution -> Claude narrative response.
+
+```python
+async def handle_natural_language_query(question: str, user_tier: str) -> dict:
+    """Process a natural language question about causal relationships.
+
+    Example: "What caused the spike in food prices in South Sudan in March 2023?"
+
+    Pipeline:
+    1. Parse question with Haiku (fast, cheap) -> structured query
+    2. Generate DuckDB SQL from structured query
+    3. Execute SQL against Parquet data
+    4. Generate narrative answer with Sonnet (higher quality)
+    """
+    # Step 1: Parse with Haiku
+    parse_response = await client.messages.create(
+        model="claude-haiku-4-5-20241022",
+        max_tokens=512,
+        system=NL_QUERY_SYSTEM_PROMPT,
+        messages=[
+            {"role": "user", "content": f"""Parse this question into a structured query.
+
+Available variables: {VARIABLE_CATALOGUE}
+Available regions: {REGION_LIST}
+
+Question: {question}"""}
+        ],
+        response_format={
+            "type": "json_schema",
+            "json_schema": {
+                "name": "query",
+                "schema": NaturalLanguageQuery.model_json_schema()
+            }
+        }
+    )
+    query = NaturalLanguageQuery.model_validate_json(
+        parse_response.content[0].text
+    )
+
+    # Step 2: Validate and sanitise SQL (prevent injection)
+    safe_sql = sanitise_duckdb_query(query.sql_query)
+
+    # Step 3: Execute against DuckDB
+    import duckdb
+    con = duckdb.connect(read_only=True)
+    try:
+        result = con.execute(safe_sql).fetchdf()
+    except Exception as e:
+        return {"error": f"Query failed: {e}", "sql": safe_sql}
+    finally:
+        con.close()
+
+    # Step 4: Generate narrative with Sonnet
+    narrative_response = await client.messages.create(
+        model="claude-sonnet-4-5-20241022",
+        max_tokens=1024,
+        system=SYSTEM_PROMPT,
+        messages=[
+            *FEW_SHOT_EXAMPLES,
+            {"role": "user", "content": f"""The user asked: "{question}"
+
+Here is the data retrieved from our database:
+
+{result.to_markdown()}
+
+Provide a clear, data-grounded answer to the user's question.
+Reference the specific numbers from the data.
+If the data is insufficient to answer the question, say so clearly."""}
+        ]
+    )
+
+    return {
+        "question": question,
+        "parsed_query": query.model_dump(),
+        "sql": safe_sql,
+        "data_summary": result.describe().to_dict(),
+        "answer": narrative_response.content[0].text,
+        "model": "claude-sonnet-4-5",
+    }
+```
+
+### 30.4 Cost Optimisation
+
+| Strategy | Savings | Implementation |
+|----------|---------|---------------|
+| **Prompt caching** (system prompt > 1024 tokens) | 90% on cached portion | System prompt is ~800 tokens; add variable catalogue to push over 1024 |
+| **Batch API** for pattern scanning | 50% off per-token rates | Queue scan results, submit as batch, retrieve within 1 hour |
+| **Model tiering** | 60-80% vs using Opus for everything | Haiku for parsing/routing, Sonnet for narrative, Opus only for hypothesis |
+| **Result caching** | Eliminates repeat API calls | Cache interpretation by hash(var_a, var_b, region, lag, r_value rounded to 2dp) |
+| **Deduplication** | Variable | Skip interpretation if a near-identical finding already exists |
+
+**Monthly cost projection (1,000 correlation interpretations/month):**
+
+```
+Correlation interpretation (Sonnet):
+  Input:  1000 req x 1300 tokens x $3.00/M  = $3.90
+  Output: 1000 req x 500 tokens  x $15.00/M = $7.50
+  With prompt caching (90% of 800 system tokens):
+    Cached input savings: 1000 x 800 x $3.00/M x 0.9 = -$2.16
+  Subtotal: ~$9.24
+
+NL queries (Haiku parse + Sonnet respond):
+  Parse:  500 req x 700 tokens x $1.00/M + 500 x 300 x $5.00/M = $1.10
+  Respond: 500 req x 1500 tokens x $3.00/M + 500 x 600 x $15.00/M = $6.75
+  Subtotal: ~$7.85
+
+Pattern scanning (Haiku batch, monthly):
+  5000 findings x 600 tokens x $0.50/M + 5000 x 300 x $2.50/M = $5.25
+
+Total estimated monthly: ~$22/month
+```
+
+### 30.5 Prompt Versioning and A/B Testing
+
+```python
+from dataclasses import dataclass
+from datetime import datetime
+
+@dataclass
+class PromptVersion:
+    id: str                    # e.g., "interpret_v3"
+    version: int               # Incremental version number
+    system_prompt: str
+    few_shot_examples: list
+    model: str
+    temperature: float
+    created_at: datetime
+    description: str           # What changed in this version
+    active: bool = True
+
+
+# Prompt registry (stored in DuckDB or JSON)
+PROMPT_VERSIONS = {
+    "interpret_v1": PromptVersion(
+        id="interpret_v1", version=1,
+        system_prompt=SYSTEM_PROMPT_V1,
+        few_shot_examples=[],
+        model="claude-sonnet-4-5-20241022",
+        temperature=0.3,
+        created_at=datetime(2025, 3, 1),
+        description="Initial prompt, no few-shot examples",
+        active=False,
+    ),
+    "interpret_v2": PromptVersion(
+        id="interpret_v2", version=2,
+        system_prompt=SYSTEM_PROMPT_V2,
+        few_shot_examples=FEW_SHOT_EXAMPLES,
+        model="claude-sonnet-4-5-20241022",
+        temperature=0.2,
+        created_at=datetime(2025, 3, 15),
+        description="Added few-shot examples and structured output",
+        active=True,
+    ),
+}
+
+
+async def interpret_with_ab_test(correlation_data: dict) -> dict:
+    """Run interpretation with A/B testing between prompt versions.
+
+    10% of requests go to the challenger version for evaluation.
+    Results are logged for offline comparison.
+    """
+    import random
+    active_versions = [v for v in PROMPT_VERSIONS.values() if v.active]
+    if len(active_versions) > 1 and random.random() < 0.10:
+        version = active_versions[1]  # Challenger
+    else:
+        version = active_versions[0]  # Champion
+
+    result = await interpret_correlation(correlation_data, version)
+    result["prompt_version"] = version.id
+
+    # Log for offline evaluation
+    logger.info("interpretation_generated",
+                prompt_version=version.id,
+                confidence=result.get("confidence"),
+                model=version.model)
+
+    return result
+```
+
+---
+
 ## References
 
 - [PRIO-GRID](https://grid.prio.org/) -- Spatial grid framework, v3 with Parquet support
@@ -2115,3 +4331,20 @@ async def scan_for_new_discoveries(updated_cells: list[int], updated_months: lis
 - [Federated Analysis Primer (PMC 2024)](https://pmc.ncbi.nlm.nih.gov/articles/PMC10846631/) -- Technical and legal overview
 - [Local Differential Privacy for Mobility (2025)](https://link.springer.com/article/10.1140/epjds/s13688-025-00611-4) -- Privacy-preserving spatial data
 - [Privacy in Federated Learning (2025)](https://link.springer.com/article/10.1007/s10462-025-11170-5) -- Privacy mechanisms survey
+
+### Deployment Architecture (Sections 26-30)
+- [Hetzner AX102 Dedicated Server](https://www.hetzner.com/dedicated-rootserver/ax102) -- AMD Ryzen 9 7950X3D, 128 GB DDR5 ECC
+- [Hetzner Docker CE](https://docs.hetzner.com/cloud/apps/list/docker-ce/) -- Docker installation on Hetzner servers
+- [nginx-certbot Docker Compose (GitHub)](https://github.com/wmnnd/nginx-certbot) -- Boilerplate nginx + Let's Encrypt setup
+- [Let's Encrypt Docker Compose (GitHub)](https://github.com/eugene-khyst/letsencrypt-docker-compose) -- Automated SSL with Docker
+- [Grafana Loki Docker Compose](https://grafana.com/docs/loki/latest/setup/install/docker/) -- Log aggregation setup
+- [Prometheus + Grafana + Loki Stack](https://github.com/maiobarbero/grafana-prometheus-loki) -- Production-ready monitoring
+- [Backblaze B2 + rclone Integration](https://rclone.org/b2/) -- Cloud backup with rclone
+- [Backblaze B2 rclone Quickstart](https://help.backblaze.com/hc/en-us/articles/1260804565710-Quickstart-Guide-for-Rclone-and-B2-Cloud-Storage) -- Setup guide
+- [Dagster Declarative Scheduling](https://medium.com/@dagster-io/declarative-scheduling-for-data-assets-a-breakthrough-in-data-orchestration-85bd5fa6d707) -- Asset-based scheduling
+- [Dagster Automations in Practice (FreeAgent)](https://engineering.freeagent.com/2025/12/10/how-we-use-dagster-automations-in-our-data-pipeline/) -- Real-world Dagster usage
+- [Dagster Asset Documentation](https://docs.dagster.io/examples/full-pipelines/etl-pipeline/automate-your-pipeline) -- Pipeline automation guide
+- [ACLED API Documentation](https://apidocs.acleddata.com/) -- REST API for conflict data
+- [Tigramite (GitHub)](https://github.com/jakobrunge/tigramite) -- PCMCI causal discovery library
+- [Cloudflare Free Plan](https://www.cloudflare.com/plans/free/) -- CDN and DDoS protection
+- [Cloudflare DDoS Best Practices](https://developers.cloudflare.com/ddos-protection/best-practices/) -- Protection configuration

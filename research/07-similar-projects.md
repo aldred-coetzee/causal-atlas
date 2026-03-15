@@ -28,6 +28,9 @@
 19. [PyWhy Ecosystem -- Causal Inference in Python](#19-pywhy-ecosystem----causal-inference-in-python)
 20. [World Bank DIME and ImpactAI](#20-world-bank-dime-and-impactai)
 21. [Synthesis: Gaps and Opportunities for Causal Atlas](#21-synthesis-gaps-and-opportunities-for-causal-atlas)
+22. [Deep GitHub Survey -- Round 2](#22-deep-github-survey----round-2)
+23. [Academic Software for Spatiotemporal Causal Analysis](#23-academic-software-for-spatiotemporal-causal-analysis)
+24. [Commercial Platforms Doing Similar Things](#24-commercial-platforms-doing-similar-things)
 
 ---
 
@@ -1576,3 +1579,487 @@ Based on this expanded survey, the priority integration order for Causal Atlas s
 - Mukaigawara et al. (2025). "Spatiotemporal causal inference with arbitrary spillover and carryover effects." https://arxiv.org/html/2504.03464v1
 - Runge (2019). "Inferring causation from time series in Earth system sciences." *Nature Communications*. https://www.nature.com/articles/s41467-019-10105-3
 - AfroGrid: "Introducing AfroGrid, a unified framework for environmental conflict research in Africa." *Scientific Data* (2022). https://www.nature.com/articles/s41597-022-01198-5
+
+---
+
+## 22. Deep GitHub Survey -- Round 2
+
+> **Date of findings:** March 2025
+> **Purpose:** Broader search across GitHub to find additional repositories relevant to Causal Atlas's technical stack and analytical goals.
+
+### 22.1 Food Security Prediction Repositories
+
+| Repository | Stars | Language | Last Active | Description | Relevance |
+|---|---|---|---|---|---|
+| **zhou100/FoodSecurityPrediction** | ~30 | R/Python | 2022 | Replication code for "Machine learning for food security" (AEPP paper). Predicts food insecurity across three sub-Saharan African countries using prices, assets, and weather data. 55-84% accuracy. | Methodology reference for ML-based food security prediction |
+| **pietro-foini/ISI-WFP** | ~20 | Python | 2024 | WFP-affiliated ML model using gradient boosted regression trees to forecast insufficient food consumption 30 days ahead. Covers Burkina Faso, Cameroon, Mali, Nigeria, Syria, Yemen. Combines food consumption observations with conflict, weather, and economic shock data. | Directly relevant -- cross-domain food security forecasting with the same data types Causal Atlas would use |
+| **michael-hoon/Food-Security-Forecasting** | ~10 | Python | 2024 | EDA on factors affecting food insecurity. | Small project but useful for understanding feature engineering |
+| **Busker et al. (2024) -- Horn of Africa** | N/A (paper) | Python | 2024 | Published in *Earth's Future*: "Predicting Food-Security Crises in the Horn of Africa Using Machine Learning." | Peer-reviewed ML for food security prediction in a conflict-affected region |
+
+**Key Finding:** Food security prediction repos are relatively small and fragmented. No comprehensive open-source platform exists for multi-country food security forecasting -- a gap Causal Atlas could fill.
+
+---
+
+### 22.2 Conflict Early Warning Repositories
+
+| Repository | Stars | Language | Last Active | Description | Relevance |
+|---|---|---|---|---|---|
+| **views-platform (org)** | Various | Python | 2025 | VIEWS forecasting platform GitHub organisation. Key repos: views-models (all VIEWS models at pgm and cm levels), views-stepshifter (time-series forecast class), views-hydranet (spatiotemporal forecast class), views-evaluation (evaluation metrics). | Gold standard for conflict forecasting; most mature open-source MLOps pipeline for monthly subnational predictions |
+| **prio-data/views_pipeline** | ~50 | Python | 2025 | The operational VIEWS forecasting pipeline for monthly prediction runs. Includes MLOps and QA for all models/ensembles. | Architecture reference for Causal Atlas's own pipeline design |
+| **prio-data/viewsforecasting** | ~30 | Python/Jupyter | 2024 | Jupyter notebooks and scripts for performing VIEWS monthly forecasts. | Practical implementation reference |
+| **conflictforecast.org** | N/A (web) | N/A | 2025 | Evaluating Worldwide Armed Conflict Risk -- comparison platform for conflict forecasting models. | Benchmarking reference for Causal Atlas's conflict-related causal discoveries |
+
+**Key Finding:** VIEWS dominates the open-source conflict forecasting space. No other project comes close in terms of operational maturity, MLOps sophistication, or forecast coverage.
+
+---
+
+### 22.3 Causal Inference with Spatial Data
+
+| Repository | Stars | Language | Last Active | Description | Relevance |
+|---|---|---|---|---|---|
+| **mmukaigawara/geocausal** | ~80 | R | 2025 | Causal inference for spatiotemporal data; published on CRAN. Implements methods from Mukaigawara et al. (2025) for spatiotemporal causal inference with arbitrary spillover and carryover effects. | Directly relevant -- the only dedicated R package for spatiotemporal causal inference |
+| **yutong-xia/CausalST_Papers** | ~150 | Curated list | 2025 | Curated collection of papers on causality in spatiotemporal data and ML. Regularly updated. | Essential reading list for Causal Atlas research |
+| **NSAPH-Projects/space (SpaCE)** | ~60 | Python | 2024 | Spatial Confounding Environment -- benchmark datasets for evaluating causal methods tackling spatial confounding. From Harvard. | Benchmark datasets for testing Causal Atlas's spatial causal methods |
+| **moprescu/Spatial-CI** | ~20 | Python | 2023 | Spatial causal inference research repository. | Research reference |
+| **jakobrunge/tigramite** | 1.5k+ | Python | 2025 | The primary causal discovery library for time series. PCMCI, PCMCIplus, LPCMCI. Extensive tutorials. | Core dependency for Causal Atlas's causal analysis engine |
+| **stbachinger/TigramiteGui** | ~20 | Python | 2023 | GUI prototype for Tigramite in Jupyter Notebooks. | UI reference for presenting causal graphs interactively |
+
+**Key Finding:** The geocausal R package and CausalST_Papers curated list are particularly valuable discoveries. SpaCE provides benchmark datasets that could be used to validate Causal Atlas's methods.
+
+---
+
+### 22.4 Humanitarian Dashboard and Crisis Mapping
+
+| Repository | Stars | Language | Last Active | Description | Relevance |
+|---|---|---|---|---|---|
+| **Human-Geomonitor (org)** | Various | Python | 2024 | Citizen researchers building a Humanitarian Crisis Prediction Pipeline using LLMs to aggregate climate, economic, political, and displacement data. | Closest in spirit to Causal Atlas -- aggregating cross-domain humanitarian data with ML/LLM analysis |
+| **RealCaddish/Conflict-Crisis-Mapping-Project** | ~30 | JavaScript | 2023 | Crisis-map UIs for conflict data using Leaflet, D3, Turf.js. Includes Ukrainian War Information Mapping Project. | UI/UX patterns for conflict data visualization |
+| **unhcr-dataviz (org)** | Various | R/JS | 2025 | UNHCR data visualization tools and templates. D3.js and Power BI based. | Visualization standard reference for humanitarian sector |
+| **rodekruis/CommunityRisk** | ~50 | JS/Node | 2023 | Red Cross community risk assessment dashboard. Identifies most affected areas and most vulnerable individuals. Express + Angular. | Risk assessment dashboard design patterns |
+| **HTBox/crisischeckin** | ~100 | C# | 2020 | Humanitarian Toolbox project for disaster volunteer coordination. | Less relevant (operational tool, not analytical) |
+
+**Key Finding:** Human-Geomonitor is particularly interesting -- a volunteer-driven project attempting LLM-based humanitarian crisis prediction from aggregated data. Their approach validates the Causal Atlas concept but with different methodology (LLMs vs. statistical causal inference).
+
+---
+
+### 22.5 Climate Impact Assessment Tools
+
+| Repository | Stars | Language | Last Active | Description | Relevance |
+|---|---|---|---|---|---|
+| **CLIMADA-project/climada_python** | ~300 | Python | 2025 | ETH Zurich climate risk assessment framework. Integrates hazard, exposure, vulnerability. Global coverage at 4km for tropical cyclones, river flood, agro drought, winter storms. GNU GPL3. | Directly relevant for climate hazard data and risk methodology |
+| **os-climate/physrisk** | ~80 | Python | 2024 | Physical climate risk calculation engine. Bottom-up impact modelling for individual assets. Merged with FINOS (Jun 2024). | Climate risk methodology reference |
+| **KKulma/climate-change-data** | ~700 | Curated list | 2024 | Curated list of APIs, open data, and ML/AI projects on climate change. | Comprehensive resource catalogue |
+| **openclimatedata (org)** | Various | Python | 2024 | Open Climate Data organisation on GitHub -- various climate data tools and processing scripts. | Data access utilities |
+| **CLIMADA-project/climada_petals** | ~50 | Python | 2025 | Extended CLIMADA: additional hazard types and specialised applications beyond core. | Additional hazard modelling capabilities |
+
+**Key Finding:** CLIMADA is the most directly relevant climate risk tool for Causal Atlas. Its hazard-exposure-vulnerability framework at 4km resolution could provide climate hazard layers for our 0.5-degree grid cells (aggregation needed). CLIMADA's API design is a good model for structured hazard data access.
+
+---
+
+### 22.6 Geospatial Pipeline and Data Engineering
+
+| Repository | Stars | Language | Last Active | Description | Relevance |
+|---|---|---|---|---|---|
+| **kontur-io/geocint** | ~100 | Bash/SQL | 2024 | Kontur's open-source ETL pipeline for geospatial data. Extracts to PostgreSQL, transforms via H3 hexagons, loads to production. MIT licence. Uses Make, PostgreSQL, PostGIS, h3-pg. | Mature geospatial ETL reference; H3 hexagon approach is an alternative to PRIO-GRID |
+| **jmcarrillog/geospatial-etl** | ~30 | Python | 2022 | ETL tools for geospatial data using GDAL, designed as components for WINGS workflow system. | Simpler ETL reference |
+| **duckdb/duckdb-spatial** | ~800 | C++ | 2025 | Official DuckDB spatial extension. GEOMETRY type (Simple Features), reprojection across CRS, 50+ data source import/export. Early stage but rapidly developing. | Core technology for Causal Atlas's data stack |
+| **giswqs/duckdb-spatial** | ~100 | Python/Jupyter | 2025 | Code examples for "Spatial Data Management with DuckDB" book. | Learning resource for DuckDB spatial capabilities |
+| **Cidree/duckspatial** | ~30 | R | 2024 | R interface to DuckDB spatial extension. Bridges DuckDB spatial with R's ecosystem. | Relevant if Causal Atlas needs R interoperability |
+
+**Key Finding:** DuckDB spatial extension (duckdb-spatial) is maturing rapidly and confirms our tech stack choice. The Geocint pipeline from Kontur demonstrates a production-grade geospatial ETL approach, though it uses PostgreSQL/PostGIS rather than DuckDB/Parquet.
+
+---
+
+### 22.7 PRIO-GRID Ecosystem
+
+| Repository | Stars | Language | Last Active | Description | Relevance |
+|---|---|---|---|---|---|
+| **prio-data/priogrid** | ~40 | R | 2025 | Replication scripts for PRIO-GRID v3.0 dataset generation. Uses sf, terra, exactextractr. | Core spatial framework reference |
+| **prio-data/climate_extremes** | ~10 | Python/R | 2024 | Climate extremes data processing for PRIO-GRID. | Data processing patterns for climate variables on PRIO-GRID |
+| **prio-data (org)** | Various | Mixed | 2025 | PRIO's GitHub organisation. Hosts VIEWS pipeline, PRIO-GRID, and various research tools. | Primary source for conflict research data tools |
+
+**Key Finding:** The prio-data organisation on GitHub is the most important source of reference implementations for PRIO-GRID-compatible data processing. Their R-based approach will need Python translation for Causal Atlas.
+
+---
+
+### 22.8 Kepler.gl for Analysis
+
+| Repository | Stars | Language | Last Active | Description | Relevance |
+|---|---|---|---|---|---|
+| **keplergl/kepler.gl** | 10k+ | JavaScript | 2025 | Core Kepler.gl library. React + Redux component for geospatial visualization. Renders millions of points. Donated to OpenJS Foundation. | Primary visualization engine for Causal Atlas |
+| **kylebarron/keplergl_cli** | ~100 | Python | 2023 | CLI/Python API for quickly viewing data in Kepler.gl. Simple wrapper. | Useful for development/prototyping |
+| **keplergl/kepler.gl-data** | ~50 | Data | 2024 | Sample datasets for Kepler.gl demos. | Example data patterns |
+
+**Key Finding:** Kepler.gl remains the best choice for Causal Atlas's visualization layer. The React/Redux architecture allows deep integration with a custom UI. The OpenJS Foundation stewardship ensures long-term maintenance.
+
+---
+
+### 22.9 Food Security Forecasting -- Academic Repositories
+
+| Repository / Paper | Language | Year | Description | Relevance |
+|---|---|---|---|---|
+| **WFP food security forecasting** (Comm. Earth & Env., 2024) | Python | 2024 | Reservoir Computing approach for 60-day food consumption forecasting across Mali, Nigeria, Syria, Yemen. Compared ARIMA, XGBoost, LSTM, CNN, RC models. | Methodology comparison for time-series food security prediction |
+| **Harmonized Food Insecurity Dataset** (Scientific Data, 2025) | R/Python | 2025 | Monthly sub-national harmonised dataset combining IPC/CH and FEWS NET phases across multiple countries. Designed for comprehensive analysis and predictive modelling. | Critical dataset for Causal Atlas -- harmonised food security data at the temporal and spatial resolution we need |
+
+**Key Finding:** The 2025 Harmonized Food Insecurity Dataset (published in *Scientific Data*) is a particularly important discovery -- it provides monthly sub-national food security data that aligns with Causal Atlas's temporal resolution and could serve as a primary food security outcome variable.
+
+---
+
+## 23. Academic Software for Spatiotemporal Causal Analysis
+
+> **Date of findings:** March 2025
+
+### 23.1 Workshop and Community Ecosystem
+
+The spatiotemporal causal analysis research community is rapidly organising:
+
+- **STCausal Workshop 2024 (1st ACM SIGSPATIAL):** Held October 2024, Atlanta. First dedicated workshop on spatiotemporal causal analysis at a major GIS conference. URL: https://bdal.umbc.edu/stcausal-2024/
+- **STCausal@GIScience2025 (2nd Workshop):** Continued at GIScience 2025. Part of concerted effort to build community around spatial causal analysis. URL: https://spatialcausal.github.io/stcausal-2025/
+- **Dagstuhl Seminar on Causal Inference for Spatial Data Analytics (2024):** Invitation-only research seminar bringing together leading researchers in spatial causal inference.
+
+This rapid community formation (two workshops and a Dagstuhl seminar in <2 years) signals that spatiotemporal causal analysis is a recognized emerging research area -- exactly where Causal Atlas positions itself.
+
+---
+
+### 23.2 CLIMADA -- ETH Zurich
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://climada.ethz.ch/ |
+| **GitHub** | https://github.com/CLIMADA-project |
+| **Organisation** | Weather and Climate Risks Group, ETH Zurich |
+| **Licence** | GNU GPL3 |
+| **Language** | Python |
+| **Status** | Active; web tool public release planned 2025 |
+
+**What it Does:**
+Free, open-source climate risk assessment and adaptation option appraisal framework. Integrates hazard, exposure, and vulnerability data to calculate risk, create probabilistic impact data from event sets, project climate change impacts, and evaluate adaptation measures.
+
+**Key Capabilities:**
+- Global coverage at 4km resolution via data API for: tropical cyclones, river flood, agro drought, European winter storms
+- Probabilistic risk assessment from event sets
+- Climate change impact projections
+- Adaptation measure effectiveness evaluation
+- CLIMADA Petals module extends core with additional hazard types and specialised applications
+
+**Architecture:**
+- Python-based with modular design (Core + Petals)
+- Data API for accessing global hazard datasets
+- Compatible with standard climate data formats (NetCDF, GeoTIFF)
+- Published on HDX for humanitarian use: https://data.humdata.org/organization/eth-zurich-weather-and-climate-risks
+
+**Relevance to Causal Atlas:**
+- CLIMADA's hazard layers could feed directly into Causal Atlas as climate exposure variables
+- The hazard-exposure-vulnerability framework provides a structured way to think about climate-driven causal chains
+- ETH Zurich's Weather and Climate Risks group is a natural academic collaborator for Causal Atlas
+
+---
+
+### 23.3 PRIO and Uppsala Research Ecosystem
+
+The Peace Research Institute Oslo (PRIO) and Uppsala University's Department of Peace and Conflict Research jointly operate the most mature academic conflict forecasting infrastructure:
+
+**Key Tools and Outputs:**
+
+| Tool | Purpose | Status |
+|---|---|---|
+| **VIEWS** | Monthly conflict forecasts 1-36 months ahead | Operational; monthly releases |
+| **PRIO-GRID v3** | Spatial data infrastructure for conflict research | Alpha (v3.0.1); Beta planned |
+| **UCDP GED** | Georeferenced event dataset for armed conflict | Continuously updated; download centre at ucdp.uu.se |
+| **UCDP Candidate Events** | Near-real-time conflict events (less validated) | Monthly updates |
+| **ETH/PRIO Civil Conflict Ceasefire Dataset** | Ceasefire data for civil conflicts | Active dataset |
+| **Conflict Trends Reports** | Annual "Conflict Trends: A Global Overview" | Latest: 1946-2024 (published 2025) |
+
+**2024 Prediction Challenge Results:**
+- 13 research institutions submitted models
+- Models predicted fatalities as probability distributions (not just point estimates)
+- VIEWS benchmark "Conflictology" model led rankings as of February 2025
+- Published in *Journal of Peace Research* (2024): https://journals.sagepub.com/doi/10.1177/00223433241300862
+
+**Recognition:** VIEWS awarded Kluz Prize for PeaceTech Special Distinction (September 2024).
+
+**Relevance to Causal Atlas:**
+- PRIO/Uppsala ecosystem provides the conflict data foundation Causal Atlas needs
+- Their prediction challenge methodology could inform benchmarking of Causal Atlas's causal discovery
+- PRIO-GRID compatibility is already a Causal Atlas design decision -- these are natural institutional partners
+
+---
+
+### 23.4 geocausal R Package
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://github.com/mmukaigawara/geocausal |
+| **CRAN** | https://cran.r-project.org/web/packages/geocausal/ |
+| **Paper** | Mukaigawara et al. (2025), "Spatiotemporal causal inference with arbitrary spillover and carryover effects" |
+| **Language** | R |
+
+The only dedicated statistical package for spatiotemporal causal inference. Handles spillover effects (causal impact on neighbouring units) and carryover effects (persistence of treatment effects over time) -- both critical for the kind of cross-domain causal chains Causal Atlas aims to discover.
+
+**Relevance to Causal Atlas:**
+- Methodological reference for handling spatial and temporal spillover/carryover in causal inference
+- R-only; Causal Atlas would need to implement equivalent methods in Python or call via rpy2
+- The paper's formal framework for spatiotemporal causal inference could inform Causal Atlas's theoretical foundations
+
+---
+
+### 23.5 SpaCE (Spatial Confounding Environment)
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://github.com/NSAPH-Projects/space |
+| **Organisation** | Harvard NSAPH |
+| **Language** | Python |
+
+Provides realistic benchmark datasets for systematically evaluating causal inference methods that address spatial confounding. Important because spatial confounding (unmeasured variables that vary spatially and affect both treatment and outcome) is a major threat to causal inference in geospatial data.
+
+**Relevance to Causal Atlas:**
+- SpaCE benchmarks should be used to validate Causal Atlas's causal discovery methods
+- Spatial confounding is a critical challenge for grid-cell level causal analysis -- methods tested on SpaCE will be more credible
+
+---
+
+### 23.6 Recent Methodological Advances (2024-2025)
+
+Key papers published since the previous survey:
+
+- **"Data-driven dimensionality reduction and causal inference for spatiotemporal climate fields"** (Physical Review E, 2024). Proposes framework for describing spatiotemporal climate variability with causal relations via fluctuation-response formalism.
+- **"Discovering causal relationships between time series with spatial structure"** (arXiv, 2025). New method for causal discovery in time series that explicitly accounts for spatial structure.
+- **"Climate change expected to increase conflict risks over the next decades across sub-Saharan Africa"** (The Innovation Geoscience, 2025). ML-based projection: 0.5-1.7 billion people may live in high conflict risk zones by 2050s.
+- **"Modelling armed conflict risk under climate change with machine learning and time-series data"** (Nature Communications, 2022 -- highly cited). Foundational paper on ML for climate-conflict prediction.
+- **DoWhy-GCM extension** (2024): Extension of DoWhy for causal inference in graphical causal models; enables attribution of distributional changes to causal mechanisms.
+
+---
+
+## 24. Commercial Platforms Doing Similar Things
+
+> **Date of findings:** March 2025
+> **Purpose:** Understanding commercial solutions helps position Causal Atlas as an open-source alternative and identifies capabilities to match.
+
+---
+
+### 24.1 Palantir Gotham / Foundry
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://www.palantir.com/ |
+| **Products** | Gotham (defence/intelligence), Foundry (commercial/enterprise), AIP (AI platform) |
+| **Pricing** | Enterprise; reportedly $5M-$100M+ annual contracts |
+| **Relevant Use** | Disaster relief organisations, defence agencies, humanitarian coordination |
+
+**Capabilities:**
+- Data integration platform that breaks down silos and unifies disparate datasets into a single framework
+- Gotham: investigative analysis across all data types; designed for intelligence analysis
+- Foundry: "central operating system" for data with back-end (ingestion, transformation) and front-end (analytics, dashboards) tools
+- AIP (2023+): LLM integration with Gotham/Foundry for AI-assisted analysis on enterprise data
+- Supports federated data sources with dynamic updates
+- Multiple analytical workflows in a single workspace
+
+**Humanitarian Use:**
+- Palantir has worked with humanitarian organisations, but deployments are controversial due to the company's military/intelligence ties
+- Used for COVID-19 response data integration by several governments
+- NHS England used Foundry for healthcare data integration
+
+**Relevance to Causal Atlas:**
+- Palantir is the commercial benchmark for multi-source data integration and analytical workspaces
+- Causal Atlas's data ingestion and harmonisation pipeline should aim for Palantir-like seamlessness, but open-source and focused on causal analysis rather than general-purpose analytics
+- Palantir does NOT do automated causal discovery -- it provides a workspace for analysts to explore data manually
+- **Key differentiator for Causal Atlas:** Open source, purpose-built for spatiotemporal causal analysis, accessible to humanitarian and academic users who cannot afford Palantir
+
+---
+
+### 24.2 Predata (FiscalNote)
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://predata.com/ |
+| **Acquired by** | FiscalNote (June 2021) |
+| **Founded** | 2015, New York/Washington DC |
+| **Focus** | Geopolitical risk forecasting from digital signals |
+
+**How it Works:**
+Uses ML to analyse internet metadata (not content/NLP) for patterns in group behaviour -- what people are researching, viewing, and focused on. Synthesises web-based data into unified "risk signals" that anticipate political and economic developments.
+
+**Applications:**
+- Anticipating sanctions (e.g., Russia sanctions)
+- Taiwan-China tension monitoring
+- Currency fluctuation forecasting
+- Social unrest prediction
+
+**Relevance to Causal Atlas:**
+- Predata demonstrates that "digital signals" (internet metadata) can predict geopolitical events -- a novel data source Causal Atlas could consider
+- However, Predata is correlation-based (predictive signals), not causal
+- Commercial, closed-source, and focused on financial/security customers -- not humanitarian sector
+- **Gap Causal Atlas fills:** Open-source, causally rigorous, and humanitarian-focused
+
+---
+
+### 24.3 Premise Data
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://premise.com/ |
+| **Focus** | Ground-truth data collection via contributor networks |
+| **New Product (2025)** | AEGIS for Humanitarian Assistance |
+
+**What it Does:**
+Operates a global network of citizen data contributors who collect ground-truth observational data. Combines satellite imagery detection with on-the-ground validation (e.g., identifying informal settlements in Colombia with iMMAP). Contributors collect survey and observational data on WASH, food security, living conditions, and healthcare access.
+
+**2025 Development -- AEGIS:**
+AEGIS for Humanitarian Assistance is a fully remote, fully digital, AI-powered data collection and insights solution for humanitarian needs assessment and crisis monitoring. Initial data collection is self-funded. Premise claims the largest networks of data collectors in crisis-affected countries.
+
+**Relevance to Causal Atlas:**
+- Premise provides ground-truth data that could validate Causal Atlas's satellite/model-derived indicators
+- AEGIS could become a data source for real-time ground-truth food security and living condition data
+- However, Premise is a data collection company, not an analytics/causal inference platform -- complementary rather than competitive
+
+---
+
+### 24.4 Geospark Analytics (Hyperion)
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://www.geosparkanalytics.com/ |
+| **Product** | Hyperion AI platform |
+| **Customers** | NGA (National Geospatial-Intelligence Agency), US defence |
+| **Focus** | Real-time global threat intelligence |
+
+**Capabilities:**
+- AI-driven open-source intelligence (OSINT) platform
+- Automated monitoring and ML-based threat forecasting
+- Integrates 6.8 million unique real-time data sources: news, social media, economic indicators, governance factors, travel warnings, weather
+- NGA contract for real-time operational insights
+
+**Relevance to Causal Atlas:**
+- Hyperion's scale (6.8M data sources) demonstrates what's technically achievable in multi-source integration
+- Defence/intelligence focus and pricing puts it far from humanitarian accessibility
+- Does not perform causal analysis -- focuses on threat detection and prediction
+- **Gap Causal Atlas fills:** Open-source alternative with causal reasoning, designed for humanitarian/research use
+
+---
+
+### 24.5 Orbital Insight (now Privateer)
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://www.orbitalinsight.com/ (redirects to Privateer) |
+| **Status** | Acquired by Privateer (April 2024) |
+| **Previous Product** | TerraScope geospatial intelligence platform |
+
+**What it Did:**
+Used computer vision and ML to analyse satellite imagery, phone location, and IoT data. Provided insights on supply chains, commodities, demographics, and geopolitical events. TerraScope (launched 2023) was a self-serve analytics platform for automated analysis of location and satellite imagery data.
+
+**Partnership:** Expanded partnership with Planet Labs for access to daily 3.7m PlanetScope and 0.72cm SkySat imagery, including for humanitarian initiatives.
+
+**Post-Acquisition Status:** Brand absorbed into Privateer (space sustainability company); future of humanitarian-focused capabilities unclear.
+
+**Relevance to Causal Atlas:**
+- Demonstrates commercial demand for satellite-imagery-derived analytics at global scale
+- Acquisition highlights market consolidation -- smaller players are being absorbed
+- **Opportunity for Causal Atlas:** As commercial platforms consolidate or pivot, open-source alternatives become more valuable to humanitarian users
+
+---
+
+### 24.6 Maxar (now Vantor)
+
+| Attribute | Detail |
+|---|---|
+| **URL** | https://www.maxar.com/ |
+| **Open Data Program** | https://www.maxar.com/open-data |
+| **Rebranded** | Vantor (October 2025) |
+| **Focus** | Satellite imagery, basemaps, 3D terrain |
+
+**Humanitarian Relevance:**
+- Open Data Program: Releases before/after satellite imagery for major disasters under Creative Commons 4.0 licence
+- Imagery provided free to humanitarian community during crises
+- Available on AWS Registry of Open Data: https://registry.opendata.aws/maxar-open-data/
+- Supports first responders with spatial intelligence at no cost
+
+**Commercial Products:**
+- WorldView constellation: highest-resolution commercial satellite imagery
+- Basemaps and 3D terrain data
+- 2025: Simplified pricing, elimination of distinctions for imagery <90 days old
+
+**Relevance to Causal Atlas:**
+- Maxar/Vantor Open Data Program provides free high-resolution post-disaster imagery
+- Satellite imagery could supplement Causal Atlas's coarser MODIS/VIIRS data for event-specific analysis
+- However, Maxar provides raw imagery -- Causal Atlas would need to process it (or use derived products like NDVI, nightlights from other sources)
+
+---
+
+### 24.7 PlanetSense (ORNL)
+
+| Attribute | Detail |
+|---|---|
+| **Paper** | https://arxiv.org/abs/1507.05245 |
+| **Organisation** | Oak Ridge National Laboratory |
+| **Status** | Research platform (not actively maintained as product) |
+
+**What it Was:**
+A real-time streaming and spatiotemporal analytics platform for gathering geo-spatial intelligence from open-source data. Four components: GeoData Cloud (storage), real-time data harvesting, data analytics framework, and web-based visualisation.
+
+Built to combine archived data with heterogeneous real-time streams from social media and volunteered sources, integrated with ML and visualisation tools.
+
+**Relevance to Causal Atlas:**
+- PlanetSense's architecture (ingest + analyse + visualise) is conceptually similar to Causal Atlas
+- The real-time streaming aspect is relevant if Causal Atlas ever moves beyond monthly analysis
+- However, PlanetSense is a 2015 research prototype, not actively maintained
+
+---
+
+### 24.8 Competitive Positioning Summary
+
+| Platform | Open Source | Causal Analysis | Multi-Domain | Humanitarian Focus | Spatial | Temporal | Pricing |
+|---|---|---|---|---|---|---|---|
+| **Palantir** | No | No (manual) | Yes | Limited | Yes | Yes | $5M+/year |
+| **Predata** | No | No (predictive) | Limited | No | No | Yes | Enterprise |
+| **Premise** | No | No (data collection) | Yes | Yes | Yes | Yes | Commercial |
+| **Geospark/Hyperion** | No | No (predictive) | Yes | No | Yes | Yes | Defence contracts |
+| **Orbital/Privateer** | No | No (descriptive) | Limited | Limited | Yes | Limited | Enterprise |
+| **VIEWS** | Yes | No (predictive) | No (conflict only) | Yes | Yes | Yes | Free |
+| **CLIMADA** | Yes | No (risk assessment) | No (climate only) | Limited | Yes | Limited | Free |
+| **Causal Atlas** | **Yes** | **Yes** | **Yes** | **Yes** | **Yes** | **Yes** | **Free** |
+
+**Key Insight:** No existing platform -- commercial or open-source -- combines multi-domain data integration with automated causal discovery in a spatiotemporal framework designed for humanitarian use. The commercial platforms that come closest (Palantir, Geospark) are prohibitively expensive and not designed for causal analysis. The open-source platforms that come closest (VIEWS, CLIMADA) are single-domain. Causal Atlas occupies a unique and defensible position.
+
+---
+
+### Additional References (Round 2)
+
+### GitHub Repositories
+- ISI-WFP: https://github.com/pietro-foini/ISI-WFP
+- FoodSecurityPrediction: https://github.com/zhou100/FoodSecurityPrediction
+- Human-Geomonitor: https://github.com/Human-Geomonitor
+- SpaCE: https://github.com/NSAPH-Projects/space
+- Spatial-CI: https://github.com/moprescu/Spatial-CI
+- CausalST_Papers: https://github.com/yutong-xia/CausalST_Papers
+- TigramiteGui: https://github.com/stbachinger/TigramiteGui
+- CLIMADA: https://github.com/CLIMADA-project/climada_python
+- physrisk: https://github.com/os-climate/physrisk
+- Geocint: https://github.com/kontur-io/geocint
+- DuckDB Spatial: https://github.com/duckdb/duckdb-spatial
+- VIEWS Pipeline: https://github.com/prio-data/views_pipeline
+- UNHCR Dataviz: https://github.com/unhcr-dataviz
+- CommunityRisk: https://github.com/rodekruis/CommunityRisk
+
+### Commercial Platforms
+- Palantir: https://www.palantir.com/
+- Predata: https://predata.com/
+- Premise: https://premise.com/
+- Geospark Analytics: https://www.geosparkanalytics.com/
+- Maxar/Vantor: https://www.maxar.com/
+- CausaLens: https://causalens.com/
+- Causaly: https://www.causaly.com/
+
+### Academic Resources
+- STCausal 2024: https://bdal.umbc.edu/stcausal-2024/
+- STCausal 2025: https://spatialcausal.github.io/stcausal-2025/
+- KnowWhereGraph: https://arxiv.org/html/2502.13874v2
+- VIEWS Prediction Challenge: https://journals.sagepub.com/doi/10.1177/00223433241300862
+- Harmonized Food Insecurity Dataset: https://www.nature.com/articles/s41597-025-05034-4
+
+### Key Papers (Round 2)
+- Hegre et al. (2024). "The 2023/24 VIEWS Prediction challenge." *Journal of Peace Research*. https://journals.sagepub.com/doi/10.1177/00223433241300862
+- Busker et al. (2024). "Predicting Food-Security Crises in the Horn of Africa Using Machine Learning." *Earth's Future*. https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2023EF004211
+- WFP food security forecasting (2024). "Forecasting trends in food security with real time data." *Communications Earth & Environment*. https://www.nature.com/articles/s43247-024-01698-9
+- "Climate change expected to increase conflict risks" (2025). *The Innovation Geoscience*. https://www.the-innovation.org/article/doi/10.59717/j.xinn-geo.2025.100139

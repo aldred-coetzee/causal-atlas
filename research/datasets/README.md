@@ -28,6 +28,10 @@ Every dataset deep dive should cover:
 | [emdat.md](emdat.md) | EM-DAT (International Disaster Database) | Natural disasters | Tier 1 |
 | [wfp-food-prices.md](wfp-food-prices.md) | WFP Food Price Data | Food commodity prices | Tier 1 |
 | [chirps.md](chirps.md) | CHIRPS (Climate Hazards Group InfraRed Precipitation) | Rainfall/precipitation | Tier 1 |
+| [era5-reanalysis.md](era5-reanalysis.md) | ERA5 (ECMWF Reanalysis v5) | Climate/weather reanalysis | Tier 1 |
+| [firms-fires.md](firms-fires.md) | FIRMS (Fire Information for Resource Management System) | Active fire detection | Tier 1 |
+| [ipc-food-security.md](ipc-food-security.md) | IPC (Integrated Food Security Phase Classification) | Food security classification | Tier 1 |
+| [displacement-data.md](displacement-data.md) | Displacement Data (IDMC, UNHCR, IOM DTM) | Forced displacement | Tier 1 |
 | [prio-grid.md](prio-grid.md) | PRIO-GRID | Spatial framework | Tier 1 |
 | [hdx-hapi.md](hdx-hapi.md) | HDX HAPI (Humanitarian API) | Humanitarian indicators | Tier 1 |
 | [usgs-earthquakes.md](usgs-earthquakes.md) | USGS Earthquake Hazards | Seismic events | Tier 2 |

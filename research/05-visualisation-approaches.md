@@ -32,6 +32,11 @@
 23. [Accessibility Considerations](#23-accessibility-considerations)
 24. [Performance Optimisation](#24-performance-optimisation)
 25. [PMTiles and Protomaps](#25-pmtiles-and-protomaps)
+26. [Causal Atlas-Specific UI/UX Design](#26-causal-atlas-specific-uiux-design)
+27. [Interactive Causal Graph Visualisation](#27-interactive-causal-graph-visualisation)
+28. [Time Series Visualisation for Causal Analysis](#28-time-series-visualisation-for-causal-analysis)
+29. [Map-Based Anomaly Detection Visualisation](#29-map-based-anomaly-detection-visualisation)
+30. [Print and Export](#30-print-and-export)
 
 ---
 
@@ -2141,3 +2146,486 @@ Source: [PMTiles Concepts](https://docs.protomaps.com/pmtiles/), [PMTiles GitHub
 - [MapLibre Performance Techniques (DeepWiki)](https://deepwiki.com/maplibre/maplibre-gl-js/5.2-performance-optimization-techniques)
 - [WebGL Best Practices (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/WebGL_best_practices)
 - [Heavy Map Visualizations Fundamentals](https://advena.hashnode.dev/heavy-map-visualizations-fundamentals-for-web-developers)
+
+---
+
+## 26. Causal Atlas-Specific UI/UX Design
+
+> **Added:** March 2025
+
+### 26.1 User Journey Mapping
+
+A researcher using Causal Atlas follows a seven-step workflow. Each step implies specific UI components and interaction patterns.
+
+**Step 1: Select Region of Interest (Map Interaction)**
+- User lands on a full-screen map (Kepler.gl / MapLibre base) showing the global PRIO-GRID overlay at low zoom
+- Interaction options: (a) click/drag to draw a bounding box, (b) click a country/admin polygon to auto-select all grid cells within it, (c) type a place name into a search box (geocoded via Nominatim or Mapbox Geocoding API)
+- Selected grid cells highlight with a border/fill colour change
+- A sidebar shows the count of selected cells and their aggregate area
+
+**Step 2: Select Time Range (Temporal Controls)**
+- A dual-handle range slider at the bottom of the screen (similar to Kepler.gl's time filter) lets the user drag start/end dates
+- Preset buttons: "Last 12 months", "Last 5 years", "Full history (1989-present)"
+- A histogram above the slider shows data density across time — gaps are visible immediately
+- The slider snaps to monthly boundaries (our primary temporal unit)
+
+**Step 3: Select Variables to Compare (Data Layer Picker)**
+- A collapsible left panel lists available variables grouped by domain: Conflict, Climate, Food Security, Health, Economics, Pollution, Vegetation, Nightlights
+- Each variable shows: name, source, temporal coverage bar, spatial coverage percentage for the selected region
+- User checks 2+ variables to compare; a maximum of ~6 is recommended for readability
+- Drag-and-drop reordering controls the layer stacking on the map and the order of time series panels
+
+**Step 4: Run Correlation/Causal Analysis (Compute Trigger)**
+- A prominent "Analyse" button becomes active once region + time + ≥2 variables are selected
+- A dropdown beside it lets the user choose the method: Pearson correlation, Granger causality, PCMCI, transfer entropy
+- An "Advanced" toggle exposes parameters: max lag (default 12 months), significance threshold (default p < 0.05), minimum data completeness (default 80%)
+- Progress indicator shows computation status (server-side via FastAPI, results streamed back)
+
+**Step 5: Explore Results (Causal Graph + Map + Time Series)**
+- Results view splits into three synchronised panels (see wireframe below)
+- Clicking any element in one panel highlights the corresponding elements in the others
+- Claude AI interpretation panel (collapsible right drawer) provides a natural-language summary of findings
+
+**Step 6: Drill Down into Specific Findings**
+- Click an edge in the causal graph to see the full cross-correlation function for that variable pair
+- Click a grid cell on the map to see its individual time series for all selected variables
+- Click a time point in a time series to see the spatial pattern at that moment (map updates to show that month)
+- Confidence intervals shown on hover; clicking locks the tooltip for comparison
+
+**Step 7: Export Results / Generate Report**
+- "Export" menu offers: PNG/SVG of current view, CSV of underlying data, PDF report (see Section 30), JSON of causal graph structure, shareable URL with encoded state
+- "Cite" button generates a citation string including data sources, methods, and Causal Atlas version
+
+### 26.2 Wireframe Descriptions
+
+#### Main Analysis View (Desktop, ≥1280px)
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│  [Logo] Causal Atlas    [Region: East Africa ▼]  [🔍 Search]   [⚙ Settings] │
+├────────────┬─────────────────────────────────────┬───────────────────────┤
+│            │                                     │                       │
+│  VARIABLE  │           MAP VIEW                  │   CAUSAL GRAPH        │
+│  PICKER    │                                     │                       │
+│            │   ┌───────────────────────────┐     │   (A)──lag:3──►(B)   │
+│  □ Conflict│   │  Choropleth / heatmap     │     │    │                  │
+│  □ Rainfall│   │  of selected variable     │     │    lag:6              │
+│  □ NDVI    │   │  on PRIO-GRID cells       │     │    │                  │
+│  □ Food    │   │                           │     │    ▼                  │
+│    prices  │   │                           │     │   (C)──lag:2──►(D)   │
+│  □ Night-  │   └───────────────────────────┘     │                       │
+│    lights  │                                     │  [Edge strength legend]│
+│            │                                     │                       │
+├────────────┴─────────────────────────────────────┴───────────────────────┤
+│                        TIME SERIES PANEL                                 │
+│  ┌────────────────────────────────────────────────────────────────────┐  │
+│  │  Var A ─── (blue)     Var B ─── (orange, shifted by lag)          │  │
+│  │  ╱╲    ╱╲                  ╱╲    ╱╲                               │  │
+│  │ ╱  ╲  ╱  ╲                ╱  ╲  ╱  ╲                              │  │
+│  │╱    ╲╱    ╲──────────────╱────╲╱    ╲─────                        │  │
+│  │ 2018  2019  2020  2021  2022  2023  2024                          │  │
+│  └────────────────────────────────────────────────────────────────────┘  │
+│  ◄ ════════════════╡▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓╞═══════════════════════════ ►   │
+│    Jan 2018                   Time Range Slider               Dec 2024  │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Grid Cell Detail View (Modal or Drill-Down)
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│  Grid Cell: 2.25°N, 37.75°E  │  Region: Turkana, Kenya             │
+├─────────────────────────┬────────────────────────────────────────────┤
+│  MINI MAP               │  ALL VARIABLES TIME SERIES                 │
+│  ┌─────────────┐        │  ┌──────────────────────────────────────┐  │
+│  │   ╔═══╗     │        │  │ Conflict events  ▁▁▃█▁▁▅▃▁▁        │  │
+│  │   ║ ● ║     │        │  │ Rainfall (mm)    ▅▃▁▁▇█▃▁▅▃        │  │
+│  │   ╚═══╝     │        │  │ NDVI             ▃▅▃▁▃▅▅▃▃▁        │  │
+│  │  (selected  │        │  │ Food price index  ▁▃▅▇▅▃▅▇█▇        │  │
+│  │   cell)     │        │  │ Nightlights      ▃▃▃▃▃▃▃▁▁▁        │  │
+│  └─────────────┘        │  └──────────────────────────────────────┘  │
+├─────────────────────────┼────────────────────────────────────────────┤
+│  CROSS-CORRELATION      │  DATA QUALITY SUMMARY                     │
+│  ┌─────────────┐        │                                            │
+│  │   ▁▃▅█▅▃▁   │        │  Conflict:  98% complete  Source: ACLED   │
+│  │  -6  0  +6  │        │  Rainfall: 100% complete  Source: CHIRPS  │
+│  │  lag (months)│        │  NDVI:      95% complete  Source: MODIS   │
+│  └─────────────┘        │  Food:      72% complete  Source: WFP     │
+│  Peak: lag -3, r=0.67   │  Lights:    88% complete  Source: VIIRS   │
+└─────────────────────────┴────────────────────────────────────────────┘
+```
+
+#### Report / Export View
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  CAUSAL ATLAS ANALYSIS REPORT                                    │
+│  ────────────────────────────────────────────────────────────── │
+│  Region: East Africa (Kenya, Somalia, Ethiopia)                  │
+│  Period: Jan 2018 — Dec 2023                                     │
+│  Variables: Rainfall, Conflict, Food Prices, NDVI                │
+│  Method: PCMCI (max lag = 12, α = 0.05)                         │
+│                                                                  │
+│  [Static Map Image]    [Causal Graph Image]                      │
+│                                                                  │
+│  Key Findings:                                                   │
+│  1. Rainfall anomaly → Food price increase (lag: 4 months)       │
+│  2. Food price spike → Conflict increase (lag: 2 months)         │
+│  3. Conflict → NDVI decrease (lag: 1 month)                      │
+│                                                                  │
+│  AI Interpretation:                                              │
+│  "In the analysed region, rainfall deficits propagate through    │
+│   food markets within 4 months, creating price pressure that     │
+│   correlates with increased conflict 2 months later..."          │
+│                                                                  │
+│  [Download PDF]  [Download Data (CSV)]  [Copy Citation]          │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### 26.3 Responsive Design Considerations
+
+The multi-panel layout must adapt across four breakpoint tiers:
+
+| Breakpoint | Width | Layout Strategy |
+|---|---|---|
+| **Large Desktop** | ≥1440px | Full three-column layout: variable picker (240px) + map (flex) + causal graph (320px); time series panel below |
+| **Standard Desktop** | 1024–1439px | Two-column: variable picker collapses to icon rail (48px); map and causal graph share the main area with a draggable divider |
+| **Tablet** | 768–1023px | Single column with tab switching: Map tab, Graph tab, Time Series tab. Variable picker becomes a bottom sheet |
+| **Mobile** | <768px | Map-first view. Other panels accessible via bottom navigation tabs. Causal graph renders in simplified list view (A → B, lag 3, strength 0.67). Time series uses horizontal scroll |
+
+**Key responsive patterns:**
+
+- **Map always renders first** — it is the primary spatial context and should never be hidden by default on any screen size
+- **Progressive disclosure** — on smaller screens, show summary statistics first; full detail views require explicit tap/click to expand
+- **Touch-friendly targets** — all interactive elements (grid cells, graph nodes, slider handles) must be ≥44px touch targets on mobile (per Apple HIG / Material Design guidelines)
+- **Swipe gestures** — on mobile, swipe left/right between panels; swipe up from time series to expand to full-screen
+- **Collapsible panels** — every panel has a collapse/expand toggle; state persists across sessions via localStorage
+- **Font scaling** — use `rem` units throughout; respect user's browser font-size preference for accessibility
+
+**Implementation approach:** Use CSS Grid with `grid-template-areas` for the main layout, with media queries at each breakpoint to reassign areas. The causal graph and time series components should be lazy-loaded (React.lazy + Suspense) to keep initial load fast on mobile.
+
+---
+
+## 27. Interactive Causal Graph Visualisation
+
+> **Added:** March 2025
+
+### 27.1 The Challenge: DAGs Alongside Maps
+
+Causal Atlas must display two fundamentally different spatial representations simultaneously: a geographic map (continuous 2D space) and a causal graph (abstract node-link diagram). The key design question is whether to overlay the graph on the map (nodes positioned at their geographic centroid) or display them side-by-side.
+
+**Option A: Overlaid on map** — Nodes placed at grid-cell centroids, edges drawn as arcs. Works when the graph is sparse (≤20 nodes, ≤30 edges). Becomes unreadable with dense graphs due to edge crossings. Similar to ACLED's flow maps.
+
+**Option B: Side-by-side (recommended)** — Map on the left, causal graph on the right, with cross-highlighting. Click a node in the graph and the corresponding grid cell(s) highlight on the map. Click a grid cell on the map and the corresponding node highlights in the graph. This preserves clarity in both views. The causal graph can use an optimised layout (Sugiyama/layered DAG) without geographic constraints.
+
+**Option C: Hybrid** — Default side-by-side, but a toggle overlays graph nodes onto the map for quick spatial context checks. Edges become curved arcs with width proportional to effect strength and colour indicating lag duration.
+
+### 27.2 Library Comparison for DAG Rendering
+
+| Library | Rendering | Max Nodes (smooth) | React Integration | DAG Layout | Licence | Best For |
+|---|---|---|---|---|---|---|
+| **Cytoscape.js** | Canvas/WebGL | ~5,000 | Via `react-cytoscapejs` (Plotly wrapper) | Dagre, ELK, CoSE, Klay | MIT | Large networks, rich layout algorithms |
+| **React Flow** | SVG/HTML | ~1,000 | Native React component | Dagre (via `@dagrejs/dagre`) | MIT (core) | Workflow editors, small-medium DAGs |
+| **d3-dag** | SVG (via D3) | ~500 | Manual D3-React integration | Sugiyama, Zherebko, grid | Apache 2.0 | Publication-quality layered DAGs |
+| **Sigma.js** | WebGL | ~50,000+ | `@react-sigma/core` | ForceAtlas2 (via graphology) | MIT | Massive networks, exploration |
+| **vis.js (vis-network)** | Canvas | ~3,000 | Community wrappers | Hierarchical, force-directed | Apache 2.0 / MIT | Rapid prototyping, simple graphs |
+
+Sources: [Cytoscape.js](https://js.cytoscape.org/), [React Flow](https://reactflow.dev/), [d3-dag GitHub](https://github.com/erikbrinkman/d3-dag), [Sigma.js](https://www.sigmajs.org/), [vis-network](https://visjs.github.io/vis-network/docs/network/)
+
+**Recommendation for Causal Atlas:** Start with **Cytoscape.js** via `react-cytoscapejs` for its mature DAG layout support (Dagre for layered layouts, CoSE for force-directed), its ability to handle up to several thousand nodes, and extensive styling/interaction API. If we later need to render massive exploratory graphs (e.g., full PCMCI output across all grid cells), Sigma.js provides a WebGL fallback path. React Flow is tempting for its native React feel but lacks the layout algorithm depth needed for causal DAGs.
+
+### 27.3 Tigramite Causal Graph Output and Integration
+
+Tigramite (v5.2+) produces causal graphs via its `plotting` module with two main functions:
+
+- **`plot_graph()`** — Renders a process graph (summary DAG) where nodes are variables and edges are labelled with lag and strength. Output is a matplotlib figure.
+- **`plot_time_series_graph()`** — Renders the full time-unrolled graph where each variable at each time step is a separate node. More detailed but visually complex.
+
+Both functions accept `val_matrix` (effect strengths), `graph` (adjacency structure with lag info encoded as string labels like `"-->"`, `"o->"`, `"x-x"`), and `var_names`.
+
+**Integration strategy for Causal Atlas:**
+
+1. **Backend (Python/FastAPI):** Run PCMCI via tigramite, extract the `graph` array and `val_matrix` as JSON-serialisable structures. The graph array is a NumPy array of shape `(N, N, tau_max+1)` with string entries encoding edge types.
+2. **Convert to graph JSON:** Transform the tigramite output into a nodes-and-edges JSON format compatible with Cytoscape.js:
+   ```json
+   {
+     "nodes": [
+       {"data": {"id": "rainfall", "label": "Rainfall", "domain": "climate"}}
+     ],
+     "edges": [
+       {"data": {"source": "rainfall", "target": "food_price", "lag": 4, "strength": 0.67, "type": "-->"}}
+     ]
+   }
+   ```
+3. **Frontend (React + Cytoscape.js):** Render the graph with edge width ∝ |strength|, edge colour mapped to lag (short lag = warm, long lag = cool), and edge style encoding certainty (`"-->"` solid, `"o->"` dashed).
+4. **Fallback static rendering:** For PDF export, call tigramite's `plot_graph()` on the server side and return the matplotlib figure as a PNG/SVG.
+
+Source: [Tigramite documentation](https://jakobrunge.github.io/tigramite/), [Tigramite GitHub](https://github.com/jakobrunge/tigramite), [Tigramite tutorial notebooks](https://github.com/jakobrunge/tigramite/tree/master/tutorials)
+
+### 27.4 Interactive Features
+
+The causal graph must support the following interactions:
+
+| Feature | Implementation | Purpose |
+|---|---|---|
+| **Click node → highlight on map** | On node click, dispatch event to map component with variable ID; map highlights grid cells where that variable has data | Spatial context for abstract variables |
+| **Click edge → show lag detail** | On edge click, open a popover showing: cross-correlation function plot, lag value, p-value, effect size, confidence interval | Evidence behind the causal claim |
+| **Hover edge → show tooltip** | Lightweight tooltip: "Rainfall → Food Prices, lag 4 months, r = 0.67" | Quick scanning without full detail |
+| **Drag nodes** | Allow repositioning for manual layout adjustment; positions saved to localStorage | User customisation |
+| **Filter by strength** | Slider to hide edges below a threshold (e.g., |r| < 0.3) | Declutter dense graphs |
+| **Filter by domain** | Toggle domain groups on/off (climate, conflict, economic, etc.) | Focus on specific causal pathways |
+| **Zoom + pan** | Standard scroll-to-zoom, drag-to-pan | Navigate large graphs |
+| **Animate temporal propagation** | Highlight cascade: if A → B (lag 3) → C (lag 2), animate a pulse along A → B → C with appropriate timing | Show how shocks propagate through the causal chain |
+
+### 27.5 Causal Graph Styling Conventions
+
+To ensure the graph is immediately readable, adopt consistent visual encoding:
+
+- **Node colour:** By domain (conflict = red, climate = blue, food = orange, economic = green, health = purple, vegetation = olive, nightlights = yellow)
+- **Node size:** Proportional to number of significant connections (degree centrality)
+- **Edge width:** Proportional to |effect strength| (absolute value of partial correlation coefficient)
+- **Edge colour:** Mapped to lag duration via a sequential colour scale (1 month = dark, 12 months = light)
+- **Edge style:** Solid for definite causal direction (`"-->"`), dashed for ambiguous orientation (`"o->"`), dotted for uncertain (`"x-x"`)
+- **Arrow heads:** Direction of causal influence; double-headed for bidirectional
+- **Labels:** On edges, show "lag N" in a small chip; on hover, expand to full statistics
+
+---
+
+## 28. Time Series Visualisation for Causal Analysis
+
+> **Added:** March 2025
+
+### 28.1 Multi-Variable Time Series with Lag Alignment
+
+The core time series view must show multiple variables simultaneously and allow the user to visually verify lag relationships discovered by the causal analysis.
+
+**Key requirements:**
+- Multiple y-axes (left and right) for variables with different units (mm rainfall vs. event counts vs. price index)
+- Ability to shift one series by the detected lag: e.g., "shift Rainfall left by 4 months" to visually align the cause with the effect
+- Confidence bands (shaded area) around each series, especially for modelled/interpolated values
+- Annotation markers for significant events (e.g., "drought declared", "election", "COVID lockdown")
+- Brushing: select a sub-range on the time series to zoom the map to that period
+
+**Lag alignment visualisation** is critical and unusual. Most charting libraries don't natively support "shift this series by N time steps". Implementation approach:
+1. Duplicate the data array for the shifted variable
+2. Offset the timestamp by `lag * temporal_resolution`
+3. Render both the original (faded) and shifted (solid) versions
+4. A small label: "shifted by 4 months to align with Food Prices"
+
+### 28.2 Cross-Correlation Function (CCF) Plots
+
+The CCF plot shows correlation between two variables at each lag from -τ_max to +τ_max. This is the primary diagnostic for identifying lag structures.
+
+**Visual design:**
+```
+  Correlation
+  1.0 │
+      │          ▓
+  0.5 │        ▓ ▓ ▓
+      │      ▓ ▓ ▓ ▓ ▓
+  0.0 │──▓─▓─▓─▓─▓─▓─▓─▓─▓─▓──  ← significance threshold (dashed)
+      │  ▓ ▓           ▓ ▓
+ -0.5 │  ▓               ▓
+      │
+ -1.0 │
+      └──────────────────────────
+       -12  -6   0   +6  +12
+              Lag (months)
+```
+
+- **Bar chart** format (like `statsmodels.graphics.tsaplots.plot_ccf`)
+- Horizontal dashed lines at ±1.96/√N for 95% significance threshold
+- Bars coloured by significance: significant = blue, non-significant = grey
+- The peak lag is highlighted with a label: "Peak: lag -4, r = 0.67"
+- Clicking a specific lag bar updates the time series view to show that alignment
+
+### 28.3 Impulse Response Function (IRF) Visualisation
+
+For VAR-based causal analysis, the IRF shows how a one-standard-deviation shock to variable A propagates to variable B over time.
+
+**Visual design:**
+- Line plot showing the response magnitude over time (0 to τ_max periods)
+- Shaded confidence band (typically 90% or 95% from bootstrap)
+- Horizontal line at zero for reference
+- Multiple IRFs can be shown in a small-multiples grid (one panel per variable pair)
+- Title format: "Response of Food Prices to a 1-σ Rainfall Shock"
+
+**Implementation note:** IRFs are computed server-side (using `statsmodels.tsa.vector_ar.var_model.VARResults.irf()` or tigramite's causal effect estimation). The frontend receives arrays of (time_step, response_value, ci_lower, ci_upper) and renders them.
+
+### 28.4 Library Comparison for Time Series Charts
+
+| Library | Rendering | Large Data (>10k points) | React Native | Multi-Axis | Annotations | Brush/Zoom | Licence |
+|---|---|---|---|---|---|---|---|
+| **Recharts** | SVG | Moderate (sluggish >5k) | Yes | Yes (YAxis with yAxisId) | Limited | Yes (ReferenceArea) | MIT |
+| **Nivo** | SVG/Canvas/HTML | Canvas mode handles well | Yes | Limited | Limited | Via ResponsiveLine | MIT |
+| **Apache ECharts** | Canvas/WebGL | Excellent (millions via WebGL) | Via `echarts-for-react` | Yes (multiple yAxis) | Rich (markLine, markArea, markPoint) | Excellent (dataZoom) | Apache 2.0 |
+| **Observable Plot** | SVG | Moderate | Not React-native | Yes (facets) | Declarative marks | Via D3-brush | ISC |
+| **Plotly.js** | SVG/WebGL | WebGL mode handles millions | `react-plotly.js` | Yes | Yes (shapes, annotations) | Excellent (rangeslider) | MIT |
+
+Sources: [Recharts](https://recharts.org/), [Nivo](https://nivo.rocks/), [Apache ECharts](https://echarts.apache.org/), [Observable Plot](https://observablehq.com/plot/), [Plotly.js](https://plotly.com/javascript/)
+
+**Recommendation for Causal Atlas:** Use **Apache ECharts** (via `echarts-for-react`) as the primary time series library. Rationale:
+- WebGL rendering handles the data volumes we need (years of monthly data across multiple variables)
+- `dataZoom` component provides exactly the brush-and-zoom behaviour needed for temporal exploration
+- `markLine` and `markArea` support the annotation requirements (significance thresholds, event markers)
+- Multiple y-axes are first-class citizens
+- Extensive tooltip customisation for showing lag/correlation information on hover
+- Active community and regular updates (backed by Apache Foundation)
+- Server-side rendering option for PDF export
+
+For simpler views (single-variable sparklines in the variable picker), Recharts is a good lightweight choice.
+
+---
+
+## 29. Map-Based Anomaly Detection Visualisation
+
+> **Added:** March 2025
+
+### 29.1 Showing "This Grid Cell is Anomalous Right Now"
+
+Anomaly detection is a natural output of having historical baselines for every variable in every grid cell. The map should be able to show, at a glance, where current conditions deviate significantly from the historical norm.
+
+**What constitutes an anomaly:**
+- Z-score: `z = (current_value - historical_mean) / historical_std`, computed per grid cell per variable per calendar month (to account for seasonality)
+- A grid cell is flagged as anomalous if |z| > 2.0 (or a user-adjustable threshold)
+- Multi-variable anomaly: a composite score combining z-scores across selected variables (e.g., "simultaneous rainfall deficit AND food price spike AND conflict increase")
+
+### 29.2 Colour Scales for Z-Scores and Anomaly Magnitudes
+
+**Diverging colour scale** centred at z = 0:
+
+```
+  z ≤ -3.0   -2.0   -1.0    0.0   +1.0   +2.0   z ≥ +3.0
+    ████     ████   ████    ████   ████   ████    ████
+  deep      medium  light   white  light  medium  deep
+  blue      blue    blue    /grey  red    red     red
+```
+
+**Design principles (drawn from NOAA and ECMWF anomaly maps):**
+- Use a **diverging** colour scale (blue-white-red or brown-white-green for precipitation) so the direction of anomaly is immediately clear
+- NOAA's Global Temperature Anomalies Map Viewer uses anomalies based on a 1981-2010 mean, with blue for below-normal and red for above-normal — a proven and widely understood convention
+- ECMWF's extended-range anomaly charts show statistical significance: regions where the Wilcoxon-Mann-Whitney test shows significance less than 90% are displayed as blank (grey), while regions exceeding 99% significance are delimited by solid contours
+- **Saturate at the extremes** — z-scores beyond ±3 all get the deepest colour; the visual emphasis is on "extreme" vs "not extreme"
+- **Use ColorBrewer diverging palettes** (RdBu, BrBG, PRGn) which are perceptually uniform and colourblind-safe
+- **Opacity/hatching for low confidence** — if a cell has sparse data (e.g., <80% temporal coverage), reduce opacity or add diagonal hatching to indicate uncertainty
+- **Variable-specific conventions:** precipitation anomaly uses brown (dry) to green (wet); temperature uses blue (cold) to red (hot); conflict uses white to red (more is always bad); NDVI uses brown (degraded) to green (healthy)
+
+Sources: [NOAA Global Temperature Anomaly Map Viewer](https://www.climate.gov/maps-data/dataset/global-temperature-anomalies-map-viewer), [ECMWF Extended Range Forecast Products](https://www.ecmwf.int/en/forecasts/documentation-and-support/extended-range/extended-forecast-graphical-products), [Climate Reanalyzer (U. Maine)](https://climatereanalyzer.org/clim/t2_daily/), [ColorBrewer 2.0](https://colorbrewer2.org/)
+
+### 29.3 Temporal Comparison (This Month vs. Historical Average)
+
+The anomaly view needs a clear temporal reference. Two modes:
+
+**Mode 1: Current anomaly map** — Shows z-scores for the most recent data month. The legend reads "March 2025 vs. 1989-2024 average for March". This is the default landing view for operational users.
+
+**Mode 2: Anomaly time slider** — The user drags the time slider and the map updates to show the anomaly pattern for each month. This allows seeing anomalies evolve over time. Combined with animation (play button), this creates a powerful visual narrative of how crises develop.
+
+**Mode 3: Anomaly duration** — Instead of showing the current z-score, show *how many consecutive months* a cell has been anomalous. Colour scale: 1 month = light, 6+ months = saturated. This highlights chronic vs. acute anomalies.
+
+### 29.4 Inspiration from Operational Anomaly Maps
+
+| Platform | What They Do Well | What We Can Adopt |
+|---|---|---|
+| **NOAA Climate Anomaly Maps** | Clear diverging colour scales, monthly updates, reference period clearly stated | Colour conventions, reference period labelling |
+| **ECMWF Anomaly Charts** | Statistical significance overlays (blank = not significant, contours = highly significant) | Significance filtering on the anomaly map |
+| **Climate Reanalyzer** | Daily updating, interactive hover showing exact values, time series on click | Click-to-drill-down from anomaly map to time series |
+| **HungerMapLIVE** | Real-time composite index, traffic-light colour coding (green/yellow/orange/red) | Composite anomaly index combining multiple variables |
+| **FEWS NET IPC Maps** | Widely understood 5-phase colour scale for food insecurity severity | Severity classification approach for multi-variable anomaly scores |
+
+### 29.5 Multi-Variable Anomaly Composite
+
+For Causal Atlas, the most powerful anomaly view will combine anomalies across domains. Implementation approach:
+
+1. Compute z-scores independently for each selected variable per cell per month
+2. A cell is flagged as "multi-domain anomalous" if z-scores exceed the threshold in ≥2 variables simultaneously
+3. Visual encoding: use **bivariate colour mapping** — e.g., one axis for climate anomaly (blue-red), other axis for conflict anomaly (white-red), producing a 3×3 colour grid. See research on bivariate choropleth maps by Joshua Stevens.
+4. Alternative: size-of-symbol encoding — show a circle in each cell, with size ∝ number of simultaneously anomalous variables and colour = the most extreme z-score direction
+
+---
+
+## 30. Print and Export
+
+> **Added:** March 2025
+
+### 30.1 Publication-Quality Static Maps with Matplotlib + Cartopy
+
+For PDF reports and academic publications, interactive web maps are insufficient. We need a server-side rendering pipeline that produces high-resolution static images.
+
+**Technology stack:**
+- **Cartopy** (built on PROJ, shapely, matplotlib) — handles map projections, coastlines, borders, and gridlines
+- **Matplotlib** — the rendering engine; supports vector output (PDF, SVG, EPS) and raster (PNG at any DPI)
+- **GeoPandas** — for reading/plotting PRIO-GRID cells and admin boundaries
+
+**Implementation pipeline:**
+```python
+import cartopy.crs as ccrs
+import matplotlib.pyplot as plt
+import geopandas as gpd
+
+fig, ax = plt.subplots(
+    figsize=(12, 8),
+    subplot_kw={'projection': ccrs.PlateCarree()}
+)
+ax.set_extent([32, 52, -5, 15])  # East Africa bounding box
+ax.coastlines(resolution='50m')
+ax.add_feature(cartopy.feature.BORDERS, linewidth=0.5)
+
+# Plot PRIO-GRID cells with anomaly colours
+grid_gdf.plot(
+    column='z_score',
+    ax=ax,
+    cmap='RdBu_r',
+    vmin=-3, vmax=3,
+    legend=True,
+    legend_kwds={'label': 'Rainfall Anomaly (z-score)', 'shrink': 0.6}
+)
+
+ax.set_title('Rainfall Anomaly — March 2025', fontsize=14)
+fig.savefig('anomaly_map.pdf', dpi=300, bbox_inches='tight')
+```
+
+**Quality guidelines:**
+- Minimum 300 DPI for print, 150 DPI for screen
+- Use vector formats (PDF, SVG) where possible — they scale infinitely and have smaller file sizes for map-type graphics
+- Include: title, legend with units, scale bar, north arrow, data source attribution, date of data, projection info
+- Use journal-standard fonts (Helvetica, Arial, Times New Roman) to avoid rendering issues in LaTeX/Word
+
+Sources: [Cartopy documentation](https://scitools.org.uk/cartopy/docs/latest/), [Matplotlib savefig](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html), [Earth and Environmental Data Science — Maps in Scientific Python](https://earth-env-data-science.github.io/lectures/mapping_cartopy.html)
+
+### 30.2 PDF Report Generation from Analysis Results
+
+A "Generate Report" feature should produce a self-contained PDF summarising an analysis session.
+
+**Report structure:**
+1. **Header:** Causal Atlas logo, report title, generation date
+2. **Analysis Parameters:** Region, time range, variables selected, method, significance threshold
+3. **Static Map:** Matplotlib/Cartopy rendering of the study area with the primary variable displayed
+4. **Causal Graph Image:** Tigramite `plot_graph()` output as a static figure (matplotlib → PNG/SVG)
+5. **Key Findings Table:** Variable pair, lag, effect strength, p-value, direction
+6. **Time Series Plots:** One figure per significant variable pair, with lag alignment shown
+7. **AI Interpretation:** Claude-generated narrative summary of the findings
+8. **Data Quality Summary:** Completeness metrics per variable per region
+9. **Sources and Citations:** Auto-generated list of all data sources used (ACLED, CHIRPS, etc.) with standard citation formats
+10. **Methodology Notes:** Brief description of the statistical method applied
+
+**PDF generation libraries (Python):**
+
+| Library | Approach | Pros | Cons |
+|---|---|---|---|
+| **WeasyPrint** | HTML/CSS → PDF | Use existing web templates, supports CSS flexbox/grid | Heavy dependency (Pango, Cairo); moderate rendering fidelity |
+| **ReportLab** | Programmatic PDF construction | Full control, lightweight, no browser dependency | Verbose API, manual layout |
+| **matplotlib.backends.backend_pdf.PdfPages** | Multi-page matplotlib figures → PDF | Perfect for figure-heavy reports; already in the stack | Not for rich text layout |
+| **Typst** (via `typst-py`) | Modern typesetting language → PDF | Beautiful output, fast compilation, programmable | Newer ecosystem, less mature tooling |
+| **Quarto** | Markdown + code → PDF/HTML | Reproducible reports, supports Python/R | Requires Quarto CLI installation; overkill for API-generated reports |
+
+**Recommendation:** Use **WeasyPrint** for the main report layout (HTML template with Jinja2 for dynamic content) and embed matplotlib-generated figures as inline SVGs or base64-encoded PNGs. This approach lets us maintain a single HTML template that works for both web preview and PDF export.
+
+### 30.3 Making Figures Reproducible
+
+Every figure generated by Causal Atlas should be reproducible. This means:
+
+- **Embed metadata in the figure file:** Use PNG `tEXt` chunks or PDF metadata fields to store: data query parameters, analysis method, software version, random seed (if applicable)
+- **Provide a "Reproduce" button:** Generates a Python script (or Jupyter notebook) that recreates the figure from raw data using Causal Atlas's API
+- **Pin data versions:** Each figure references a specific data snapshot (versioned via DuckDB table snapshots or Parquet file hashes)
+- **Deterministic colour mapping:** Colours assigned to variables are consistent across sessions (defined in a central theme configuration, not randomly assigned)
+- **Figure identifier:** Each exported figure gets a unique hash (SHA-256 of parameters + data version), printed in the figure caption for traceability

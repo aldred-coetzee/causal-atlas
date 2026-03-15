@@ -1057,3 +1057,1656 @@ See the World Bank deep dive file (`world-bank.md`) for details. Key addition he
 9. **Governance ecosystem:** V-Dem (democratic institutions), WGI (governance quality), FSI (fragility), INFORM Severity (crisis severity), and the Organized Crime Index provide a comprehensive governance context that can be joined to PRIO-GRID cells via country assignment.
 
 10. **Arms and security:** SIPRI arms transfers + GTD terrorism events + UCDP/ACLED conflict events together provide a multi-faceted picture of security dynamics at the country and sub-national levels.
+
+---
+
+## Extended Dataset Catalogue
+
+*Added: March 2025*
+
+The following sections document additional datasets not covered above or in individual deep-dive files, organised by domain. Each entry provides enough detail to evaluate the dataset for Causal Atlas integration.
+
+---
+
+### Climate and Weather (Beyond CHIRPS and ERA5)
+
+#### 28. MERRA-2 (Modern-Era Retrospective Analysis for Research and Applications, Version 2)
+
+**What it is:** NASA's atmospheric reanalysis dataset produced by the Global Modeling and Assimilation Office (GMAO). Complements ERA5 by providing an independent reanalysis with different model physics and assimilation system.
+
+**Maintained by:** NASA GMAO / Goddard Earth Sciences Data and Information Services Center (GES DISC)
+
+**Spatial coverage:** Global, 0.5° latitude x 0.625° longitude (~50 km)
+
+**Temporal coverage:** 1980 to present
+
+**Temporal resolution:** Hourly, 3-hourly, daily, monthly, and monthly diurnal
+
+**Access method:** NASA GES DISC (https://disc.gsfc.nasa.gov/), OPeNDAP, Google Earth Engine (`NASA/GSFC/MERRA/slv/2`)
+
+**Data format:** NetCDF4 (lossy compression)
+
+**Licence:** Open, free. Requires NASA Earthdata login (https://urs.earthdata.nasa.gov/) with "NASA GESDISC DATA ARCHIVE" approval.
+
+**Key variables:** Temperature, humidity, wind speed/direction, precipitation, radiation, soil moisture, surface energy fluxes, aerosol diagnostics (unique strength over ERA5)
+
+**How it relates to Causal Atlas:** Provides an independent check on ERA5 climate fields. Aerosol/air quality reanalysis variables are unique to MERRA-2 and support pollution-health causal chains. Hourly resolution enables sub-daily event analysis.
+
+**Python access:**
+```python
+# Via the merra package
+pip install merra
+# Or direct OPeNDAP access with xarray
+import xarray as xr
+ds = xr.open_dataset('https://goldsmr4.gesdisc.eosdis.nasa.gov/opendap/...')
+```
+
+**Sources:** https://gmao.gsfc.nasa.gov/gmao-products/merra-2/data-access_merra-2/, https://climatedataguide.ucar.edu/climate-data/nasas-merra2-reanalysis
+
+---
+
+#### 29. CMORPH (CPC Morphing Technique) Precipitation
+
+**What it is:** Satellite-based global precipitation estimates using morphing of passive microwave retrievals with infrared data. Higher spatial/temporal resolution than CHIRPS but shorter record.
+
+**Maintained by:** NOAA CPC / NCEI
+
+**Spatial coverage:** Global, 60°S-60°N
+
+**Spatial resolution:** 8 km x 8 km (full-res) or 0.25° (regridded)
+
+**Temporal coverage:** January 1998 to present
+
+**Temporal resolution:** 30-minute (full-res), hourly, daily
+
+**Access method:** Direct download from NCEI: https://www.ncei.noaa.gov/data/cmorph-high-resolution-global-precipitation-estimates/access/
+
+**Data format:** NetCDF, raw binary
+
+**Licence:** Open, free (NOAA CDR)
+
+**Key variables:** Precipitation rate (mm/hr)
+
+**How it relates to Causal Atlas:** Sub-daily precipitation for extreme event analysis (flash floods, storm impacts). Complements CHIRPS (which is daily/pentadal). Useful for testing short-lag precipitation-to-disaster causal chains.
+
+**Python access:**
+```python
+import xarray as xr
+ds = xr.open_dataset('pr_30min_CMORPH_V1_YYYYMMDD.nc')
+```
+
+**Sources:** https://www.ncei.noaa.gov/products/climate-data-records/precipitation-cmorph, https://climatedataguide.ucar.edu/climate-data/cmorph-cpc-morphing-technique-high-resolution-precipitation-60s-60n
+
+---
+
+#### 30. IMERG (GPM Integrated Multi-satellitE Retrievals)
+
+**What it is:** NASA's state-of-the-art merged satellite precipitation product from the Global Precipitation Measurement (GPM) mission. Successor to TRMM-era products.
+
+**Maintained by:** NASA GPM / GES DISC
+
+**Spatial coverage:** Global, 90°S-90°N (wider than CMORPH/CHIRPS)
+
+**Spatial resolution:** 0.1° x 0.1° (~10 km)
+
+**Temporal coverage:** June 2000 to present (reprocessed back to TRMM era)
+
+**Temporal resolution:** 30-minute, daily, monthly
+
+**Access method:** GES DISC, Google Earth Engine (`NASA/GPM_L3/IMERG_V07`), Giovanni
+
+**Data format:** HDF5, NetCDF
+
+**Licence:** Open, free. NASA Earthdata login required.
+
+**Key variables:** Precipitation rate, precipitation type (convective vs stratiform), quality index
+
+**Product tiers:** Early Run (4-hr latency), Late Run (14-hr latency), Final Run (3.5-month latency, gauge-calibrated)
+
+**Current version:** V07 (released 2024, fully reprocessed)
+
+**How it relates to Causal Atlas:** Best available near-global, high-resolution precipitation. 0.1° resolution is finer than PRIO-GRID (0.5°) so can be cleanly aggregated. Precipitation type separation is unique and useful for distinguishing flood-causing events.
+
+**Python access:**
+```python
+# Via Google Earth Engine
+import ee
+ee.Initialize()
+imerg = ee.ImageCollection('NASA/GPM_L3/IMERG_V07')
+```
+
+**Sources:** https://gpm.nasa.gov/data/imerg, https://developers.google.com/earth-engine/datasets/catalog/NASA_GPM_L3_IMERG_V07
+
+---
+
+#### 31. Berkeley Earth Surface Temperature (BEST)
+
+**What it is:** Independent analysis of land and ocean surface temperature using statistical methods designed to handle station discontinuities and inhomogeneities.
+
+**Maintained by:** Berkeley Earth (non-profit)
+
+**Spatial coverage:** Global land + ocean
+
+**Spatial resolution:** 1° x 1° latitude-longitude grid
+
+**Temporal coverage:** 1850 to present (land), 1850 to present (land+ocean)
+
+**Temporal resolution:** Monthly
+
+**Access method:** Direct download from https://berkeleyearth.org/data/
+
+**Data format:** NetCDF4
+
+**Licence:** Open (Creative Commons)
+
+**Key variables:** Temperature anomaly (°C relative to 1951-1980 baseline)
+
+**Note:** As of mid-2025, the 1° x 1° gridded product updates have been paused; high-resolution products available by request.
+
+**How it relates to Causal Atlas:** Temperature anomaly as a driver for heat-health impacts, agricultural stress, and conflict. Independent from CRU TS and ERA5, useful for cross-validation.
+
+**Python access:**
+```python
+import xarray as xr
+ds = xr.open_dataset('Complete_TAVG_LatLong1.nc')
+```
+
+**Sources:** https://berkeleyearth.org/data/, https://essd.copernicus.org/articles/12/3469/2020/
+
+---
+
+#### 32. CRU TS (Climatic Research Unit Time-Series)
+
+**What it is:** Station-based gridded monthly climate dataset, the most widely used observational climate dataset in research. Critically, its native 0.5° resolution matches PRIO-GRID exactly.
+
+**Maintained by:** Climatic Research Unit, University of East Anglia
+
+**Spatial coverage:** Global land areas (no ocean)
+
+**Spatial resolution:** 0.5° x 0.5° (matches PRIO-GRID)
+
+**Temporal coverage:** January 1901 to December 2024 (v4.09, released March 2025)
+
+**Temporal resolution:** Monthly
+
+**Access method:** CEDA Archive (https://catalogue.ceda.ac.uk/), AWS Open Data (https://registry.opendata.aws/wbg-cckp/), World Bank CCKP
+
+**Data format:** NetCDF
+
+**Licence:** Open, free (Open Government Licence for public sector information)
+
+**Key variables:** Precipitation (pre), mean temperature (tmp), diurnal temperature range (dtr), max/min temperature (tmx/tmn), cloud cover (cld), vapour pressure (vap), wet day frequency (wet), frost day frequency (frs), potential evapotranspiration (pet)
+
+**How it relates to Causal Atlas:** **Priority dataset** — native 0.5° resolution means zero regridding needed for PRIO-GRID. Long record (1901-present) enables historical causal analysis. PET variable directly supports drought/water balance calculations.
+
+**Python access:**
+```python
+import xarray as xr
+ds = xr.open_dataset('cru_ts4.09.1901.2024.tmp.dat.nc')
+# Pre-aggregated to 0.5° — direct PRIO-GRID alignment
+```
+
+**Sources:** https://crudata.uea.ac.uk/cru/data/hrg/, https://catalogue.ceda.ac.uk/uuid/9cf07e92afaa405da4f40b6733f362d3/
+
+---
+
+#### 33. TerraClimate
+
+**What it is:** High-resolution monthly climate and water balance dataset combining climatological normals with time-varying anomalies from CRU TS and JRA-55 reanalysis.
+
+**Maintained by:** Climatology Lab, University of Idaho (John Abatzoglou)
+
+**Spatial coverage:** Global land
+
+**Spatial resolution:** ~4 km (1/24th degree)
+
+**Temporal coverage:** 1958 to present
+
+**Temporal resolution:** Monthly
+
+**Access method:** Google Earth Engine (`IDAHO_EPSCOR/TERRACLIMATE`), Microsoft Planetary Computer (Zarr), THREDDS server, direct NetCDF download
+
+**Data format:** NetCDF, Zarr (Planetary Computer)
+
+**Licence:** Open, Creative Commons
+
+**Key variables:** Max/min temperature, precipitation, downward surface shortwave radiation, wind speed, vapour pressure, vapour pressure deficit, snow water equivalent, runoff, actual evapotranspiration (aet), climatic water deficit (def), soil moisture, PDSI (Palmer Drought Severity Index)
+
+**How it relates to Causal Atlas:** Climatic water deficit (def) and PDSI are pre-computed drought indicators — no need to calculate from raw climate variables. 4 km resolution is much finer than PRIO-GRID, enabling sub-grid analysis. Supports drought→agriculture→food security causal chains.
+
+**Python access:**
+```python
+# Via Planetary Computer
+import pystac_client
+catalog = pystac_client.Client.open("https://planetarycomputer.microsoft.com/api/stac/v1")
+search = catalog.search(collections=["terraclimate"])
+# Or via xarray + THREDDS
+import xarray as xr
+ds = xr.open_dataset('http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_terraclimate_def_1958_CurrentYear_GLOBE.nc')
+```
+
+**Sources:** https://www.climatologylab.org/terraclimate.html, https://developers.google.com/earth-engine/datasets/catalog/IDAHO_EPSCOR_TERRACLIMATE
+
+---
+
+#### 34. SPEI Global Drought Monitor
+
+**What it is:** Pre-computed Standardised Precipitation-Evapotranspiration Index at multiple timescales, updated monthly. SPEI captures drought severity by accounting for both precipitation and evaporative demand.
+
+**Maintained by:** CSIC (Spanish National Research Council), Santiago Begueria and Sergio Vicente-Serrano
+
+**Spatial coverage:** Global land
+
+**Spatial resolution:** 1° (based on CRU TS + GPCC data)
+
+**Temporal coverage:** 1955 to present (updated monthly with ~1 month lag)
+
+**Temporal resolution:** Monthly, at timescales of 1, 3, 6, 12, 24, and 48 months
+
+**Access method:** https://spei.csic.es/database.html (NetCDF download), https://spei.csic.es/map/ (interactive). Also available via Copernicus CDS.
+
+**Data format:** NetCDF, CSV (for point time series)
+
+**Licence:** Open, but last 4 weeks restricted to licensed users on CSIC portal. Copernicus CDS version is fully open.
+
+**Key variables:** SPEI at 1, 3, 6, 12, 24, 48 month timescales
+
+**How it relates to Causal Atlas:** Pre-computed drought index eliminates need to calculate from raw climate data. Multi-timescale SPEI supports testing different lag structures (e.g., SPEI-3 for agricultural drought, SPEI-12 for hydrological drought). Direct input to drought→food security→conflict causal chains.
+
+**Python access:**
+```python
+import xarray as xr
+ds = xr.open_dataset('spei01.nc')  # Downloaded from spei.csic.es
+# Or via Copernicus CDS API (cdsapi package)
+```
+
+**Sources:** https://spei.csic.es/, https://cds.climate.copernicus.eu/datasets/derived-drought-historical-monthly
+
+---
+
+#### 35. Copernicus Climate Data Store (CDS) — Full Catalogue
+
+**What it is:** One-stop shop for climate data providing access to observations, reanalyses, seasonal forecasts, and climate projections. Extends far beyond ERA5.
+
+**Maintained by:** ECMWF / Copernicus Climate Change Service (C3S)
+
+**Key datasets beyond ERA5:**
+- ERA5-Land (enhanced land component, 9 km resolution)
+- UERRA (regional European reanalysis, 5.5 km)
+- Seasonal forecasts (SEAS5, multiple centres)
+- CMIP6 climate projections (downscaled)
+- Satellite-derived ECVs (soil moisture, sea surface temperature, fire, lake data, glaciers, etc.)
+- Agroclimatic indicators (growing degree days, frost days, etc.)
+- Drought indices (SPI, SPEI, soil moisture anomalies)
+- Fire danger indices (FWI)
+
+**Access method:** CDS API (`cdsapi` Python package), web interface. Free registration required.
+
+**Data format:** NetCDF, GRIB
+
+**Licence:** Copernicus licence — free, open, with attribution (CC BY 4.0 equivalent for most products)
+
+**How it relates to Causal Atlas:** Single API for dozens of climate-related variables. Agroclimatic indicators and drought indices are pre-computed, saving processing effort. Seasonal forecasts enable predictive causal models.
+
+**Python access:**
+```python
+pip install cdsapi
+# or newer: pip install ecmwf-datastores-client
+import cdsapi
+c = cdsapi.Client()
+c.retrieve('derived-drought-historical-monthly', {...}, 'download.nc')
+```
+
+**Sources:** https://cds.climate.copernicus.eu/, https://github.com/ecmwf/cdsapi
+
+---
+
+#### 36. NOAA Climate Data Online (CDO)
+
+**What it is:** Station-based historical weather observations from a global network of weather stations. Complements gridded products by providing point-source measurements.
+
+**Maintained by:** NOAA NCEI
+
+**Spatial coverage:** Global (~100,000+ stations, unevenly distributed)
+
+**Temporal coverage:** Varies by station; some back to 1700s, most from mid-1900s
+
+**Temporal resolution:** Hourly, daily, monthly summaries
+
+**Access method:** REST API (v2) at https://www.ncei.noaa.gov/access/services/data/v1 (token required, 5 req/sec, 10,000/day limit), web interface
+
+**Data format:** JSON (API), CSV (download)
+
+**Licence:** Open, free (US Government public domain)
+
+**Key variables:** Temperature (min, max, mean), precipitation, snowfall, wind, pressure, humidity
+
+**How it relates to Causal Atlas:** Ground-truth validation for gridded products (ERA5, CRU TS). Station density itself is a metadata variable (areas with few stations have less reliable gridded products).
+
+**Python access:**
+```python
+# pyncei library
+pip install pyncei
+# Or direct requests
+import requests
+headers = {'token': 'YOUR_TOKEN'}
+r = requests.get('https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&...', headers=headers)
+```
+
+**Sources:** https://www.ncei.noaa.gov/cdo-web/, https://www.ncdc.noaa.gov/cdo-web/webservices/v2
+
+---
+
+#### 37. FLDAS (FEWS NET Land Data Assimilation System)
+
+**What it is:** Land surface model outputs specifically designed for food security monitoring in Africa and other food-insecure regions. Uses Noah 3.6.1 land surface model driven by CHIRPS rainfall and MERRA-2 meteorology.
+
+**Maintained by:** NASA GSFC / USGS FEWS NET
+
+**Spatial coverage:** Global (strongest focus on Africa)
+
+**Spatial resolution:** 0.1° x 0.1° (~10 km)
+
+**Temporal coverage:** January 1982 to present
+
+**Temporal resolution:** Monthly
+
+**Access method:** Google Earth Engine (`NASA/FLDAS/NOAH01/C/GL/M/V001`), NASA GES DISC (NetCDF), USGS FEWS NET portal (http://earlywarning.usgs.gov/fews)
+
+**Data format:** NetCDF
+
+**Licence:** Open, free for research, education, nonprofit
+
+**Key variables:** Soil moisture (0-10 cm, 10-40 cm, 40-100 cm, 100-200 cm), evapotranspiration, surface runoff, baseflow-groundwater runoff, soil temperature, snow cover
+
+**How it relates to Causal Atlas:** Soil moisture is a critical mediator in drought→crop failure→food crisis causal chains. FLDAS is purpose-built for food security analysis, making it the most directly relevant land surface product for Causal Atlas.
+
+**Python access:**
+```python
+# Via Google Earth Engine
+import ee
+fldas = ee.ImageCollection('NASA/FLDAS/NOAH01/C/GL/M/V001')
+# Or via xarray from GES DISC
+```
+
+**Sources:** https://ldas.gsfc.nasa.gov/fldas, https://developers.google.com/earth-engine/datasets/catalog/NASA_FLDAS_NOAH01_C_GL_M_V001
+
+---
+
+### Conflict, Security, and Governance
+
+#### 38. Global Terrorism Database (GTD)
+
+**What it is:** The most comprehensive unclassified database of terrorist attacks worldwide. Contains 200,000+ events from 1970 to 2020.
+
+**Maintained by:** START (National Consortium for the Study of Terrorism and Responses to Terrorism), University of Maryland
+
+**Spatial coverage:** Global
+
+**Temporal coverage:** 1970-2020 (note: data collection methodology changed significantly in 1998, 2008, and 2012)
+
+**Access method:** Request access via https://www.start.umd.edu/download-global-terrorism-database. As of 2025, access requires registration and personal information submission. Also available on Kaggle for older versions.
+
+**Data format:** CSV/Excel
+
+**Licence:** Academic use; requires registration and agreement to terms
+
+**Key variables:** Date, country, city, latitude/longitude, attack type, target type, weapon type, group name, fatalities, injuries, property damage
+
+**Caveats:** Dataset is no longer actively updated (closed as of ~2022). Methodology changes at 1998 and 2012 create structural breaks in the time series.
+
+**How it relates to Causal Atlas:** Geocoded terrorism events enable spatial analysis of terrorism→economic disruption, terrorism→displacement, and governance→terrorism causal chains. Complements UCDP/ACLED with specific terrorism-focused coding.
+
+**Python access:**
+```python
+import pandas as pd
+gtd = pd.read_csv('globalterrorismdb.csv', encoding='latin-1')
+```
+
+**Sources:** https://www.start.umd.edu/research-projects/global-terrorism-database-gtd
+
+---
+
+#### 39. SIPRI Military Expenditure Database (MILEX)
+
+**What it is:** Consistent time series of military spending by country, enabling cross-national and temporal comparison of defence burden.
+
+**Maintained by:** Stockholm International Peace Research Institute (SIPRI)
+
+**Spatial coverage:** Global (173 countries)
+
+**Temporal coverage:** 1949-2024
+
+**Temporal resolution:** Annual
+
+**Access method:** Web interface and Excel download at https://milex.sipri.org/, also available via World Bank API (indicator MS.MIL.XPND.CD)
+
+**Data format:** Excel, CSV
+
+**Licence:** Open access for non-commercial use, with citation required
+
+**Key variables:** Military expenditure in constant USD, current USD, share of GDP, share of government spending, per capita
+
+**How it relates to Causal Atlas:** Military spending as a proxy for security environment and state capacity. Supports arms race→conflict, military spending→development trade-off causal chains.
+
+**Python access:**
+```python
+# Via World Bank API
+import wbgapi as wb
+df = wb.data.DataFrame('MS.MIL.XPND.CD', economy='all')
+# Or via milRex R package (no direct Python equivalent; download Excel)
+```
+
+**Sources:** https://www.sipri.org/databases/milex
+
+---
+
+#### 40. SIPRI Arms Transfers Database
+
+**What it is:** Records international transfers of major conventional weapons using the Trend Indicator Value (TIV) methodology, which measures military resource transfer rather than financial value.
+
+**Maintained by:** SIPRI
+
+**Spatial coverage:** Global
+
+**Temporal coverage:** 1950-2025 (updated March 2026)
+
+**Temporal resolution:** Annual
+
+**Access method:** Web interface at https://armstransfers.sipri.org/, CSV download via "Download as CSV" button on Transfer Register page
+
+**Data format:** CSV
+
+**Licence:** Open access for non-commercial use
+
+**Key variables:** Supplier, recipient, weapon description, weapon designation, TIV (trend indicator value), order date, delivery years, number ordered/delivered
+
+**Caveats:** TIV values should NOT be compared to GDP or financial figures. Best used for trend analysis only.
+
+**How it relates to Causal Atlas:** Arms flows as leading indicators of conflict escalation. Supports arms imports→conflict onset/intensity causal chains.
+
+**Python access:**
+```python
+import pandas as pd
+df = pd.read_csv('trade-register.csv')
+```
+
+**Sources:** https://www.sipri.org/databases/armstransfers
+
+---
+
+#### 41. Fragile States Index (FSI)
+
+**What it is:** Annual index ranking 179 countries on 12 indicators of state fragility across social, economic, and political dimensions.
+
+**Maintained by:** Fund for Peace
+
+**Spatial coverage:** Global (179 countries)
+
+**Temporal coverage:** 2006 to present
+
+**Temporal resolution:** Annual
+
+**Access method:** Excel download from https://fragilestatesindex.org/global-data/, also available on Mendeley Data (2006-2024)
+
+**Data format:** Excel, CSV
+
+**Licence:** Open for research use
+
+**Key variables:** 12 sub-indicators: Security Apparatus, Factionalized Elites, Group Grievance, Economic Decline, Uneven Development, Human Flight, State Legitimacy, Public Services, Human Rights, Demographic Pressures, Refugees/IDPs, External Intervention. Total score (0-120, higher = more fragile).
+
+**How it relates to Causal Atlas:** Composite fragility score as both an outcome variable (what drives fragility?) and a contextual variable (does fragility moderate the climate→conflict link?). Annual resolution limits temporal analysis but useful for cross-sectional comparison.
+
+**Python access:**
+```python
+import pandas as pd
+fsi = pd.read_excel('fsi-2024.xlsx')
+```
+
+**Sources:** https://fragilestatesindex.org/, https://data.mendeley.com/datasets/bhbcjtgjdm/1
+
+---
+
+#### 42. Polity5
+
+**What it is:** The most widely used dataset for measuring regime type on a -10 (full autocracy) to +10 (full democracy) scale, based on codified characteristics of political authority.
+
+**Maintained by:** Center for Systemic Peace
+
+**Spatial coverage:** Global (167 countries with pop > 500,000)
+
+**Temporal coverage:** 1800-2018
+
+**Temporal resolution:** Annual (with exact dates for regime transitions)
+
+**Access method:** Download from http://www.systemicpeace.org/inscrdata.html
+
+**Data format:** SPSS (.sav), Excel (.xls)
+
+**Licence:** Free for academic use
+
+**Key variables:** polity2 (combined polity score, -10 to +10), democ (democracy score), autoc (autocracy score), durable (regime durability in years), xconst (executive constraints), polcomp (political competition)
+
+**Caveats:** Dataset ends at 2018 and is unlikely to be updated further. V-Dem is the recommended successor for ongoing analysis.
+
+**How it relates to Causal Atlas:** Regime type as a moderator of climate→conflict and economic→conflict causal chains. The "anocracy" hypothesis (intermediate polity scores correlate with higher conflict risk) is testable.
+
+**Python access:**
+```python
+import pandas as pd
+polity = pd.read_excel('p5v2018.xls')
+# Or via democracyData R package
+```
+
+**Sources:** https://www.systemicpeace.org/polityproject.html
+
+---
+
+#### 43. Freedom House Freedom in the World
+
+**What it is:** Annual assessment of political rights and civil liberties for every country and select territories, using a standardised methodology since 1972.
+
+**Maintained by:** Freedom House
+
+**Spatial coverage:** Global (195 countries + 15 territories)
+
+**Temporal coverage:** 1972 to present
+
+**Temporal resolution:** Annual
+
+**Access method:** Excel download from https://freedomhouse.org/report/freedom-world (direct URL: https://freedomhouse.org/sites/default/files/2025-02/Country_and_Territory_Ratings_and_Statuses_FIW_1973-2024.xlsx)
+
+**Data format:** Excel
+
+**Licence:** Open for research use with attribution
+
+**Key variables:** Political Rights score (1-7, lower = more free), Civil Liberties score (1-7), Status (Free/Partly Free/Not Free), Aggregate score (0-100, 25 indicators)
+
+**How it relates to Causal Atlas:** Civil liberties and political rights as contextual variables that moderate other causal chains (e.g., press freedom → data quality, political repression → protest → conflict).
+
+**Python access:**
+```python
+import pandas as pd
+fh = pd.read_excel('Country_and_Territory_Ratings_and_Statuses_FIW_1973-2024.xlsx')
+```
+
+**Sources:** https://freedomhouse.org/report/freedom-world
+
+---
+
+#### 44. Correlates of War (COW)
+
+**What it is:** The foundational quantitative international relations dataset, providing standardised data on interstate wars, militarised disputes, alliances, trade, and state system membership since 1816.
+
+**Maintained by:** Correlates of War Project (consortium of universities)
+
+**Spatial coverage:** Global (all state system members)
+
+**Temporal coverage:** 1816-2014 (varies by sub-dataset)
+
+**Key sub-datasets:**
+| Dataset | Coverage | Unit |
+|---------|----------|------|
+| Interstate Wars (v4.0) | 1816-2010 | War-dyad-year |
+| Militarised Interstate Disputes (v5.0) | 1816-2014 | Dispute-dyad-year |
+| Bilateral Trade (v4.0) | 1870-2014 | Dyad-year |
+| Alliances (v4.1) | 1816-2012 | Alliance-year |
+| National Material Capabilities (v6.0) | 1816-2016 | Country-year |
+
+**Access method:** Download from https://correlatesofwar.org/data-sets/
+
+**Data format:** CSV (zipped)
+
+**Licence:** Free for academic use; no redistribution without permission
+
+**How it relates to Causal Atlas:** The National Material Capabilities (CINC scores) provide a standardised measure of state power. Trade data supports economic interdependence→peace/conflict analysis. MID data complements UCDP for pre-2014 analysis.
+
+**Python access:**
+```python
+import pandas as pd
+mids = pd.read_csv('MIDA_5_0.csv')
+```
+
+**Sources:** https://correlatesofwar.org/data-sets/
+
+---
+
+#### 45. REIGN (Rulers, Elections, and Irregular Governance)
+
+**What it is:** Monthly leader-level dataset covering leadership tenures, regime types, elections, and irregular governance events (coups, coup attempts) for all independent countries.
+
+**Maintained by:** One Earth Future Foundation (OEF Research)
+
+**Spatial coverage:** Global (201 countries)
+
+**Temporal coverage:** January 1950 to present (updated monthly)
+
+**Temporal resolution:** Monthly (unique among governance datasets)
+
+**Access method:** Direct CSV download from https://oefdatascience.github.io/REIGN.github.io/menu/reign_current.html
+
+**Data format:** CSV
+
+**Licence:** Open
+
+**Key variables:** Leader name, leader gender, leader age, regime type (6 categories), government type, election type, election date, anticipated election, irregular leader change, coup attempt
+
+**How it relates to Causal Atlas:** Monthly temporal resolution aligns with Causal Atlas's primary time unit. Leadership changes and elections as potential triggers or moderators of conflict, economic disruption, and policy change. Coup events are a key outcome variable for governance instability analysis.
+
+**Python access:**
+```python
+import pandas as pd
+reign = pd.read_csv('REIGN_current.csv')
+```
+
+**Sources:** https://oefdatascience.github.io/REIGN.github.io/, https://www.oefresearch.org/datasets/reign
+
+---
+
+#### 46. Mass Mobilization Project
+
+**What it is:** Dataset of protest events against governments, coding protester demands, government responses, protest location, and protester identities.
+
+**Maintained by:** David Clark (Binghamton University) and Patrick Regan (University of Notre Dame)
+
+**Spatial coverage:** Global (162 countries)
+
+**Temporal coverage:** 1990-2020
+
+**Temporal resolution:** Event-level (daily dates)
+
+**Access method:** Harvard Dataverse: https://dataverse.harvard.edu/dataverse/MMdata
+
+**Data format:** CSV, Stata
+
+**Licence:** Open academic use
+
+**Key variables:** Country, date, city, protest issue (14 categories), number of protesters, government response type (7 categories: ignore, accommodation, arrests, beatings, shootings, killings, crowd dispersal)
+
+**Caveats:** Data collection may not continue beyond 2020. Related but separate: Mass Mobilization in Autocracies Database (MMAD) covers city-level events with daily resolution.
+
+**How it relates to Causal Atlas:** Protest events as outcome of economic stress, food price shocks, or governance failures. Government response type enables analysis of repression→escalation dynamics.
+
+**Python access:**
+```python
+import pandas as pd
+mm = pd.read_csv('Mass-Mobilization-Protest-Data.csv')
+```
+
+**Sources:** https://massmobilization.github.io/, https://dataverse.harvard.edu/dataverse/MMdata
+
+---
+
+#### 47. SCAD (Social Conflict Analysis Database)
+
+**What it is:** Event-level database of social conflict in Africa, Mexico, Central America, and the Caribbean, including protests, riots, strikes, inter-communal violence, and government violence against civilians — event types often missed by UCDP/ACLED.
+
+**Maintained by:** Cullen Hendrix and Idean Salehyan (originally at UT Austin Strauss Center, now at University of Denver)
+
+**Spatial coverage:** All of Africa, Mexico, Central America, Caribbean (countries with pop > 1 million)
+
+**Temporal coverage:** 1990-2017
+
+**Temporal resolution:** Event-level (daily dates)
+
+**Access method:** Download from https://www.strausscenter.org/ccaps-research-areas/social-conflict/database/ or https://korbel.du.edu/sie/social-conflict-analysis-database/
+
+**Data format:** CSV, Stata
+
+**Licence:** Open for academic use
+
+**Key variables:** Event type (9 categories), location (lat/lon for many events), actors, targets, issues, government response, fatalities, duration
+
+**How it relates to Causal Atlas:** Captures lower-intensity social conflict (strikes, protests, communal clashes) that UCDP misses. Particularly strong for African social conflict analysis. Complements ACLED for pre-2018 data.
+
+**Python access:**
+```python
+import pandas as pd
+scad = pd.read_csv('SCAD_2017.csv')
+```
+
+**Sources:** https://www.strausscenter.org/ccaps-research-areas/social-conflict/database/
+
+---
+
+### Population, Migration, and Displacement
+
+#### 48. Meta (Facebook) Data for Good — High Resolution Population Density Maps
+
+**What it is:** Population density maps using machine learning on high-resolution satellite imagery to identify buildings, with census population counts allocated to detected settlements. Also provides movement range maps and disaster displacement maps.
+
+**Maintained by:** Meta / CIESIN Columbia University
+
+**Spatial coverage:** Global (~200 countries)
+
+**Spatial resolution:** ~30 m (building footprints), aggregated to various grid sizes
+
+**Temporal coverage:** Baseline maps (various years); movement data from 2020+
+
+**Access method:** Humanitarian Data Exchange (HDX): https://data.humdata.org/organization/meta, AWS Open Data: https://registry.opendata.aws/dataforgood-fb-hrsl/
+
+**Data format:** GeoTIFF, CSV
+
+**Licence:** Creative Commons Attribution (CC BY). Not derived from Facebook user data.
+
+**Key variables:** Population count per grid cell, demographic breakdowns (age, sex), movement range (% change from baseline), crisis displacement estimates
+
+**How it relates to Causal Atlas:** Highest-resolution freely available population data. Enables precise population-at-risk calculations for any hazard event. Movement data supports displacement tracking after disasters.
+
+**Python access:**
+```python
+import rasterio
+# Download from HDX or AWS, then:
+with rasterio.open('population_density.tif') as src:
+    pop = src.read(1)
+```
+
+**Sources:** https://dataforgood.facebook.com/dfg/tools/high-resolution-population-density-maps, https://data.humdata.org/organization/meta
+
+---
+
+#### 49. UNHCR Microdata Library
+
+**What it is:** Anonymised individual-level and household-level survey data from refugee and displaced population assessments, including intentions surveys, livelihoods assessments, and protection monitoring.
+
+**Maintained by:** UNHCR
+
+**Spatial coverage:** 60+ countries (wherever UNHCR operates)
+
+**Temporal coverage:** Various (most surveys from 2015 onwards)
+
+**Access method:** https://microdata.unhcr.org/ — "public use" datasets freely downloadable; "licensed use" datasets require application
+
+**Data format:** CSV, Stata, SPSS
+
+**Licence:** Public Use (CC-equivalent) or Licensed Use (application required)
+
+**Key variables:** Varies by survey; typically includes demographics, displacement history, shelter type, food security, livelihoods, intentions (return, local integration, resettlement), protection concerns
+
+**Current holdings:** 1,049+ datasets (as of March 2026)
+
+**How it relates to Causal Atlas:** Ground-truth data on displaced populations, complementing aggregate UNHCR statistics. Intentions data supports predictive modelling of return/onward movement. Can validate displacement estimates from other sources.
+
+**Python access:**
+```python
+import pandas as pd
+# Download datasets from microdata.unhcr.org, then:
+survey = pd.read_csv('unhcr_survey_data.csv')
+```
+
+**Sources:** https://microdata.unhcr.org/
+
+---
+
+#### 50. IOM Displacement Tracking Matrix (DTM)
+
+**What it is:** Systematic approach to tracking and monitoring displacement, providing regularly updated displacement figures, flow monitoring, and multi-sectoral needs assessments.
+
+**Maintained by:** International Organization for Migration (IOM)
+
+**Spatial coverage:** 90+ countries
+
+**Temporal coverage:** Varies by country (most operations from 2014+)
+
+**Access method:** REST API v3 at https://dtm.iom.int/data-and-analysis/dtm-api (requires Developer Portal account and subscription key), also on HDX
+
+**Data format:** JSON (API), CSV/Excel (downloads)
+
+**Licence:** Open (humanitarian data sharing)
+
+**Key variables:** IDP figures by admin-1 and admin-2 areas, displacement site characteristics (shelter type, population, services), flow monitoring (movement routes, profiles of people on the move)
+
+**How it relates to Causal Atlas:** Subnational displacement data at admin-1/admin-2 level enables spatial analysis of displacement drivers. Flow monitoring data supports origin-destination analysis for conflict→displacement and disaster→displacement chains.
+
+**Python access:**
+```python
+import requests
+headers = {'Ocp-Apim-Subscription-Key': 'YOUR_KEY'}
+r = requests.get('https://dtm.iom.int/api/v3/...', headers=headers)
+```
+
+**Sources:** https://dtm.iom.int/data-and-analysis/dtm-api
+
+---
+
+#### 51. GRID3 (Geo-Referenced Infrastructure and Demographic Data for Development)
+
+**What it is:** High-resolution settlement data for sub-Saharan Africa using machine learning on satellite imagery to detect and delineate settlements at ~100 m resolution.
+
+**Maintained by:** CIESIN Columbia University, Flowminder, WorldPop, UNFPA
+
+**Spatial coverage:** 50 countries in sub-Saharan Africa (15 million+ settlements mapped)
+
+**Spatial resolution:** ~100 m (3 arc-seconds)
+
+**Access method:** GRID3 Data Hub: https://data.grid3.org/datasets, HDX
+
+**Data format:** Geodatabase (polygon + point centroids), GeoJSON
+
+**Licence:** Open (CC BY 4.0)
+
+**Key variables:** Settlement extents (polygons), settlement centroids (points), settlement type classification, building footprints (for some countries)
+
+**How it relates to Causal Atlas:** Enables precise identification of populated areas for exposure analysis. Settlement patterns can serve as proxies for urbanisation dynamics. Building density changes over time could indicate displacement or growth.
+
+**Python access:**
+```python
+import geopandas as gpd
+settlements = gpd.read_file('GRID3_NGA_settlement_extents.gpkg')
+```
+
+**Sources:** https://grid3.org/, https://data.grid3.org/datasets
+
+---
+
+#### 52. LandScan
+
+**What it is:** Global population distribution database representing a 24-hour average (ambient) population at ~1 km resolution, using multi-source geospatial data fusion.
+
+**Maintained by:** Oak Ridge National Laboratory (ORNL) / National Geospatial-Intelligence Agency (NGA)
+
+**Spatial coverage:** Global
+
+**Spatial resolution:** 30 arc-seconds (~1 km)
+
+**Temporal coverage:** 2000-2023 (annual releases)
+
+**Access method:** Free download from https://landscan.ornl.gov/ (registration required: email, work sector). Also on Google Earth Engine (community dataset).
+
+**Data format:** GeoTIFF
+
+**Licence:** Free and unrestricted as of 2024 (previously restricted). Public domain.
+
+**Key variables:** Ambient (24-hour average) population count per cell. LandScan HD also available at ~100 m for select areas.
+
+**How it relates to Causal Atlas:** 1 km ambient population is ideal for exposure calculations (people in hazard zones at any time of day). Annual time series enables population change tracking as a proxy for displacement/migration.
+
+**Python access:**
+```python
+import rasterio
+with rasterio.open('LandScan_Global_2023.tif') as src:
+    pop = src.read(1)
+```
+
+**Sources:** https://landscan.ornl.gov/, https://www.nature.com/articles/s41597-025-04817-z
+
+---
+
+#### 53. GHS-POP (Global Human Settlement Population Grid)
+
+**What it is:** Disaggregated population grids at multiple epochs from 1975 to 2030 (including projections), produced by the European Commission's Joint Research Centre using census data and built-up area detection.
+
+**Maintained by:** European Commission JRC (GHSL project)
+
+**Spatial coverage:** Global
+
+**Spatial resolution:** 100 m, 1 km (user choice)
+
+**Temporal epochs:** 1975, 1980, 1985, 1990, 1995, 2000, 2005, 2010, 2015, 2020, 2025 (projected), 2030 (projected)
+
+**Access method:** GHSL portal: https://human-settlement.emergency.copernicus.eu/ghs_pop2023.php, Google Earth Engine (`JRC/GHSL/P2023A/GHS_POP`), NASA SEDAC
+
+**Data format:** GeoTIFF
+
+**Licence:** Open, free (CC BY 4.0)
+
+**Key variables:** Residential population count per cell (number of inhabitants)
+
+**How it relates to Causal Atlas:** Multi-epoch population enables historical population change analysis (1975-2020). 100 m resolution is the finest freely available global population grid. Population projections (2025, 2030) support forward-looking analysis.
+
+**Python access:**
+```python
+# Via Google Earth Engine
+import ee
+ghs = ee.ImageCollection('JRC/GHSL/P2023A/GHS_POP')
+# Or download GeoTIFF and use rasterio
+```
+
+**Sources:** https://human-settlement.emergency.copernicus.eu/ghs_pop2023.php
+
+---
+
+### Economic and Trade
+
+#### 54. Nighttime Lights as Economic Indicators
+
+**What it is:** Pre-computed economic indicators derived from nighttime light satellite imagery (DMSP-OLS 1992-2013 and VIIRS 2012-present), used as GDP proxies especially for countries with poor statistical capacity.
+
+**Key datasets:**
+- **VIIRS nighttime lights composites** (see nightlights.md for raw data)
+- **Henderson, Storeygard & Weil GDP estimates** — derived subnational GDP from lights
+- **World Bank quarterly GDP from lights** — experimental quarterly GDP estimates
+- **Lessmann & Seidel subnational GDP** — 2005 cross-section at 1° resolution
+
+**Spatial resolution:** Varies; VIIRS is ~500 m, most derived products are at admin-1 or 1° level
+
+**Relationship to raw nightlights:** A 1% change in quarterly GDP associates with ~1.55% change in nighttime light intensity in developing countries.
+
+**How it relates to Causal Atlas:** Subnational GDP proxy where official statistics are unavailable or unreliable. Monthly VIIRS composites enable sub-annual economic tracking. Conflict→economic disruption chains can be tested using light intensity changes around conflict events.
+
+**Sources:** https://www.pnas.org/doi/10.1073/pnas.1017031108, https://blogs.worldbank.org/en/developmenttalk/measuring-quarterly-economic-growth-outer-space
+
+---
+
+#### 55. Observatory of Economic Complexity (OEC)
+
+**What it is:** Platform providing international trade flow data with visualisations, based on UN COMTRADE and national customs data, using HS and SITC product classifications.
+
+**Maintained by:** OEC (oec.world), originally from MIT Media Lab
+
+**Spatial coverage:** Global (200+ countries)
+
+**Temporal coverage:** 1995 to present (HS classification), 1962 to present (SITC)
+
+**Temporal resolution:** Annual, with some monthly/quarterly for premium users
+
+**Access method:** REST API at https://api-v2.oec.world (Tesseract API). Free tier for historical data; Pro/Premium tiers for latest data, subnational, and high-volume access.
+
+**Data format:** JSON (API)
+
+**Licence:** Free tier available; paid tiers for advanced access
+
+**Key variables:** Export value, import value, by product (HS 2/4/6 digit), bilateral trade flows, Economic Complexity Index (ECI), Product Complexity Index (PCI)
+
+**How it relates to Causal Atlas:** Trade flow disruptions as both causes and effects in causal chains. Commodity-specific trade (e.g., wheat imports) directly relevant to food security analysis. ECI as a structural economic indicator.
+
+**Python access:**
+```python
+import requests
+# Free tier — historical data
+r = requests.get('https://api-v2.oec.world/tesseract/data?cube=trade_i_baci_a_92&...')
+# API token required for authenticated endpoints
+```
+
+**Sources:** https://oec.world/en, https://oec.world/en/resources/api
+
+---
+
+#### 56. Global Trade Alert
+
+**What it is:** Database of trade policy interventions (subsidies, tariffs, import bans, export restrictions, etc.) implemented by governments since the 2008 financial crisis. Tracks 60+ types of policy changes.
+
+**Maintained by:** Global Trade Alert / University of St. Gallen
+
+**Spatial coverage:** Global (all WTO members and many non-members)
+
+**Temporal coverage:** November 2008 to present
+
+**Access method:** REST API at https://api.globaltradealert.org/api/v1/data/ (API key required, POST requests), Data Center web interface
+
+**Data format:** JSON (API), Excel/CSV (Data Center exports)
+
+**Licence:** Open for research; API key required
+
+**Key variables:** Implementing jurisdiction, affected jurisdiction, affected products (HS codes), intervention type (60+ categories), implementation date, assessment (liberalising/harmful/ambiguous), affected trade flows
+
+**How it relates to Causal Atlas:** Trade policy shocks (export bans on food, import tariffs) as drivers of food price changes and supply disruptions. Supports policy→trade→food security causal chains.
+
+**Python access:**
+```python
+import requests
+headers = {'Authorization': 'Bearer YOUR_API_KEY'}
+r = requests.post('https://api.globaltradealert.org/api/v1/data/', json={...}, headers=headers)
+```
+
+**Sources:** https://globaltradealert.org/, https://globaltradealert.org/api-access
+
+---
+
+#### 57. IMF World Economic Outlook (WEO)
+
+**What it is:** Biannual publication with GDP, inflation, unemployment, fiscal, and balance-of-payments data and 5-year projections for 196 countries.
+
+**Maintained by:** International Monetary Fund
+
+**Spatial coverage:** Global (196 countries + country groups)
+
+**Temporal coverage:** 1980 to present + 5-year projections
+
+**Temporal resolution:** Annual
+
+**Access method:** SDMX API at https://data.imf.org/en/datasets/IMF.RES:WEO, web download, `weo` Python package
+
+**Data format:** SDMX (API), Excel/CSV (download)
+
+**Licence:** Open (IMF Copyright/Terms of Use)
+
+**Key variables:** GDP (nominal, PPP, per capita), GDP growth rate, inflation (CPI), unemployment, government revenue/expenditure, current account balance, population
+
+**How it relates to Causal Atlas:** Macroeconomic context for all causal chains. GDP growth and inflation as both drivers and outcomes. Projections enable forward-looking causal analysis.
+
+**Python access:**
+```python
+pip install weo
+import weo
+w = weo.download(2025, 1)  # April 2025 release
+df = weo.WEO(w).dataframe()
+```
+
+**Sources:** https://data.imf.org/en/datasets/IMF.RES:WEO, https://pypi.org/project/weo/
+
+---
+
+#### 58. Commodity Price Indices
+
+**What it is:** Monthly commodity price data covering energy, agriculture, metals, and fertilisers.
+
+**Key sources:**
+
+| Source | Coverage | Access |
+|--------|----------|--------|
+| **IMF Primary Commodity Prices (PCPS)** | 1957-present, 68 commodities, monthly | SDMX API: https://data.imf.org/Datasets/PCPS |
+| **World Bank Pink Sheet** | 1960-present, 72 commodities, monthly | Excel: https://www.worldbank.org/commodities |
+| **FAO Food Price Index** | 1990-present, monthly | https://www.fao.org/worldfoodsituation/foodpricesindex/ |
+
+**Data format:** Excel, CSV, SDMX (IMF)
+
+**Licence:** Open
+
+**How it relates to Causal Atlas:** Food and fuel commodity prices as mediators in climate→food security→conflict chains. Wheat, maize, and rice prices are particularly relevant for food crisis analysis. Oil price shocks affect transportation and input costs.
+
+**Python access:**
+```python
+# IMF PCPS via SDMX
+from pandasdmx import Request
+imf = Request('IMF')
+data = imf.data('PCPS')
+
+# World Bank Pink Sheet
+import pandas as pd
+pink = pd.read_excel('CMO-Pink-Sheet.xlsx', sheet_name='Monthly Prices')
+```
+
+**Sources:** https://data.imf.org/Datasets/PCPS, https://www.worldbank.org/commodities
+
+---
+
+#### 59. LSMS (Living Standards Measurement Study)
+
+**What it is:** Multi-topic household survey programme providing detailed microdata on consumption, income, agriculture, health, education, and labour, with GPS coordinates for many surveys.
+
+**Maintained by:** World Bank
+
+**Spatial coverage:** 40+ countries (strongest in Sub-Saharan Africa and South Asia)
+
+**Temporal coverage:** 1980 to present (survey-specific)
+
+**Access method:** World Bank Microdata Catalog: https://microdata.worldbank.org/index.php/collections/lsms
+
+**Data format:** CSV, Stata (.dta), SPSS
+
+**Licence:** Open access (most surveys); some require application
+
+**Key variables:** Household consumption/expenditure, income, agricultural production (yields, inputs, land), food security, GPS coordinates (displaced for privacy), anthropometrics, education, health
+
+**LSMS-ISA sub-programme:** Integrated Surveys on Agriculture in 8 Sub-Saharan African countries with panel data and GPS-located plots.
+
+**How it relates to Causal Atlas:** Ground-truth household welfare data for validating macro-level causal claims. GPS-located agricultural data supports climate→crop yield→household welfare chains. Panel structure enables within-household causal inference.
+
+**Python access:**
+```python
+import pandas as pd
+# Download from World Bank Microdata Catalog, then:
+hh = pd.read_stata('household_data.dta')
+```
+
+**Sources:** https://www.worldbank.org/en/programs/lsms, https://microdata.worldbank.org/index.php/collections/lsms
+
+---
+
+### Health (Beyond WHO GHO)
+
+#### 60. Global.health
+
+**What it is:** Open-source epidemiological data platform providing anonymised line-list case data for disease outbreaks, built on MongoDB/Node.js/Python.
+
+**Maintained by:** Global.health initiative (academic consortium)
+
+**Spatial coverage:** Global (100+ countries for COVID-19; expanding to other diseases)
+
+**Temporal coverage:** 2020 to present (COVID-19); expanding
+
+**Access method:** Web platform at https://global.health/, API access, GitHub repositories
+
+**Data format:** JSON (API), CSV (exports)
+
+**Licence:** Open source (CC BY 4.0 for data)
+
+**Key variables:** Case demographics (age, sex), location (country, admin-1), dates (symptom onset, confirmation, outcome), outcome (recovered, died), travel history
+
+**Current holdings:** 100 million+ de-identified records
+
+**How it relates to Causal Atlas:** Line-list disease data for epidemic→displacement, epidemic→economic disruption chains. Spatio-temporal disease spread patterns can be tested against climate, mobility, and infrastructure variables.
+
+**Python access:**
+```python
+# API access — check global.health for current endpoints
+import requests
+r = requests.get('https://data.global.health/api/...')
+```
+
+**Sources:** https://global.health/
+
+---
+
+#### 61. Africa CDC Disease Surveillance
+
+**What it is:** Continental disease surveillance system producing weekly Epidemic Intelligence Reports covering priority diseases and public health events across Africa.
+
+**Maintained by:** Africa Centres for Disease Control and Prevention
+
+**Spatial coverage:** 55 African Union member states
+
+**Temporal coverage:** 2017 to present
+
+**Access method:** PDF reports downloadable from https://africacdc.org/resources/. Central Data Repository (CDR) launched January 2026 for structured data access.
+
+**Data format:** PDF (weekly reports); structured data via CDR (new)
+
+**Licence:** Open (institutional reports)
+
+**Key variables:** Disease event counts by country, epidemiological week, case fatality rates, response status
+
+**Caveats:** Historically PDF-only, limiting programmatic access. CDR should improve this but is still new.
+
+**How it relates to Causal Atlas:** Africa-specific disease surveillance complements WHO GHO with regional detail. Supports climate→disease, conflict→health system disruption→outbreak causal chains in Africa.
+
+**Sources:** https://africacdc.org/
+
+---
+
+#### 62. DHS (Demographic and Health Surveys)
+
+**What it is:** Nationally representative household surveys providing comparable health and population data across developing countries, with GPS-located survey clusters.
+
+**Maintained by:** ICF International, funded by USAID
+
+**Spatial coverage:** 90+ countries (strongest in Sub-Saharan Africa and South Asia)
+
+**Temporal coverage:** 1984 to present (350+ surveys)
+
+**Access method:** Registration at https://dhsprogram.com/data/ (free for academic use). GPS datasets require additional authorisation. API for aggregate indicators: https://api.dhsprogram.com/
+
+**Data format:** Stata, SPSS, flat ASCII (microdata); Shapefile (GPS clusters)
+
+**Licence:** Free for registered users; no redistribution
+
+**Key variables:** Child mortality, malnutrition (stunting, wasting), vaccination coverage, maternal health, fertility, HIV prevalence, water/sanitation access, household wealth index, GPS cluster locations (displaced: 2 km urban, 5-10 km rural)
+
+**Spatial Data Repository:** https://spatialdata.dhsprogram.com/ provides pre-interpolated surfaces of key indicators
+
+**How it relates to Causal Atlas:** GPS-located health indicators enable spatial analysis of health outcomes against environmental and conflict predictors. Wealth index as a subnational economic proxy. Multiple survey rounds per country enable temporal analysis.
+
+**Python access:**
+```python
+# DHS API for aggregate indicators
+import requests
+r = requests.get('https://api.dhsprogram.com/rest/dhs/data?indicatorIds=CM_ECMR_C_NNR&countryIds=ET')
+# For microdata: download Stata files and use pandas
+import pandas as pd
+dhs = pd.read_stata('ETBR71FL.DTA')
+```
+
+**Sources:** https://dhsprogram.com/, https://spatialdata.dhsprogram.com/
+
+---
+
+#### 63. MICS (Multiple Indicator Cluster Surveys)
+
+**What it is:** UNICEF's global household survey programme collecting data on child and maternal wellbeing, comparable to DHS but with broader country coverage including middle-income and some high-income countries.
+
+**Maintained by:** UNICEF
+
+**Spatial coverage:** 120+ countries (400+ surveys completed)
+
+**Temporal coverage:** 1995 to present (6 rounds: MICS1 through MICS6)
+
+**Access method:** Registration at https://mics.unicef.org/ (free, approved within 1-2 days). GPS data requires separate request from national partners.
+
+**Data format:** SPSS, CSV
+
+**Licence:** Free for registered researchers
+
+**Key variables:** Similar to DHS: child mortality, nutrition, immunisation, education, water/sanitation, child protection, plus early childhood development, child discipline, child labour
+
+**GPS displacement:** Urban clusters displaced up to 2 km, rural clusters up to 5-10 km
+
+**How it relates to Causal Atlas:** Complements DHS with additional countries and time points. Child wellbeing indicators as outcome variables for conflict→child health, climate→water quality→health chains.
+
+**Sources:** https://mics.unicef.org/
+
+---
+
+#### 64. Malaria Atlas Project (MAP)
+
+**What it is:** Gridded maps of malaria parasite prevalence, incidence, and related metrics produced using geostatistical modelling of survey data and environmental covariates.
+
+**Maintained by:** Malaria Atlas Project, University of Oxford / Curtin University
+
+**Spatial coverage:** Global (focus on malaria-endemic regions: Sub-Saharan Africa, South/Southeast Asia, Latin America)
+
+**Spatial resolution:** 5 km (for modelled surfaces)
+
+**Temporal coverage:** 2000 to present (annual modelled surfaces)
+
+**Access method:** Data portal: https://data.malariaatlas.org/, R package `malariaAtlas`. No official Python package; download rasters and process with Python.
+
+**Data format:** GeoTIFF (rasters), CSV (survey data)
+
+**Licence:** Open (CC BY 3.0)
+
+**Key variables:** Plasmodium falciparum parasite rate (PfPR), P. vivax parasite rate (PvPR), malaria incidence, ITN (insecticide-treated net) coverage, indoor residual spraying coverage, temperature suitability index
+
+**How it relates to Causal Atlas:** Malaria as an outcome of climate (temperature, rainfall) and intervention (bed nets, spraying) variables. Supports climate→malaria transmission, conflict→health system collapse→malaria resurgence chains.
+
+**Python access:**
+```python
+# Download GeoTIFFs from data.malariaatlas.org, then:
+import rasterio
+with rasterio.open('PfPR_2020.tif') as src:
+    malaria = src.read(1)
+```
+
+**Sources:** https://malariaatlas.org/, https://data.malariaatlas.org/
+
+---
+
+#### 65. IHME Global Burden of Disease (GBD)
+
+**What it is:** Comprehensive subnational health metrics covering 292 causes of death, 375 diseases/injuries, and 88 risk factors for 204 countries and 660 subnational locations.
+
+**Maintained by:** Institute for Health Metrics and Evaluation (IHME), University of Washington
+
+**Spatial coverage:** Global (204 countries, 660 subnational units)
+
+**Temporal coverage:** 1990-2023 (GBD 2023)
+
+**Access method:** GBD Results Tool: https://www.healthdata.org/data-tools-practices/interactive-visuals/gbd-results (registration required). CSV download.
+
+**Data format:** CSV
+
+**Licence:** Free for non-commercial use (IHME User Agreement)
+
+**Key variables:** Deaths, DALYs, YLLs, YLDs, prevalence, incidence — by cause, age, sex, year, location. Risk factor attribution (e.g., deaths attributable to air pollution, malnutrition, unsafe water).
+
+**How it relates to Causal Atlas:** Subnational disease burden as an outcome variable for environmental, economic, and conflict exposures. Risk factor attribution data directly supports causal analysis (e.g., pollution→respiratory disease burden, malnutrition→child mortality).
+
+**Python access:**
+```python
+# Download CSV from GBD Results Tool, then:
+import pandas as pd
+gbd = pd.read_csv('IHME-GBD_2023_DATA.csv')
+```
+
+**Sources:** https://ghdx.healthdata.org/gbd-2023, https://www.healthdata.org/data-tools-practices/interactive-visuals/gbd-results
+
+---
+
+### Land Use and Environment
+
+#### 66. ESA CCI Land Cover
+
+**What it is:** Annual global land cover maps at 300 m resolution using 22 UN FAO LCCS classes, derived from satellite multi-spectral imagery.
+
+**Maintained by:** ESA Climate Change Initiative / Copernicus Climate Change Service (C3S)
+
+**Spatial coverage:** Global
+
+**Spatial resolution:** 300 m
+
+**Temporal coverage:** 1992-2022 (annual maps)
+
+**Access method:** CDS (Copernicus Climate Data Store), ESA CCI viewer: https://maps.elie.ucl.ac.be/CCI/viewer/, Google Earth Engine (`projects/sat-io/open-datasets/ESA/C3S-LC-L4-LCCS`)
+
+**Data format:** NetCDF, GeoTIFF
+
+**Licence:** Open (Copernicus licence, CC BY 4.0 equivalent)
+
+**Key variables:** 22 land cover classes (cropland, forest types, grassland, wetland, urban, bare, water, ice/snow), transition maps between years
+
+**How it relates to Causal Atlas:** 30-year land cover change enables analysis of deforestation→climate feedback, agricultural expansion→conflict, urbanisation→environmental stress chains. Transition maps directly show year-over-year changes.
+
+**Python access:**
+```python
+# Via Google Earth Engine
+import ee
+cci = ee.Image('projects/sat-io/open-datasets/ESA/C3S-LC-L4-LCCS/2022')
+# Or via CDS API
+import cdsapi
+c = cdsapi.Client()
+c.retrieve('satellite-land-cover', {...}, 'download.nc')
+```
+
+**Sources:** https://www.esa-landcover-cci.org/, https://climate.esa.int/en/projects/land-cover/
+
+---
+
+#### 67. MODIS Land Cover (MCD12Q1)
+
+**What it is:** Annual global land cover classification at 500 m resolution using supervised classification of MODIS reflectance data, with multiple classification schemes.
+
+**Maintained by:** NASA LP DAAC
+
+**Spatial coverage:** Global
+
+**Spatial resolution:** 500 m
+
+**Temporal coverage:** 2001-2024 (annual)
+
+**Access method:** Google Earth Engine (`MODIS/061/MCD12Q1`), NASA LP DAAC, USGS EarthExplorer, Zenodo (COG format mosaics)
+
+**Data format:** HDF4 (native), GeoTIFF (processed), Cloud-Optimised GeoTIFF (Zenodo)
+
+**Licence:** Open (NASA data policy)
+
+**Key variables:** Land cover type (IGBP: 17 classes, UMD: 15 classes, LAI: 11 classes), land cover confidence, quality assessment
+
+**How it relates to Causal Atlas:** Complements ESA CCI with different classification and higher spatial resolution. IGBP classification is widely used in climate models. Annual change detection at 500 m enables sub-PRIO-GRID analysis.
+
+**Python access:**
+```python
+import ee
+modis_lc = ee.ImageCollection('MODIS/061/MCD12Q1')
+```
+
+**Sources:** https://developers.google.com/earth-engine/datasets/catalog/MODIS_061_MCD12Q1
+
+---
+
+#### 68. Global Forest Watch / GLAD Alerts
+
+**What it is:** Near-real-time deforestation monitoring system combining annual tree cover loss maps (Hansen dataset, 30 m) with weekly deforestation alerts (GLAD-L at 30 m, GLAD-S2 at 10 m).
+
+**Maintained by:** World Resources Institute (WRI) / University of Maryland GLAD Lab
+
+**Spatial coverage:** Global (annual loss); pan-tropical (alerts)
+
+**Temporal coverage:** 2000-present (annual loss); 2016-present (GLAD-L alerts); 2019-present (GLAD-S2)
+
+**Spatial resolution:** 30 m (Landsat-based), 10 m (Sentinel-2-based)
+
+**Access method:** GFW Data API: https://data-api.globalforestwatch.org/, Google Earth Engine, direct download from https://data.globalforestwatch.org/
+
+**Data format:** GeoTIFF, JSON/GeoJSON (API)
+
+**Licence:** Creative Commons Attribution 4.0
+
+**Key variables:** Tree cover loss (year), tree cover gain, tree cover 2000, loss alerts (date, confidence)
+
+**How it relates to Causal Atlas:** Deforestation as both a driver (carbon release, land degradation, biodiversity loss) and outcome (economic pressure, conflict-driven land clearing) variable. Weekly alert frequency enables rapid event detection.
+
+**Python access:**
+```python
+# Via GFW API
+import requests
+r = requests.get('https://data-api.globalforestwatch.org/...')
+# Via Google Earth Engine
+import ee
+hansen = ee.Image('UMD/hansen/global_forest_change_2023_v1_11')
+```
+
+**Sources:** https://www.globalforestwatch.org/, https://glad.umd.edu/dataset/glad-forest-alerts
+
+---
+
+#### 69. FIRMS (Fire Information for Resource Management System)
+
+**What it is:** Near-real-time active fire detection from MODIS and VIIRS sensors, providing global fire locations within minutes to hours of satellite overpass.
+
+**Maintained by:** NASA LANCE (Land, Atmosphere Near real-time Capability for EOS)
+
+**Spatial coverage:** Global
+
+**Spatial resolution:** 375 m (VIIRS), 1 km (MODIS)
+
+**Temporal coverage:** MODIS: November 2000-present; VIIRS: January 2012-present
+
+**Latency:** Ultra Real-Time (< 60 seconds for US/Canada), NRT (< 3 hours globally)
+
+**Access method:** REST API at https://firms.modaps.eosdis.nasa.gov/api/ (MAP_KEY required, free, 5000 requests/10 min limit), web map, email alerts, direct download
+
+**Data format:** CSV, SHP, KML, GeoJSON (API)
+
+**Licence:** Open (NASA data policy)
+
+**Key variables:** Latitude, longitude, brightness temperature, scan/track pixel size, acquisition date/time, satellite, confidence, FRP (fire radiative power), day/night flag
+
+**How it relates to Causal Atlas:** Fire events as indicators of land clearing, conflict-related arson, drought conditions, and agricultural practices. Fire radiative power (FRP) enables intensity analysis. Near-real-time availability supports rapid event assessment.
+
+**Python access:**
+```python
+import requests
+MAP_KEY = 'YOUR_MAP_KEY'
+url = f'https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_SNPP_NRT/world/1'
+import pandas as pd
+fires = pd.read_csv(url)
+```
+
+**Sources:** https://firms.modaps.eosdis.nasa.gov/, https://firms.modaps.eosdis.nasa.gov/academy/data_api/
+
+---
+
+#### 70. Copernicus Land Monitoring Service (CLMS) — Global Products
+
+**What it is:** Suite of global land monitoring products derived from satellite observations, covering vegetation, water, energy, and land cover.
+
+**Maintained by:** Copernicus / VITO Remote Sensing
+
+**Key products:**
+| Product | Resolution | Frequency | Variables |
+|---------|-----------|-----------|-----------|
+| CGLS-LC100 | 100 m | Annual | Land cover (23 classes) |
+| NDVI/LAI/FAPAR | 300 m / 1 km | 10-daily | Vegetation condition |
+| Soil Water Index | 1 km | Daily | Surface/root-zone soil moisture |
+| Surface Albedo | 1 km | 10-daily | Surface reflectance |
+| Burnt Area | 250 m | Monthly | Fire-affected areas |
+
+**Access method:** Copernicus Data Space Ecosystem (CDSE), Sentinel Hub API, Google Earth Engine (some products). Migration to CDSE completing through 2025.
+
+**Data format:** NetCDF, GeoTIFF
+
+**Licence:** Open (Copernicus licence)
+
+**How it relates to Causal Atlas:** 10-daily vegetation indices (NDVI, LAI) provide high-frequency crop/vegetation monitoring. Soil Water Index complements FLDAS soil moisture. Burnt area maps complement FIRMS active fire detection with total area burned.
+
+**Sources:** https://land.copernicus.eu/en, https://land.copernicus.eu/global/product-access
+
+---
+
+#### 71. SoilGrids
+
+**What it is:** Global gridded maps of soil properties at 250 m resolution, produced using machine learning on point observations and environmental covariates.
+
+**Maintained by:** ISRIC — World Soil Information
+
+**Spatial coverage:** Global
+
+**Spatial resolution:** 250 m
+
+**Depth intervals:** 0-5 cm, 5-15 cm, 15-30 cm, 30-60 cm, 60-100 cm, 100-200 cm
+
+**Access method:** WCS (Web Coverage Service) for subsets, WebDAV for full global downloads, Google Earth Engine (community dataset). REST API temporarily paused as of March 2025.
+
+**Data format:** GeoTIFF (via WCS/WebDAV), VRT (virtual raster format)
+
+**Licence:** CC BY 4.0
+
+**Key variables:** pH, soil organic carbon (SOC), bulk density, clay/silt/sand content, coarse fragments, cation exchange capacity (CEC), total nitrogen, SOC density, SOC stock
+
+**How it relates to Causal Atlas:** Soil properties as static covariates that mediate climate→agriculture relationships (e.g., sandy soils drain faster → more drought-sensitive). SOC maps relevant to carbon sequestration analysis.
+
+**Python access:**
+```python
+# Via soilgrids Python library
+pip install soilgrids
+from soilgrids import SoilGrids
+sg = SoilGrids()
+data = sg.get_coverage_data(service_id='phh2o', coverage_id='phh2o_0-5cm_mean',
+                            west=-1.5, south=51.0, east=-1.0, north=51.5)
+# Or via Google Earth Engine
+import ee
+soilgrids = ee.Image('projects/soilgrids-isric/phh2o_mean')
+```
+
+**Sources:** https://isric.org/explore/soilgrids, https://soilgrids.org/
+
+---
+
+### Infrastructure and Connectivity
+
+#### 72. OpenCellID
+
+**What it is:** Crowdsourced database of cell tower locations worldwide, serving as a proxy for telecommunications connectivity and infrastructure.
+
+**Maintained by:** Unwired Labs (community-contributed)
+
+**Spatial coverage:** Global (coverage varies; best in populated areas)
+
+**Key metrics:** 2.5 billion+ cell measurements, millions of unique cells
+
+**Access method:** Bulk CSV download from https://opencellid.org/downloads.php (API token required, 2 downloads/day limit), REST API for individual lookups
+
+**Data format:** CSV (compressed, ~3.3 GB uncompressed)
+
+**Licence:** CC BY-SA 4.0
+
+**Key variables:** Radio type (GSM, UMTS, LTE, 5G NR), MCC (Mobile Country Code), MNC (Mobile Network Code), LAC/TAC, CellID, latitude, longitude, range (m), samples, changeable, created/updated timestamps
+
+**Caveats:** Data limited to last 18 months to manage volume. Coverage biased toward areas with active contributors.
+
+**How it relates to Causal Atlas:** Cell tower density as a proxy for connectivity and development. Infrastructure damage during conflict or disasters detectable through tower disappearance. Complements nighttime lights as a development indicator.
+
+**Python access:**
+```python
+import pandas as pd
+cells = pd.read_csv('cell_towers.csv.gz')
+```
+
+**Sources:** https://opencellid.org/
+
+---
+
+#### 73. Ookla Speedtest Open Data
+
+**What it is:** Aggregated internet performance metrics (download/upload speed, latency) at ~610 m tile resolution globally, derived from Speedtest by Ookla mobile app tests.
+
+**Maintained by:** Ookla
+
+**Spatial coverage:** Global
+
+**Spatial resolution:** Zoom level 16 web Mercator tiles (~610 m at equator)
+
+**Temporal coverage:** Q1 2019 to present (quarterly updates)
+
+**Access method:** GitHub: https://github.com/teamookla/ookla-open-data, AWS Open Data: https://registry.opendata.aws/speedtest-global-performance/, Google Earth Engine (community)
+
+**Data format:** Apache Parquet (with WKT geometry, EPSG:4326), Shapefile
+
+**Licence:** CC BY-NC-SA 4.0
+
+**Key variables:** Average download speed (kbps), average upload speed (kbps), average latency (ms), number of tests, number of unique devices — for both fixed broadband and mobile (separate layers)
+
+**How it relates to Causal Atlas:** Internet connectivity as a development indicator and potential conflict moderator. Speed/connectivity drops as early indicators of infrastructure disruption. Digital divide analysis.
+
+**Python access:**
+```python
+import pandas as pd
+import geopandas as gpd
+# From Parquet on AWS
+tiles = pd.read_parquet('s3://ookla-open-data/parquet/performance/type=mobile/year=2024/quarter=4/')
+# Convert WKT to geometry
+tiles = gpd.GeoDataFrame(tiles, geometry=gpd.GeoSeries.from_wkt(tiles['tile']))
+```
+
+**Sources:** https://github.com/teamookla/ookla-open-data
+
+---
+
+#### 74. OSM Infrastructure (OpenStreetMap)
+
+**What it is:** Crowdsourced global map data including roads, buildings, health facilities, schools, water points, and other infrastructure. The most complete open-source infrastructure dataset for many developing countries.
+
+**Maintained by:** OpenStreetMap community
+
+**Spatial coverage:** Global (coverage varies; excellent in many developing countries due to humanitarian mapping efforts like HOT/Missing Maps)
+
+**Access methods:**
+- **Overpass API:** Query specific features by bounding box and tags (https://overpass-api.de/api/interpreter)
+- **Geofabrik extracts:** Country/region bulk downloads (https://download.geofabrik.de/)
+- **HOT Export Tool:** Custom extracts for humanitarian use (https://export.hotosm.org/)
+- **Overture Maps:** Processed OSM data on cloud platforms
+
+**Data format:** PBF (bulk), XML, GeoJSON (API)
+
+**Licence:** ODbL (Open Database License) — free use with attribution and share-alike
+
+**Key variables (tags):** `highway=*` (roads), `building=*`, `amenity=hospital/clinic/school`, `natural=water`, `waterway=*`, `power=*` (electricity infrastructure)
+
+**How it relates to Causal Atlas:** Road network density as accessibility/development proxy. Health facility locations for health access analysis. Building footprint changes for urbanisation/destruction monitoring. Humanitarian mapping surge after disasters creates a "digital humanitarian response" signal.
+
+**Python access:**
+```python
+# Via osmnx library
+import osmnx as ox
+roads = ox.graph_from_bbox(north, south, east, west, network_type='drive')
+buildings = ox.features_from_bbox(north, south, east, west, tags={'building': True})
+# Or via Overpass API with requests
+```
+
+**Sources:** https://wiki.openstreetmap.org/wiki/Overpass_API, https://download.geofabrik.de/
+
+---
+
+#### 75. Gridfinder — Predicted Electricity Grid Networks
+
+**What it is:** Predictive model of electricity transmission and distribution grid line locations, using nighttime lights and road networks as inputs. Particularly valuable for Africa and South Asia where grid maps are incomplete.
+
+**Maintained by:** Chris Arderne (originally World Bank / Facebook Connectivity)
+
+**Spatial coverage:** Global (strongest value in data-poor regions)
+
+**Spatial resolution:** ~1 km grid cells
+
+**Validation accuracy:** ~75% across 14 validation countries
+
+**Access method:** Download from World Bank Data Catalog: https://datacatalog.worldbank.org/search/dataset/0038055, visualization at https://gridfinder.rdrn.me/, source code on GitHub: https://github.com/carderne/gridfinder
+
+**Data format:** GeoPackage (grid lines), GeoTIFF (targets and LV infrastructure rasters)
+
+**Licence:** CC BY 4.0
+
+**Key variables:** Predicted grid line locations (vector), grid connection targets (binary raster), low-voltage infrastructure density (km/cell)
+
+**How it relates to Causal Atlas:** Electrification as a development indicator and moderator of economic activity. Distance from grid as a vulnerability factor. Complements nighttime lights for areas where light is not visible but grid exists (e.g., dense forest canopy).
+
+**Python access:**
+```python
+import geopandas as gpd
+grid = gpd.read_file('grid.gpkg')
+# Or process rasters
+import rasterio
+with rasterio.open('targets.tif') as src:
+    electrified = src.read(1)
+```
+
+**Sources:** https://www.nature.com/articles/s41597-019-0347-4, https://github.com/carderne/gridfinder
+
+---
+
+### Cross-Domain Integration Notes (Extended)
+
+11. **Climate data ecosystem:** CRU TS (0.5°, 1901-present) is the priority climate dataset for PRIO-GRID alignment. TerraClimate adds water balance variables at 4 km. FLDAS provides food-security-optimised soil moisture. SPEI Global Drought Monitor provides ready-to-use drought indices. Together these cover: raw climate → derived indices → land surface response.
+
+12. **Precipitation product hierarchy:** For Causal Atlas, prefer IMERG V07 (0.1°, global, 2000-present) as the primary precipitation product, aggregated to PRIO-GRID. CHIRPS (0.05°, 50°S-50°N, 1981-present) for longer record. CMORPH for sub-daily extreme event analysis. CRU TS precipitation for the longest record (1901+).
+
+13. **Governance data stack:** REIGN (monthly, 1950-present) provides the highest temporal resolution for leadership/regime data. Polity5 (annual, 1800-2018) and Freedom House (annual, 1972-present) provide regime quality scores. FSI (annual, 2006-present) measures fragility. V-Dem (already documented) is the most comprehensive.
+
+14. **Conflict data complementarity:** UCDP-GED + ACLED (documented separately) cover armed conflict. GTD adds terrorism events. SCAD adds protests/riots/strikes in Africa. Mass Mobilization adds global protest data. COW provides historical interstate conflict. Together these capture the full spectrum from protests to interstate war.
+
+15. **Population data hierarchy:** For exposure calculations, prefer Meta/CIESIN HRSL (30 m) for highest resolution, LandScan (1 km) for ambient population, GHS-POP (100 m, multi-epoch) for historical population change, WorldPop/GPW (already documented) as alternatives. GRID3 for African settlement delineation.
+
+16. **Economic proxy chain:** Official GDP (IMF WEO, World Bank) → Nighttime lights GDP proxies → Commodity prices (IMF PCPS, Pink Sheet) → Trade flows (OEC, Global Trade Alert) → Household welfare (LSMS, DHS wealth index). This chain allows economic analysis even where official statistics are poor.
+
+17. **Health data complementarity:** DHS/MICS provide GPS-located household health surveys. IHME GBD provides modelled disease burden surfaces. Malaria Atlas Project provides gridded malaria metrics. Global.health provides epidemic line lists. Africa CDC provides regional surveillance. Together these cover: survey-based → modelled → surveillance data.
+
+18. **Land/environment monitoring stack:** ESA CCI (300 m annual, 1992-2022) for long-term land cover change. MODIS MCD12Q1 (500 m, 2001-present) for annual classification. FIRMS for near-real-time fires. Global Forest Watch for deforestation monitoring. SoilGrids for static soil properties. Copernicus CLMS for 10-daily vegetation monitoring.

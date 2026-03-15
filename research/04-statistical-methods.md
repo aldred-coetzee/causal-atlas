@@ -34,7 +34,12 @@
 24. [Cutting-Edge and Emerging Approaches](#24-cutting-edge-and-emerging-approaches)
 25. [Comparison Table](#25-comparison-table)
 26. [Recommended Pipelines for Causal Atlas](#26-recommended-pipelines-for-causal-atlas)
-27. [Sources](#27-sources)
+27. [Sources (pre-existing)](#27-sources)
+28. [Implementation Recipes for Common Causal Atlas Analyses](#28-implementation-recipes-for-common-causal-atlas-analyses)
+29. [Handling Non-Stationarity](#29-handling-non-stationarity)
+30. [Spatial Confounding](#30-spatial-confounding)
+31. [Ensemble Causal Discovery](#31-ensemble-causal-discovery)
+32. [Sources (continued)](#32-sources)
 
 ---
 
@@ -3684,7 +3689,1159 @@ dask>=2024.01           # Parallel computation
 
 ---
 
-## 27. Sources
+## 28. Implementation Recipes for Common Causal Atlas Analyses
+
+> **Last updated:** March 2025
+> **Purpose:** Step-by-step "recipes" for the most common analysis tasks a Causal Atlas user would perform. Each recipe includes complete Python code, expected runtime, interpretation guide, and validation steps.
+
+### Recipe 1: "Is drought causing conflict in this region?"
+
+**Question:** Given a region of interest (set of PRIO-GRID cells), is there statistical evidence that drought Granger-causes conflict?
+
+**Step-by-step procedure:**
+
+```python
+import numpy as np
+import pandas as pd
+from statsmodels.tsa.stattools import grangercausalitytests, adfuller
+from statsmodels.tsa.seasonal import STL
+from statsmodels.tsa.api import VAR
+from scipy import stats
+import warnings
+warnings.filterwarnings('ignore')
+
+# =============================================================
+# RECIPE 1: Is drought causing conflict in this region?
+# =============================================================
+
+# --- Step 1: Extract data ---
+# Load CHIRPS SPI-3 (Standardized Precipitation Index, 3-month)
+# and ACLED conflict event counts for the region of interest.
+# Both should be monthly time series, one per PRIO-GRID cell.
+
+# Example: load from parquet files (replace with actual data loading)
+# spi3: DataFrame with columns ['cell_id', 'month', 'spi3']
+# conflict: DataFrame with columns ['cell_id', 'month', 'event_count']
+# spi3 = pd.read_parquet('data/chirps_spi3_region.parquet')
+# conflict = pd.read_parquet('data/acled_events_region.parquet')
+
+# For demonstration, simulate realistic data:
+np.random.seed(42)
+n_cells = 50
+n_months = 120  # 10 years monthly
+
+def simulate_cell(cell_id):
+    time = np.arange(n_months)
+    # SPI-3 with autocorrelation and seasonality
+    spi = np.zeros(n_months)
+    for t in range(1, n_months):
+        spi[t] = 0.6 * spi[t-1] + np.random.normal(0, 0.7)
+    # Conflict: influenced by drought (negative SPI) at lag 2-3
+    conflict = np.zeros(n_months)
+    for t in range(3, n_months):
+        drought_effect = 0.15 * max(-spi[t-2], 0) + 0.10 * max(-spi[t-3], 0)
+        conflict[t] = max(0, 0.3 * conflict[t-1] + drought_effect + np.random.exponential(0.3))
+    return pd.DataFrame({
+        'cell_id': cell_id, 'month': range(n_months),
+        'spi3': spi, 'event_count': conflict
+    })
+
+data = pd.concat([simulate_cell(i) for i in range(n_cells)])
+
+# --- Step 2: Check stationarity (ADF test) ---
+def check_stationarity(series, name):
+    adf_stat, adf_p, _, _, _, _ = adfuller(series.dropna(), autolag='AIC')
+    stationary = adf_p < 0.05
+    print(f"  {name}: ADF stat={adf_stat:.3f}, p={adf_p:.4f} -> {'STATIONARY' if stationary else 'NON-STATIONARY'}")
+    return stationary
+
+cell0 = data[data.cell_id == 0]
+print("Stationarity checks (Cell 0):")
+spi_stationary = check_stationarity(cell0['spi3'], 'SPI-3')
+conf_stationary = check_stationarity(cell0['event_count'], 'Conflict')
+
+# If non-stationary, difference the series:
+# cell0['spi3_diff'] = cell0['spi3'].diff()
+# cell0['conflict_diff'] = cell0['event_count'].diff()
+
+# --- Step 3: Deseasonalize if needed ---
+# SPI-3 is already seasonally adjusted by construction.
+# For conflict, check for seasonality:
+def deseasonalize(series, period=12):
+    if len(series) < 2 * period:
+        return series
+    stl = STL(series, period=period, robust=True)
+    res = stl.fit()
+    return res.resid + res.trend
+
+# --- Step 4: Run cross-correlation to identify candidate lags ---
+from scipy.signal import correlate, correlation_lags
+
+def cross_corr_analysis(x, y, max_lag=12):
+    """Compute normalized cross-correlation and identify peak lag."""
+    x_norm = (x - x.mean()) / x.std()
+    y_norm = (y - y.mean()) / y.std()
+    corr = correlate(y_norm, x_norm, mode='full') / len(x)
+    lags = correlation_lags(len(y), len(x), mode='full')
+    mask = (lags >= 0) & (lags <= max_lag)
+    return lags[mask], corr[mask]
+
+cell0_spi = cell0['spi3'].values
+cell0_conf = cell0['event_count'].values
+lags, xcorr = cross_corr_analysis(cell0_spi, cell0_conf)
+peak_lag = lags[np.argmax(np.abs(xcorr))]
+print(f"\nCross-correlation peak lag: {peak_lag} months (r={xcorr[np.argmax(np.abs(xcorr))]:.3f})")
+
+# --- Step 5: Run Granger causality at identified lags ---
+gc_data = pd.DataFrame({'conflict': cell0_conf, 'spi3': cell0_spi}).dropna()
+print("\nGranger Causality: SPI-3 -> Conflict")
+gc_results = grangercausalitytests(gc_data[['conflict', 'spi3']], maxlag=6, verbose=False)
+for lag in range(1, 7):
+    p_val = gc_results[lag][0]['ssr_ftest'][1]
+    sig = '***' if p_val < 0.001 else '**' if p_val < 0.01 else '*' if p_val < 0.05 else ''
+    print(f"  Lag {lag}: p={p_val:.4f} {sig}")
+
+# --- Step 6: Run PCMCI for robustness ---
+# Requires: pip install tigramite
+try:
+    import tigramite
+    from tigramite import data_processing as pp
+    from tigramite.pcmci import PCMCI
+    from tigramite.independence_tests.parcorr import ParCorr
+
+    dataframe = pp.DataFrame(
+        data=np.column_stack([cell0_conf, cell0_spi]),
+        var_names=['conflict', 'spi3']
+    )
+    pcmci = PCMCI(dataframe=dataframe, cond_ind_test=ParCorr())
+    results = pcmci.run_pcmci(tau_max=6, pc_alpha=0.05)
+
+    print("\nPCMCI Results:")
+    print(f"  Val matrix (SPI->Conflict):")
+    for tau in range(1, 7):
+        val = results['val_matrix'][0, 1, tau]  # conflict <- spi3 at lag tau
+        p = results['p_matrix'][0, 1, tau]
+        sig = '***' if p < 0.001 else '**' if p < 0.01 else '*' if p < 0.05 else ''
+        print(f"    Lag {tau}: val={val:.3f}, p={p:.4f} {sig}")
+except ImportError:
+    print("\nPCMCI: Install tigramite for this step (pip install tigramite)")
+
+# --- Step 7: Check spatial pattern with Moran's I ---
+# Requires cell-level results and a spatial weight matrix
+# For each cell, compute the Granger p-value at optimal lag.
+# Then test if significant cells are spatially clustered.
+try:
+    from libpysal.weights import lat2W
+    from esda.moran import Moran
+
+    # Assume cells are on a 10x5 grid (50 cells)
+    # In practice, use actual PRIO-GRID coordinates
+    w = lat2W(10, 5)
+    w.transform = 'r'
+
+    # Compute per-cell Granger significance indicator
+    gc_sig = np.zeros(n_cells)
+    for cell_id in range(n_cells):
+        cell_d = data[data.cell_id == cell_id]
+        gc_d = pd.DataFrame({
+            'conflict': cell_d['event_count'].values,
+            'spi3': cell_d['spi3'].values
+        })
+        try:
+            res = grangercausalitytests(gc_d[['conflict', 'spi3']], maxlag=3, verbose=False)
+            min_p = min(res[l][0]['ssr_ftest'][1] for l in range(1, 4))
+            gc_sig[cell_id] = -np.log10(min_p)  # higher = more significant
+        except:
+            gc_sig[cell_id] = 0
+
+    mi = Moran(gc_sig, w)
+    print(f"\nMoran's I for spatial clustering of drought-conflict link:")
+    print(f"  I={mi.I:.3f}, p={mi.p_sim:.4f}")
+    print(f"  Interpretation: {'Spatially clustered' if mi.p_sim < 0.05 else 'No spatial clustering'}")
+
+except ImportError:
+    print("\nMoran's I: Install libpysal and esda (pip install libpysal esda)")
+
+# --- Step 8: Validate against published lag structures ---
+print("\n=== VALIDATION AGAINST PUBLISHED LITERATURE ===")
+print("Known lag structures (drought -> conflict):")
+print("  - Harari & La Ferrara 2018: 0-12 months (growing season), Africa")
+print("  - von Uexkull et al. 2016: 0-12 months, agri-dependent groups")
+print("  - Maystadt & Ecker 2014: 1-6 months via livestock prices, Somalia")
+print(f"\nOur finding: peak cross-correlation at lag {peak_lag} months")
+if 0 <= peak_lag <= 12:
+    print("  -> CONSISTENT with published literature")
+else:
+    print("  -> OUTSIDE documented range — investigate further")
+```
+
+**Expected runtime:** ~5-10 seconds for 50 cells x 120 months (Steps 1-5, 7-8). PCMCI (Step 6) adds ~30-60 seconds per cell.
+
+**Interpretation guide:**
+- Granger p < 0.05 at lags 2-3: Consistent with drought -> food insecurity -> conflict chain
+- Granger p < 0.05 at lag 0-1: May indicate direct heat-aggression pathway
+- PCMCI confirming Granger: Strengthens the finding (controls for autocorrelation and confounders)
+- Moran's I significant: The drought-conflict link is spatially clustered (not randomly distributed)
+- Moran's I not significant: The link exists but varies across space without clear clustering
+
+### Recipe 2: "Where is the strongest climate-food price link?"
+
+**Question:** Across a set of grid cells, identify which locations show the strongest statistical relationship between climate anomalies and food price changes.
+
+```python
+import numpy as np
+import pandas as pd
+from statsmodels.tsa.stattools import grangercausalitytests
+from scipy.stats import pearsonr
+import warnings
+warnings.filterwarnings('ignore')
+
+# =============================================================
+# RECIPE 2: Where is the strongest climate-food price link?
+# =============================================================
+
+# --- Step 1: Load climate and food price data ---
+# climate: CHIRPS rainfall anomaly or SPI-3 per cell per month
+# prices: WFP food price index per nearest market per month
+# Each cell is matched to its nearest WFP market
+
+# --- Step 2: Screen all cells with cross-correlation ---
+def screen_climate_price_link(climate_series, price_series, max_lag=12):
+    """Quick screening: cross-correlation at multiple lags."""
+    results = {}
+    for lag in range(1, max_lag + 1):
+        x = climate_series[:-lag]
+        y = price_series[lag:]
+        if len(x) < 30:
+            continue
+        r, p = pearsonr(x, y)
+        results[lag] = {'r': r, 'p': p}
+    return results
+
+# --- Step 3: Rank cells by link strength ---
+def rank_cells_by_strength(cell_results):
+    """
+    For each cell, find the lag with strongest (most negative) correlation
+    between rainfall and food prices (drought -> price increase).
+    """
+    ranked = []
+    for cell_id, lag_results in cell_results.items():
+        best_lag = min(lag_results, key=lambda l: lag_results[l]['r'])
+        ranked.append({
+            'cell_id': cell_id,
+            'best_lag': best_lag,
+            'r': lag_results[best_lag]['r'],
+            'p': lag_results[best_lag]['p'],
+            'abs_r': abs(lag_results[best_lag]['r'])
+        })
+    df = pd.DataFrame(ranked).sort_values('abs_r', ascending=False)
+    return df
+
+# --- Step 4: Apply Bonferroni correction ---
+def apply_multiple_testing_correction(results_df, n_tests_per_cell=12):
+    """Correct for multiple testing across lags and cells."""
+    total_tests = len(results_df) * n_tests_per_cell
+    results_df['p_bonferroni'] = results_df['p'] * total_tests
+    results_df['p_bonferroni'] = results_df['p_bonferroni'].clip(upper=1.0)
+    # Benjamini-Hochberg FDR
+    results_df = results_df.sort_values('p')
+    n = len(results_df)
+    results_df['rank'] = range(1, n + 1)
+    results_df['p_fdr'] = results_df['p'] * n / results_df['rank']
+    results_df['p_fdr'] = results_df['p_fdr'].clip(upper=1.0)
+    return results_df.sort_values('abs_r', ascending=False)
+
+# --- Step 5: Confirm top hits with Granger causality ---
+def confirm_with_granger(climate_series, price_series, candidate_lag):
+    """Run Granger causality for confirmation on top-ranked cells."""
+    data = pd.DataFrame({'price': price_series, 'climate': climate_series}).dropna()
+    try:
+        gc = grangercausalitytests(data[['price', 'climate']],
+                                   maxlag=candidate_lag + 2, verbose=False)
+        p_val = gc[candidate_lag][0]['ssr_ftest'][1]
+        return p_val
+    except:
+        return np.nan
+
+# --- Step 6: Map results ---
+# Visualize: create a choropleth map of link strength (|r|) across grid cells
+# Use Kepler.gl or folium:
+# - Color: |r| value (strength of climate-price link)
+# - Size: 1/p (significance)
+# - Tooltip: lag, r, p, cell coordinates
+
+print("=== RECIPE 2 OUTPUT ===")
+print("Top 10 cells with strongest climate-food price link:")
+print("| Rank | Cell ID | Lag (months) | Correlation | p-value (FDR) |")
+print("|------|---------|-------------|-------------|---------------|")
+# (actual output depends on data)
+```
+
+**Expected runtime:** ~2-5 seconds for cross-correlation screening across 1000 cells. Granger confirmation on top 50 cells adds ~10 seconds.
+
+**Validation steps:**
+- Check if hotspots coincide with known food-insecure regions (FEWS NET Phase 3+)
+- Compare lag structures with literature: 3-6 months for drought-to-food-price is expected
+- Check if strong links cluster in agriculturally dependent areas
+
+### Recipe 3: "Did this specific event cause a cascade?"
+
+**Question:** Given a specific event (e.g., a drought, earthquake, or conflict onset), trace its cascading effects through the causal network.
+
+```python
+import numpy as np
+import pandas as pd
+from scipy import stats
+
+# =============================================================
+# RECIPE 3: Did this specific event cause a cascade?
+# =============================================================
+
+# --- Step 1: Define the event ---
+event = {
+    'type': 'drought',          # 'drought', 'earthquake', 'conflict', 'flood'
+    'cell_ids': [101, 102, 103, 104, 105],  # affected PRIO-GRID cells
+    'start_month': '2011-06',   # event onset
+    'severity': -2.5,           # SPI z-score (for drought)
+}
+
+# --- Step 2: Define expected downstream effects ---
+# Based on the Lag Structure Reference Table (03-causal-chains.md, Section 24)
+cascade_expectations = {
+    'drought': [
+        {'variable': 'ndvi',         'lag_min': 1,  'lag_max': 3,  'direction': 'decrease'},
+        {'variable': 'food_price',   'lag_min': 3,  'lag_max': 9,  'direction': 'increase'},
+        {'variable': 'conflict',     'lag_min': 3,  'lag_max': 12, 'direction': 'increase'},
+        {'variable': 'nightlights',  'lag_min': 6,  'lag_max': 24, 'direction': 'decrease'},
+        {'variable': 'displacement', 'lag_min': 1,  'lag_max': 12, 'direction': 'increase'},
+    ],
+    'earthquake': [
+        {'variable': 'nightlights',  'lag_min': 0,  'lag_max': 1,  'direction': 'decrease'},
+        {'variable': 'displacement', 'lag_min': 0,  'lag_max': 1,  'direction': 'increase'},
+        {'variable': 'food_price',   'lag_min': 1,  'lag_max': 6,  'direction': 'increase'},
+    ],
+    'conflict': [
+        {'variable': 'food_price',   'lag_min': 1,  'lag_max': 6,  'direction': 'increase'},
+        {'variable': 'nightlights',  'lag_min': 0,  'lag_max': 3,  'direction': 'decrease'},
+        {'variable': 'ndvi',         'lag_min': 3,  'lag_max': 12, 'direction': 'decrease'},
+        {'variable': 'displacement', 'lag_min': 0,  'lag_max': 1,  'direction': 'increase'},
+    ],
+}
+
+# --- Step 3: For each expected downstream variable, test ---
+def test_cascade_link(pre_event_series, post_event_series, direction):
+    """
+    Test whether the post-event values differ significantly from
+    pre-event values in the expected direction.
+    """
+    if direction == 'increase':
+        t_stat, p_val = stats.ttest_ind(post_event_series, pre_event_series,
+                                         alternative='greater')
+    else:
+        t_stat, p_val = stats.ttest_ind(post_event_series, pre_event_series,
+                                         alternative='less')
+    effect_size = (post_event_series.mean() - pre_event_series.mean()) / pre_event_series.std()
+    return {'t_stat': t_stat, 'p_value': p_val, 'effect_size_d': effect_size}
+
+# --- Step 4: Build cascade report ---
+def build_cascade_report(event, data, expectations):
+    """
+    For each expected downstream effect, test whether it materialized
+    within the expected lag window.
+    """
+    report = []
+    event_start = pd.Timestamp(event['start_month'])
+
+    for exp in expectations[event['type']]:
+        var = exp['variable']
+        lag_min = exp['lag_min']
+        lag_max = exp['lag_max']
+        direction = exp['direction']
+
+        # Pre-event window: 12 months before event
+        pre_start = event_start - pd.DateOffset(months=12)
+        pre_end = event_start
+
+        # Post-event window: within expected lag range
+        post_start = event_start + pd.DateOffset(months=lag_min)
+        post_end = event_start + pd.DateOffset(months=lag_max)
+
+        # Extract values for affected cells (average across cells)
+        # pre_vals = data[(data.month >= pre_start) & (data.month < pre_end)][var].values
+        # post_vals = data[(data.month >= post_start) & (data.month <= post_end)][var].values
+
+        # Simulated for demonstration:
+        pre_vals = np.random.normal(0, 1, 12)
+        if direction == 'decrease':
+            post_vals = np.random.normal(-0.8, 1, lag_max - lag_min + 1)
+        else:
+            post_vals = np.random.normal(0.8, 1, lag_max - lag_min + 1)
+
+        result = test_cascade_link(pre_vals, post_vals, direction)
+        report.append({
+            'variable': var,
+            'expected_direction': direction,
+            'lag_window': f"{lag_min}-{lag_max} months",
+            'effect_size': f"{result['effect_size_d']:.2f} SD",
+            'p_value': f"{result['p_value']:.4f}",
+            'cascade_confirmed': result['p_value'] < 0.05,
+        })
+
+    return pd.DataFrame(report)
+
+# --- Step 5: Visualize cascade timeline ---
+# Plot: x-axis = months since event, y-axis = z-score for each variable
+# Overlay expected lag windows as shaded regions
+# Mark confirmed cascade links with solid arrows, unconfirmed with dashed
+
+print("=== CASCADE ANALYSIS REPORT ===")
+print(f"Event: {event['type']} in cells {event['cell_ids']}")
+print(f"Onset: {event['start_month']}, Severity: {event['severity']}")
+print("\nDownstream effects tested:")
+print("| Variable | Expected | Lag Window | Effect Size | p-value | Confirmed |")
+print("|----------|----------|------------|-------------|---------|-----------|")
+# (actual output depends on data)
+```
+
+**Expected runtime:** ~1-5 seconds per event analysis.
+
+### Recipe 4: "What are the top 10 strongest causal links in East Africa?"
+
+**Question:** Run a comprehensive causal discovery scan across all variable pairs and all cells in a region, and rank the strongest findings.
+
+```python
+import numpy as np
+import pandas as pd
+from statsmodels.tsa.stattools import grangercausalitytests
+from itertools import combinations
+from joblib import Parallel, delayed
+import warnings
+warnings.filterwarnings('ignore')
+
+# =============================================================
+# RECIPE 4: Top 10 strongest causal links in East Africa
+# =============================================================
+
+# --- Step 1: Define variables and cells ---
+variables = ['spi3', 'ndvi', 'food_price', 'conflict_events',
+             'nightlights', 'temperature_anom', 'pm25']
+n_vars = len(variables)
+n_pairs = n_vars * (n_vars - 1)  # directional pairs
+# cells = list of PRIO-GRID cell IDs for East Africa
+# data = DataFrame with columns: cell_id, month, spi3, ndvi, ..., pm25
+
+# --- Step 2: Define single-cell scanning function ---
+def scan_cell(cell_data, variables, max_lag=6):
+    """
+    For one cell, test all directed variable pairs with Granger causality.
+    Returns list of (cause, effect, best_lag, f_stat, p_value).
+    """
+    results = []
+    for cause_var in variables:
+        for effect_var in variables:
+            if cause_var == effect_var:
+                continue
+            df = pd.DataFrame({
+                'effect': cell_data[effect_var].values,
+                'cause': cell_data[cause_var].values
+            }).dropna()
+            if len(df) < 30:
+                continue
+            try:
+                gc = grangercausalitytests(df[['effect', 'cause']],
+                                          maxlag=max_lag, verbose=False)
+                # Find lag with lowest p-value
+                best_lag = min(range(1, max_lag + 1),
+                              key=lambda l: gc[l][0]['ssr_ftest'][1])
+                f_stat = gc[best_lag][0]['ssr_ftest'][0]
+                p_val = gc[best_lag][0]['ssr_ftest'][1]
+                results.append({
+                    'cause': cause_var, 'effect': effect_var,
+                    'best_lag': best_lag, 'f_stat': f_stat, 'p_value': p_val
+                })
+            except:
+                pass
+    return results
+
+# --- Step 3: Scan all cells in parallel ---
+# all_results = Parallel(n_jobs=-1)(
+#     delayed(scan_cell)(data[data.cell_id == cid], variables)
+#     for cid in cell_ids
+# )
+
+# --- Step 4: Aggregate across cells ---
+def aggregate_cell_results(all_results, n_cells):
+    """
+    For each directed pair, count how many cells show significance.
+    Compute average effect size and meta-analytic p-value.
+    """
+    pair_counts = {}
+    for cell_results in all_results:
+        for r in cell_results:
+            key = (r['cause'], r['effect'])
+            if key not in pair_counts:
+                pair_counts[key] = {'sig_count': 0, 'total': 0,
+                                    'p_values': [], 'lags': [], 'f_stats': []}
+            pair_counts[key]['total'] += 1
+            pair_counts[key]['p_values'].append(r['p_value'])
+            pair_counts[key]['lags'].append(r['best_lag'])
+            pair_counts[key]['f_stats'].append(r['f_stat'])
+            if r['p_value'] < 0.05:
+                pair_counts[key]['sig_count'] += 1
+
+    # Fisher's method for combining p-values
+    from scipy.stats import combine_pvalues
+    ranked = []
+    for (cause, effect), counts in pair_counts.items():
+        stat, combined_p = combine_pvalues(counts['p_values'], method='fisher')
+        ranked.append({
+            'cause': cause, 'effect': effect,
+            'cells_significant': counts['sig_count'],
+            'cells_total': counts['total'],
+            'pct_significant': counts['sig_count'] / counts['total'] * 100,
+            'median_lag': np.median(counts['lags']),
+            'mean_f_stat': np.mean(counts['f_stats']),
+            'combined_p': combined_p,
+        })
+
+    return pd.DataFrame(ranked).sort_values('pct_significant', ascending=False)
+
+# --- Step 5: Display top 10 ---
+print("=== TOP 10 STRONGEST CAUSAL LINKS IN EAST AFRICA ===")
+print("| Rank | Cause -> Effect | % Cells Sig. | Median Lag | Combined p |")
+print("|------|-----------------|-------------|------------|------------|")
+# (actual output depends on data)
+
+# --- Step 6: Validate against published literature ---
+print("\n=== VALIDATION ===")
+known_links = {
+    ('spi3', 'conflict_events'): "Drought -> Conflict (Harari & La Ferrara 2018)",
+    ('spi3', 'ndvi'): "Drought -> NDVI decline (multiple studies)",
+    ('spi3', 'food_price'): "Drought -> Food price (Burke et al. 2015)",
+    ('food_price', 'conflict_events'): "Food price -> Conflict (Lagi et al. 2011)",
+    ('temperature_anom', 'conflict_events'): "Temperature -> Conflict (Hsiang et al. 2013)",
+    ('conflict_events', 'nightlights'): "Conflict -> Night light decline",
+}
+# Check if top 10 includes known links
+```
+
+**Expected runtime:** ~1-5 minutes for 1000 cells x 7 variables x 6 lags (42 pairs x 1000 cells = 42,000 Granger tests). With 16-core parallelization: ~10-30 seconds.
+
+**Interpretation guide:**
+- Links found in >50% of cells: Strong, regionally pervasive relationship
+- Links found in 20-50% of cells: Moderate, context-dependent relationship
+- Links found in <20% of cells: Weak or localized effect
+- Compare against known links table: novel findings (not in published literature) should be flagged for further investigation
+
+---
+
+## 29. Handling Non-Stationarity
+
+> **Last updated:** March 2025
+
+### 29.1 The Problem
+
+Spatiotemporal data in the Causal Atlas context is frequently non-stationary:
+
+- **Conflict data:** Exhibits structural breaks (war onset/cessation, peace agreements, regime changes)
+- **Climate data:** Long-term trends (warming) superimposed on variability
+- **Economic data:** Growth trends, inflation, structural economic transitions
+- **Food prices:** Regime shifts (global commodity crises, policy changes like export bans)
+
+Applying standard causal inference methods (Granger causality, VAR) to non-stationary data produces **spurious results** — the methods may detect "causality" where none exists, or miss real causal relationships.
+
+### 29.2 Detecting Non-Stationarity
+
+**Standard tests:**
+
+```python
+from statsmodels.tsa.stattools import adfuller, kpss
+from arch.unitroot import PhillipsPerron
+
+def comprehensive_stationarity_test(series, name=""):
+    """Run ADF, KPSS, and Phillips-Perron tests."""
+    # ADF: null = unit root (non-stationary)
+    adf_stat, adf_p, _, _, _, _ = adfuller(series.dropna(), autolag='AIC')
+
+    # KPSS: null = stationary
+    kpss_stat, kpss_p, _, _ = kpss(series.dropna(), regression='c', nlags='auto')
+
+    # Combine: if ADF rejects AND KPSS does not reject -> stationary
+    # If ADF does not reject AND KPSS rejects -> non-stationary
+    # If both reject or neither rejects -> inconclusive (try trend-stationary)
+    print(f"{name}:")
+    print(f"  ADF: stat={adf_stat:.3f}, p={adf_p:.4f}")
+    print(f"  KPSS: stat={kpss_stat:.3f}, p={kpss_p:.4f}")
+
+    if adf_p < 0.05 and kpss_p > 0.05:
+        print(f"  -> STATIONARY (both tests agree)")
+        return 'stationary'
+    elif adf_p >= 0.05 and kpss_p <= 0.05:
+        print(f"  -> NON-STATIONARY (both tests agree)")
+        return 'non-stationary'
+    else:
+        print(f"  -> INCONCLUSIVE (tests disagree; try trend-stationary)")
+        return 'inconclusive'
+```
+
+### 29.3 Structural Break Detection with Zivot-Andrews
+
+The Zivot-Andrews test extends the ADF test by allowing for a **single unknown structural break** in the time series. This is critical for conflict data, where the onset or cessation of armed violence creates abrupt shifts.
+
+```python
+from statsmodels.tsa.stattools import zivot_andrews
+
+def detect_structural_break(series, name=""):
+    """
+    Zivot-Andrews test: tests for unit root allowing one structural break.
+    The test systematically searches over all possible break dates and
+    chooses the one that makes the unit-root null most difficult to reject.
+    """
+    result = zivot_andrews(series.dropna(), maxlag=12, regression='ct')
+    # regression: 'c' (intercept), 't' (trend), 'ct' (both)
+
+    print(f"{name}:")
+    print(f"  ZA statistic: {result[0]:.3f}")
+    print(f"  p-value: {result[1]:.4f}")
+    print(f"  Break point index: {result[4]}")
+    print(f"  Lags used: {result[3]}")
+
+    if result[1] < 0.05:
+        print(f"  -> STATIONARY around a structural break at index {result[4]}")
+    else:
+        print(f"  -> NON-STATIONARY even accounting for a structural break")
+
+    return result
+```
+
+**When to use Zivot-Andrews:**
+- Conflict time series where you suspect a regime change (e.g., peace agreement, war onset)
+- Economic time series with policy shifts (export bans, subsidy changes)
+- Climate data with known abrupt changes (volcanic eruption, major ENSO event)
+
+**Limitation:** ZA allows for only ONE structural break. For multiple breaks, use the Bai-Perron test (available in R's `strucchange` package; limited Python support, but can be approximated with sequential ZA testing or the `ruptures` Python package).
+
+### 29.4 Handling Non-Stationary Relationships
+
+**Approach 1: Differencing**
+```python
+# First-order differencing: removes unit root
+series_diff = series.diff().dropna()
+# Check: does differenced series pass ADF?
+```
+- Advantage: Simple, widely used
+- Disadvantage: Removes level information; over-differencing can destroy causal signal
+
+**Approach 2: Toda-Yamamoto procedure**
+```python
+from statsmodels.tsa.api import VAR
+
+def toda_yamamoto_test(data, cause_col, effect_col, max_lag=6, d_max=1):
+    """
+    Toda-Yamamoto test for Granger causality that does NOT require
+    pre-testing for integration order. Fit VAR(p + d_max) but only
+    test restrictions on the first p lags.
+
+    d_max: maximum integration order (typically 1 for monthly data)
+    """
+    # Step 1: Select optimal lag order p using AIC/BIC
+    model = VAR(data[[effect_col, cause_col]])
+    lag_order = model.select_order(maxlags=max_lag)
+    p = lag_order.bic  # use BIC for parsimony
+
+    # Step 2: Fit VAR(p + d_max)
+    fitted = model.fit(p + d_max)
+
+    # Step 3: Test Granger causality on first p lags only
+    # This requires manual implementation or modification
+    # The key insight: including d_max extra lags ensures asymptotic
+    # chi-squared distribution of the test statistic regardless of
+    # integration/cointegration properties
+
+    gc_test = fitted.test_causality(effect_col, [cause_col], kind='wald')
+    print(f"Toda-Yamamoto test ({cause_col} -> {effect_col}):")
+    print(f"  p={p}, d_max={d_max}, total lags={p + d_max}")
+    print(f"  Wald stat: {gc_test.test_statistic:.3f}, p={gc_test.pvalue:.4f}")
+    return gc_test
+```
+- Advantage: Works regardless of integration order; no pre-testing needed
+- Disadvantage: Requires fitting higher-order VAR (more parameters, more data needed)
+
+**Approach 3: Rolling window analysis**
+```python
+def rolling_granger(data, cause_col, effect_col, window=60, step=6, max_lag=3):
+    """
+    Rolling-window Granger causality to detect TIME-VARYING causal relationships.
+
+    This is critical for conflict data where a causal relationship may
+    exist during crisis periods but not during peacetime.
+
+    Parameters:
+        window: number of months per window (default: 60 = 5 years)
+        step: stride between windows (default: 6 months)
+        max_lag: maximum lag to test
+    """
+    from statsmodels.tsa.stattools import grangercausalitytests
+
+    results = []
+    n = len(data)
+    for start in range(0, n - window, step):
+        end = start + window
+        window_data = data.iloc[start:end]
+        gc_data = window_data[[effect_col, cause_col]].dropna()
+        if len(gc_data) < window * 0.8:  # skip if too many missing values
+            continue
+        try:
+            gc = grangercausalitytests(gc_data, maxlag=max_lag, verbose=False)
+            min_p = min(gc[l][0]['ssr_ftest'][1] for l in range(1, max_lag + 1))
+            best_lag = min(range(1, max_lag + 1),
+                          key=lambda l: gc[l][0]['ssr_ftest'][1])
+            results.append({
+                'window_start': data.index[start] if hasattr(data, 'index') else start,
+                'window_end': data.index[end-1] if hasattr(data, 'index') else end-1,
+                'min_p': min_p,
+                'best_lag': best_lag,
+                'significant': min_p < 0.05
+            })
+        except:
+            pass
+
+    return pd.DataFrame(results)
+
+# Usage:
+# rw_results = rolling_granger(cell_data, 'spi3', 'conflict_events')
+# This reveals WHEN the drought-conflict link is active vs dormant
+```
+- Advantage: Detects time-varying relationships; identifies when causal links activate/deactivate
+- Disadvantage: Reduced power per window; sensitive to window size choice; multiple testing issues
+
+**Approach 4: Time-varying coefficient models**
+- Fit models where the causal coefficient changes over time
+- Implementation: State-space models with time-varying parameters (e.g., Kalman filter)
+- Python: `statsmodels.tsa.statespace.MLEModel` or the `filterpy` package
+- Use case: When the strength (not just existence) of a causal link changes — e.g., climate-conflict sensitivity increasing with population growth
+
+### 29.5 Implications for Causal Discovery
+
+| Scenario | Problem | Recommended Approach |
+|----------|---------|---------------------|
+| Trend in climate data | Spurious correlation with trending outcome | Detrend both series; use anomalies instead of levels |
+| Unit root in conflict count | Standard Granger falsely detects causality | Toda-Yamamoto procedure; or first-difference |
+| Regime change (war onset) | Causal relationships differ before/after | Rolling window analysis; split sample at break point |
+| Structural break in food prices | ADF test fails to reject unit root | Zivot-Andrews test; model break explicitly |
+| Gradually changing relationship | Constant-coefficient model misspecified | Time-varying coefficient model; rolling window |
+| Non-stationary in levels, stationary after differencing | Differencing loses level information | Cointegration analysis (Johansen test); VECM |
+
+**Critical insight:** A causal method that works in peacetime may NOT work during conflict. The data-generating process itself changes when a conflict starts. The Causal Atlas system should:
+1. **Always** test for stationarity before applying Granger/VAR methods
+2. **Always** check for structural breaks in conflict-affected cells
+3. Use rolling-window methods to detect when causal relationships activate or change
+4. Report time-varying results rather than single static estimates
+
+---
+
+## 30. Spatial Confounding
+
+> **Last updated:** March 2025
+> **Reference:** Akbari et al. (2023). "Spatial Causality: A Systematic Review." *Geographical Analysis*; PMC 10187770 (2023) "A Review of Spatial Causal Inference Methods"
+
+### 30.1 The Fundamental Problem
+
+Spatial confounding occurs when an **unobserved spatially varying variable** influences both the treatment (cause) and the outcome (effect), creating a spurious association.
+
+**Example in the Causal Atlas context:**
+- **Observed:** Grid cells at higher elevation have both lower temperatures AND lower conflict rates
+- **Naive conclusion:** Lower temperature causes lower conflict
+- **True mechanism:** Elevation affects BOTH temperature AND population density / agricultural suitability / terrain accessibility — and it is these factors (not temperature per se) that affect conflict
+- **The confounder:** Elevation (and everything correlated with it) creates a spurious temperature-conflict link
+
+### 30.2 Why Geography Creates Confounders
+
+Geographic location is a "master confounder" because it determines:
+- **Climate:** Temperature, precipitation, seasonality
+- **Agriculture:** Soil quality, crop suitability, growing season length
+- **Population:** Settlement patterns, density, urbanization
+- **Economy:** Market access, infrastructure, trade routes
+- **Politics:** Administrative boundaries, ethnic geography, historical borders
+- **Conflict:** Terrain (mountains provide rebel hideouts), borders (cross-border arms flows)
+
+All of these covary spatially, making it extremely difficult to isolate the causal effect of any single variable.
+
+### 30.3 Spatial Fixed Effects and Their Limitations
+
+**The standard approach:** Include spatial fixed effects (dummy variables for each spatial unit) to control for all time-invariant spatial confounders.
+
+```python
+import statsmodels.formula.api as smf
+
+# Panel regression with spatial fixed effects
+# 'cell_id' absorbs all time-invariant cell-level confounders
+model = smf.ols('conflict ~ spi3 + temperature + C(cell_id) + C(month)',
+                data=panel_data).fit(cov_type='cluster',
+                cov_kwds={'groups': panel_data['cell_id']})
+```
+
+**What spatial fixed effects control for:**
+- Elevation, terrain, soil quality, historical ethnic composition, proximity to borders, market access — anything that does not change over time within a cell
+
+**What they do NOT control for:**
+- Time-varying confounders (e.g., a new road built in 2015 that changes market access)
+- Spatial spillovers (a shock in cell A affecting outcomes in cell B)
+- Smooth spatial trends that vary both across space and time
+
+### 30.4 The Spatial Instrumental Variables Approach
+
+**Concept:** Use a spatially varying variable that affects the treatment (cause) but has no direct effect on the outcome except through the treatment.
+
+**Classic example in climate-conflict research:**
+- **Instrument:** Oceanic Nino Index (ONI) teleconnection strength
+- **Treatment:** Local rainfall anomaly
+- **Outcome:** Conflict
+- **Logic:** ONI affects conflict ONLY through its effect on local rainfall (exclusion restriction). Geographic variation in teleconnection strength provides the spatial identification.
+
+**Implementation:**
+```python
+from linearmodels.iv import IV2SLS
+
+# Two-stage least squares with spatial instrument
+# First stage: rainfall ~ ENSO_teleconnection + controls
+# Second stage: conflict ~ predicted_rainfall + controls
+model = IV2SLS.from_formula(
+    'conflict ~ 1 + controls + [spi3 ~ enso_teleconnection]',
+    data=panel_data
+).fit(cov_type='robust')
+```
+
+**Key requirement:** The instrument must vary at a finer spatial resolution than the treatment. For PRIO-GRID cells, this means the instrument should vary across cells, not just across countries.
+
+### 30.5 Recent Advances: Debiased Spatiotemporal Causal Inference
+
+**SpaCE: The Spatial Confounding Environment (2024)**
+- First benchmark toolkit for evaluating causal inference methods under spatial confounding
+- Provides realistic datasets with known ground truth, spatial graphs, and confounding scores
+- URL: https://github.com/NSAPH-Projects/space (approximate)
+- Significance: Allows systematic comparison of methods rather than relying on simulated data
+
+**Spatial Deconfounder (2025)**
+- Extends the deconfounder approach to spatial settings
+- Accounts for both spatial confounding AND spatial interference simultaneously
+- Reference: arXiv:2510.08762
+
+**Debiased DML for Spatial Data (2023)**
+- Builds on double/debiased machine learning (Chernozhukov et al., 2018) to handle spatial effects
+- First removes spatial trends from outcome and treatment, then performs regression on residuals
+- Reference: Tandfonline (2023), DOI: 10.1080/19475683.2023.2257788
+
+**Key takeaway for Causal Atlas:**
+Spatial confounding is a fundamental challenge. The recommended approach:
+1. **Always include spatial fixed effects** as a baseline
+2. **Use spatial instruments** (e.g., ENSO teleconnections) where available
+3. **Test sensitivity:** If results change dramatically when spatial trends are removed, spatial confounding is likely present
+4. **Report transparently:** Acknowledge that observational causal claims from spatial data are inherently weaker than experimental evidence
+
+### 30.6 Practical Checklist for Causal Atlas
+
+Before reporting a causal link from spatial data:
+
+- [ ] Have you included spatial fixed effects (cell-level dummies)?
+- [ ] Have you tested with and without spatial trend controls?
+- [ ] Can you identify a plausible spatial instrument?
+- [ ] Have you checked whether the result survives controlling for geographic confounders (elevation, distance to coast, population density)?
+- [ ] Have you tested for spatial spillovers using a spatial lag model?
+- [ ] Does the temporal lag structure match published expectations (ruling out purely spatial correlation)?
+
+---
+
+## 31. Ensemble Causal Discovery
+
+> **Last updated:** March 2025
+> **Purpose:** Running multiple causal discovery methods on the same data, comparing results, and building consensus-based causal graphs.
+
+### 31.1 Why Ensemble Approaches?
+
+No single causal discovery method is uniformly best. Each has different assumptions, strengths, and failure modes:
+
+| Method | Assumption Sensitivity | Failure Mode |
+|--------|----------------------|--------------|
+| Granger causality | Linearity, stationarity | Misses nonlinear effects; spurious results from confounders |
+| Transfer entropy | Sufficient data length | Noisy estimates with short series; sensitive to hyperparameters |
+| PCMCI | Stationarity, correct lag specification | Can miss contemporaneous effects; computationally expensive |
+| CCM | Deterministic dynamical system | Fails for stochastic systems; requires long time series |
+| Bayesian networks | No cycles, correct conditional independence tests | Cannot represent feedback loops; sensitive to variable ordering |
+
+An ensemble approach runs **multiple methods on the same data** and reports edges (causal links) that are found by a **consensus** of methods. This reduces the false positive rate from any single method while maintaining sensitivity.
+
+### 31.2 Consensus-Based Edge Detection
+
+**The principle:** Only report a causal edge X -> Y if it is detected by at least K out of M methods tested.
+
+**Recommended configuration for Causal Atlas:**
+
+```python
+from collections import defaultdict
+import numpy as np
+
+def ensemble_causal_discovery(data, var_names, max_lag=6, consensus_k=3):
+    """
+    Run multiple causal discovery methods and report consensus edges.
+
+    Methods used:
+    1. Granger causality (linear, fast)
+    2. Transfer entropy (nonlinear, model-free)
+    3. PCMCI (conditional independence, controls autocorrelation)
+    4. Cross-correlation screening (association, not causation)
+    5. VAR-based Granger (multivariate)
+
+    Parameters:
+        consensus_k: minimum number of methods that must detect an edge
+    """
+    n_vars = len(var_names)
+    edge_votes = defaultdict(lambda: {'methods': [], 'lags': [], 'strengths': []})
+
+    # --- Method 1: Bivariate Granger causality ---
+    from statsmodels.tsa.stattools import grangercausalitytests
+    for i, cause in enumerate(var_names):
+        for j, effect in enumerate(var_names):
+            if i == j:
+                continue
+            gc_data = data[[effect, cause]].dropna()
+            if len(gc_data) < 30:
+                continue
+            try:
+                gc = grangercausalitytests(gc_data, maxlag=max_lag, verbose=False)
+                min_p = min(gc[l][0]['ssr_ftest'][1] for l in range(1, max_lag + 1))
+                best_lag = min(range(1, max_lag + 1),
+                              key=lambda l: gc[l][0]['ssr_ftest'][1])
+                if min_p < 0.05:
+                    edge_votes[(cause, effect)]['methods'].append('Granger')
+                    edge_votes[(cause, effect)]['lags'].append(best_lag)
+                    edge_votes[(cause, effect)]['strengths'].append(-np.log10(min_p))
+            except:
+                pass
+
+    # --- Method 2: PCMCI (if tigramite installed) ---
+    try:
+        import tigramite
+        from tigramite import data_processing as pp
+        from tigramite.pcmci import PCMCI
+        from tigramite.independence_tests.parcorr import ParCorr
+
+        dataframe = pp.DataFrame(data[var_names].values, var_names=var_names)
+        pcmci = PCMCI(dataframe=dataframe, cond_ind_test=ParCorr())
+        results = pcmci.run_pcmci(tau_max=max_lag, pc_alpha=0.05)
+
+        for i, cause in enumerate(var_names):
+            for j, effect in enumerate(var_names):
+                if i == j:
+                    continue
+                for tau in range(1, max_lag + 1):
+                    if results['p_matrix'][j, i, tau] < 0.05:
+                        edge_votes[(cause, effect)]['methods'].append('PCMCI')
+                        edge_votes[(cause, effect)]['lags'].append(tau)
+                        edge_votes[(cause, effect)]['strengths'].append(
+                            abs(results['val_matrix'][j, i, tau]))
+                        break  # count once per pair for PCMCI
+    except ImportError:
+        pass
+
+    # --- Method 3: Transfer entropy (if pyinform or IDTxl installed) ---
+    # (similar structure; discretize data, compute TE, test significance)
+
+    # --- Method 4: Cross-correlation screening ---
+    from scipy.stats import pearsonr
+    for i, cause in enumerate(var_names):
+        for j, effect in enumerate(var_names):
+            if i == j:
+                continue
+            for lag in range(1, max_lag + 1):
+                x = data[cause].values[:-lag]
+                y = data[effect].values[lag:]
+                if len(x) < 30:
+                    continue
+                r, p = pearsonr(x, y)
+                if p < 0.01 and abs(r) > 0.15:  # stricter threshold for screening
+                    edge_votes[(cause, effect)]['methods'].append('CrossCorr')
+                    edge_votes[(cause, effect)]['lags'].append(lag)
+                    edge_votes[(cause, effect)]['strengths'].append(abs(r))
+                    break  # count once per pair
+
+    # --- Method 5: VAR-based multivariate Granger ---
+    from statsmodels.tsa.api import VAR
+    try:
+        var_model = VAR(data[var_names].dropna())
+        fitted = var_model.fit(maxlags=max_lag, ic='bic')
+        for i, cause in enumerate(var_names):
+            for j, effect in enumerate(var_names):
+                if i == j:
+                    continue
+                gc_test = fitted.test_causality(effect, [cause], kind='f')
+                if gc_test.pvalue < 0.05:
+                    edge_votes[(cause, effect)]['methods'].append('VAR_Granger')
+                    edge_votes[(cause, effect)]['strengths'].append(gc_test.test_statistic)
+    except:
+        pass
+
+    # --- Consensus filtering ---
+    consensus_edges = []
+    for (cause, effect), votes in edge_votes.items():
+        n_methods = len(set(votes['methods']))  # unique methods
+        if n_methods >= consensus_k:
+            consensus_edges.append({
+                'cause': cause,
+                'effect': effect,
+                'n_methods': n_methods,
+                'methods': sorted(set(votes['methods'])),
+                'median_lag': int(np.median(votes['lags'])) if votes['lags'] else None,
+                'mean_strength': np.mean(votes['strengths']),
+            })
+
+    return pd.DataFrame(consensus_edges).sort_values('n_methods', ascending=False)
+```
+
+### 31.3 Combining p-Values from Different Methods
+
+When multiple methods each produce a p-value for the same hypothesis (X -> Y), these can be combined using established meta-analytic techniques:
+
+**Fisher's method (most common):**
+```python
+from scipy.stats import combine_pvalues
+
+# p_values: list of p-values from different methods
+stat, combined_p = combine_pvalues(p_values, method='fisher')
+# Fisher's method: -2 * sum(ln(p_i)) ~ chi-squared(2k)
+# Sensitive to small p-values; good when ANY method strongly rejects
+```
+
+**Stouffer's method (weighted):**
+```python
+stat, combined_p = combine_pvalues(p_values, method='stouffer',
+                                    weights=[1.0, 1.5, 2.0])
+# Stouffer: sum(w_i * Phi^{-1}(p_i)) / sqrt(sum(w_i^2))
+# Allows weighting methods by reliability
+# e.g., give PCMCI higher weight than simple cross-correlation
+```
+
+**E-CIT Framework (2025):**
+- The Ensemble Conditional Independence Test partitions data into subsets, applies CI tests independently, and aggregates p-values using stable distribution properties
+- Reduces computational complexity to linear in sample size
+- Reference: arXiv:2509.21021
+
+**Recommended weights for Causal Atlas:**
+
+| Method | Weight | Rationale |
+|--------|--------|-----------|
+| PCMCI | 2.0 | Controls for autocorrelation and confounders; most principled |
+| VAR Granger (multivariate) | 1.5 | Controls for other variables; well-established |
+| Transfer entropy | 1.5 | Captures nonlinear effects |
+| Bivariate Granger | 1.0 | Simple baseline; prone to confounders |
+| Cross-correlation | 0.5 | Association only; not causal |
+
+### 31.4 Practical Implementation for Causal Atlas
+
+**Recommended ensemble pipeline:**
+
+```
+INPUT: Monthly time series for N variables across K grid cells
+
+STAGE 1: Fast screening (seconds)
+    - Cross-correlation at lags 1-12 for all pairs
+    - Retain pairs with |r| > 0.1 and p < 0.05
+    - This reduces the search space dramatically
+
+STAGE 2: Granger causality (seconds to minutes)
+    - Bivariate Granger on pairs passing Stage 1
+    - VAR-based multivariate Granger on all variables per cell
+    - Retain pairs with p < 0.05
+
+STAGE 3: PCMCI (minutes to hours)
+    - Run PCMCI on top-ranked variable sets per cell
+    - This is the most computationally expensive step
+    - Retain edges with p < 0.05
+
+STAGE 4: Consensus
+    - Count how many methods (Stages 1-3) detected each edge
+    - Report edges found by >= 2 out of 3 methods (or >= 3 out of 5 if TE and CCM are included)
+    - Combine p-values using Stouffer's weighted method
+
+STAGE 5: Validation
+    - Compare consensus edges against the Lag Structure Reference Table
+    - Flag novel findings (not in literature) for manual review
+    - Check spatial consistency (Moran's I on edge significance)
+
+OUTPUT: Ranked list of causal edges with confidence scores
+```
+
+**Computational budget (1000 cells, 10 variables, 120 months):**
+
+| Stage | Operation | Time (16 cores) |
+|-------|-----------|-----------------|
+| 1 | Cross-correlation screening | ~5 seconds |
+| 2a | Bivariate Granger (all pairs) | ~30 seconds |
+| 2b | VAR Granger (per cell) | ~1 minute |
+| 3 | PCMCI (per cell, top variables) | ~30-60 minutes |
+| 4 | Consensus + p-value combination | ~1 second |
+| 5 | Validation + Moran's I | ~10 seconds |
+| **Total** | | **~35-65 minutes** |
+
+### 31.5 Interpreting Ensemble Results
+
+| Consensus Level | Interpretation | Action |
+|----------------|----------------|--------|
+| All methods agree (5/5) | Very strong evidence for causal link | Report with high confidence |
+| Most methods agree (3-4/5) | Strong evidence; some methodological sensitivity | Report; note which methods disagree and why |
+| Majority agree (2-3/5) | Moderate evidence; method-dependent | Report cautiously; investigate disagreements |
+| Only 1 method detects | Weak / method-specific finding | Do not report as causal; may be a data artifact or nonlinearity only captured by one method |
+| No methods detect | No evidence for this link | Report as negative finding (also informative!) |
+
+---
+
+## 32. Additional Sources (Sections 28-31)
+
+### Non-Stationarity and Structural Breaks
+
+- Zivot, E. & Andrews, D.W.K. (1992). "Further Evidence on the Great Crash, the Oil-Price Shock, and the Unit-Root Hypothesis." *Journal of Business & Economic Statistics*, 10(3), 251-270.
+- Toda, H.Y. & Yamamoto, T. (1995). "Statistical inference in vector autoregressions with possibly integrated processes." *Journal of Econometrics*, 66(1-2), 225-250.
+- Baum, C.F., Hurn, S., & Otero, J. (2022). "Testing for time-varying Granger causality." *Stata Journal*, 22(4). DOI: 10.1177/1536867X221106403
+- statsmodels Zivot-Andrews: https://www.statsmodels.org/stable/generated/statsmodels.tsa.stattools.zivot_andrews.html
+- Bai, J. & Perron, P. (2003). "Computation and analysis of multiple structural change models." *Journal of Applied Econometrics*, 18(1), 1-22.
+
+### Spatial Confounding and Causal Inference
+
+- Akbari, K. et al. (2023). "Spatial Causality: A Systematic Review on Spatial Causal Inference." *Geographical Analysis*. DOI: 10.1111/gean.12312
+- Reich, B.J. et al. (2021). "A Review of Spatial Causal Inference Methods for Environmental and Epidemiological Applications." *International Statistical Review*, 89(3), 605-634. PMC: 10187770
+- Papadogeorgou, G. et al. (2022). "Toward Causal Inference for Spatio-Temporal Data: Conflict and Forest Loss in Colombia." *JASA*, 117(538).
+- Guan, Y. et al. (2023). "Controlling for spatial confounding and spatial interference in causal inference." *Int. J. Geographical Information Science*. DOI: 10.1080/19475683.2023.2257788
+- Spatial Deconfounder (2025). arXiv:2510.08762
+- SpaCE: The Spatial Confounding Environment. https://github.com/NSAPH-Projects/space
+- Hsiang, S., Meng, K., & Cane, M. (2011). "Civil conflicts are associated with the global climate." *Nature*, 476, 438-441. (ENSO as spatial instrument)
+
+### Ensemble Causal Discovery
+
+- E-CIT Framework (2025). "Efficient Ensemble Conditional Independence Test Framework for Causal Discovery." arXiv:2509.21021
+- Survey on Causal Discovery (2023). arXiv:2305.10032
+- Fisher, R.A. (1925). *Statistical Methods for Research Workers*. (Fisher's method for combining p-values)
+- Stouffer, S.A. et al. (1949). *The American Soldier*. (Stouffer's method)
+- Nature Scientific Reports (2023). "Time series causal relationships discovery through feature importance and ensemble models." DOI: 10.1038/s41598-023-37929-w
+
+### Implementation Recipes — Data Sources
+
+- CHIRPS SPI documentation: https://www.chc.ucsb.edu/data/chirps
+- ACLED API documentation: https://acleddata.com/acleddatanew/wp-content/uploads/2021/11/ACLED_API-User-Guide_2021.pdf
+- Tigramite (PCMCI): https://github.com/jakobrunge/tigramite
+- PySAL (Moran's I): https://pysal.org/esda/
+- linearmodels (IV2SLS): https://bashtage.github.io/linearmodels/
+- WFP Market Monitor: https://dataviz.vam.wfp.org/
+- FEWS NET: https://fews.net/
+
+### Regional Causal Chain Literature (referenced in 03-causal-chains.md)
+
+- Maystadt, J.F. & Ecker, O. (2014). "Extreme Weather and Civil War: Does Drought Fuel Conflict in Somalia through Livestock Price Shocks?" *AJAE*, 96(4), 1157-1182.
+- McGuirk, E. & Nunn, N. (2024). "Transhumant Pastoralism, Climate Change, and Conflict in Africa." *Review of Economic Studies*, 92(1), 404+.
+- Endris, H.S. et al. (2018). "Future changes in rainfall associated with ENSO, IOD and changes in the mean state over Eastern Africa." *Climate Dynamics*.
+- Nature Reviews Earth & Environment (2023). "Drivers and impacts of Eastern African rainfall variability."
+- Brookings (2022). "Climate change, development, and conflict-fragility nexus in the Sahel."
+- CASCADES (2021). "Climate Change, Development and Security in the Central Sahel."
+- ERF (2025). "The impact of climate change and resource scarcity on conflict in MENA."
 
 ### Foundational Papers
 

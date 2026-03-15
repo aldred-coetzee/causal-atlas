@@ -19,6 +19,12 @@
 9. [Monitoring and Operations](#9-monitoring-and-operations)
 10. [Specific Hardware Recommendations (March 2025 Pricing)](#10-specific-hardware-recommendations-march-2025-pricing)
 11. [Comparison: Self-Hosted vs Cloud](#11-comparison-self-hosted-vs-cloud)
+12. [Detailed Benchmarking Plan](#12-detailed-benchmarking-plan)
+13. [Power and Cooling](#13-power-and-cooling)
+14. [Data Sovereignty and Legal](#14-data-sovereignty-and-legal)
+15. [Backup and Disaster Recovery](#15-backup-and-disaster-recovery)
+16. [Network Architecture](#16-network-architecture)
+17. [Complete Build Guides](#17-complete-build-guides)
 
 ---
 
@@ -1096,6 +1102,1203 @@ Causal Atlas handles data relevant to humanitarian contexts (conflict data, food
 
 ---
 
+## 12. Detailed Benchmarking Plan
+
+> **Checked:** March 2025
+
+Before committing to a hardware purchase, run these specific benchmarks to validate that the chosen configuration meets Causal Atlas requirements. These can be run on existing hardware, cloud trial instances, or in-store demo machines.
+
+### 12.1 DuckDB: Parquet Scan Performance
+
+**What to measure:** Sequential scan throughput (GB/s per core), predicate pushdown effectiveness, and larger-than-memory query behaviour.
+
+```bash
+# Generate a test Parquet dataset matching our expected schema
+python3 -c "
+import pyarrow as pa
+import pyarrow.parquet as pq
+import numpy as np
+
+# Simulate 10M rows (approx 1 year of global data, 20 variables)
+n = 10_000_000
+table = pa.table({
+    'gid': np.random.randint(1, 259201, n, dtype=np.int32),
+    'year': np.random.randint(2015, 2025, n, dtype=np.int16),
+    'month': np.random.randint(1, 13, n, dtype=np.int8),
+    'variable': np.random.choice(['var_' + str(i) for i in range(20)], n),
+    'value': np.random.randn(n).astype(np.float64),
+    'source_id': np.random.choice(['acled_v24', 'chirps_v2', 'wfp_v1'], n),
+    'quality_flag': np.random.randint(0, 4, n, dtype=np.int8),
+    'quality_composite': np.random.uniform(0.3, 1.0, n).astype(np.float32),
+})
+pq.write_table(table, '/tmp/bench_10m.parquet',
+               compression='snappy', row_group_size=100_000)
+print(f'Wrote {n:,} rows, file size: {pq.read_metadata(\"/tmp/bench_10m.parquet\").serialized_size / 1e6:.1f} MB')
+"
+
+# Benchmark 1: Full scan with aggregation
+duckdb -c "
+.timer on
+SELECT variable, AVG(value), COUNT(*), STDDEV(value)
+FROM read_parquet('/tmp/bench_10m.parquet')
+GROUP BY variable;
+"
+
+# Benchmark 2: Predicate pushdown (single cell time series)
+duckdb -c "
+.timer on
+SELECT year, month, variable, value
+FROM read_parquet('/tmp/bench_10m.parquet')
+WHERE gid = 142567
+ORDER BY variable, year, month;
+"
+
+# Benchmark 3: Range scan with filter
+duckdb -c "
+.timer on
+SELECT gid, AVG(value) as mean_val
+FROM read_parquet('/tmp/bench_10m.parquet')
+WHERE variable = 'var_0' AND year BETWEEN 2020 AND 2023
+GROUP BY gid
+HAVING AVG(value) > 1.0;
+"
+
+# Benchmark 4: Multi-table join (simulate correlation query)
+python3 -c "
+import pyarrow as pa
+import pyarrow.parquet as pq
+import numpy as np
+
+# Create a second table for joining
+n = 5_000_000
+table2 = pa.table({
+    'gid': np.random.randint(1, 259201, n, dtype=np.int32),
+    'year': np.random.randint(2015, 2025, n, dtype=np.int16),
+    'month': np.random.randint(1, 13, n, dtype=np.int8),
+    'variable': np.full(n, 'chirps_precip'),
+    'value': np.random.uniform(0, 500, n).astype(np.float64),
+})
+pq.write_table(table2, '/tmp/bench_5m.parquet', compression='snappy')
+"
+
+duckdb -c "
+.timer on
+SELECT a.gid, CORR(a.value, b.value) as correlation
+FROM read_parquet('/tmp/bench_10m.parquet') a
+JOIN read_parquet('/tmp/bench_5m.parquet') b
+    ON a.gid = b.gid AND a.year = b.year AND a.month = b.month
+WHERE a.variable = 'var_0'
+GROUP BY a.gid
+HAVING COUNT(*) > 10;
+"
+```
+
+**Target performance (mid-range build, 12C/64GB/NVMe):**
+
+| Benchmark | Target Time | Acceptable |
+|-----------|-------------|-----------|
+| Full scan + aggregation (10M rows) | < 0.5s | < 2s |
+| Predicate pushdown (single cell) | < 50ms | < 200ms |
+| Range scan with filter | < 0.3s | < 1s |
+| Multi-table join correlation | < 2s | < 10s |
+
+### 12.2 Python: PCMCI Runtime per Cell
+
+```bash
+# Benchmark PCMCI with representative parameters
+python3 -c "
+import time
+import numpy as np
+from tigramite import data_processing as pp
+from tigramite.pcmci import PCMCI
+from tigramite.independence_tests.parcorr import ParCorr
+
+# Simulate: 20 variables, 120 time steps (10 years monthly)
+N_VARS = 20
+T = 120
+np.random.seed(42)
+data = np.random.randn(T, N_VARS)
+
+# Add some real correlations to make it non-trivial
+data[:, 1] = 0.5 * data[:, 0] + 0.5 * np.random.randn(T)  # var1 depends on var0
+data[:, 5] = 0.3 * np.roll(data[:, 2], 3) + 0.7 * np.random.randn(T)  # var5 depends on var2 with lag 3
+
+dataframe = pp.DataFrame(data, var_names=[f'var_{i}' for i in range(N_VARS)])
+parcorr = ParCorr(significance='analytic')
+pcmci = PCMCI(dataframe=dataframe, cond_ind_test=parcorr, verbosity=0)
+
+# Single cell benchmark
+start = time.perf_counter()
+results = pcmci.run_pcmci(tau_max=12, pc_alpha=0.05)
+elapsed = time.perf_counter() - start
+print(f'Single cell PCMCI (ParCorr, {N_VARS} vars, T={T}, tau_max=12): {elapsed:.2f}s')
+
+# Estimate global runtime
+land_cells = 64800
+cores = $(nproc)
+estimated_hours = (elapsed * land_cells) / cores / 3600
+print(f'Estimated global land runtime ({cores} cores): {estimated_hours:.1f} hours')
+"
+```
+
+### 12.3 Raster Resampling
+
+```bash
+# Benchmark rasterio resampling (CHIRPS-like raster to PRIO-GRID)
+python3 -c "
+import time
+import numpy as np
+import rasterio
+from rasterio.transform import from_bounds
+
+# Create a synthetic raster matching CHIRPS resolution (0.05 deg, global)
+width = 7200  # 360 / 0.05
+height = 3600  # 180 / 0.05
+data = np.random.uniform(0, 500, (1, height, width)).astype(np.float32)
+
+transform = from_bounds(-180, -90, 180, 90, width, height)
+profile = {
+    'driver': 'GTiff', 'dtype': 'float32', 'width': width, 'height': height,
+    'count': 1, 'crs': 'EPSG:4326', 'transform': transform,
+}
+
+with rasterio.open('/tmp/bench_raster.tif', 'w', **profile) as dst:
+    dst.write(data)
+
+# Benchmark resampling to 0.5 degree (PRIO-GRID)
+from rasterio.warp import reproject, Resampling
+
+start = time.perf_counter()
+target_width = 720   # 360 / 0.5
+target_height = 360  # 180 / 0.5
+target_data = np.empty((1, target_height, target_width), dtype=np.float32)
+target_transform = from_bounds(-180, -90, 180, 90, target_width, target_height)
+
+with rasterio.open('/tmp/bench_raster.tif') as src:
+    reproject(
+        source=rasterio.band(src, 1),
+        destination=target_data[0],
+        src_transform=src.transform,
+        src_crs=src.crs,
+        dst_transform=target_transform,
+        dst_crs='EPSG:4326',
+        resampling=Resampling.average,
+    )
+elapsed = time.perf_counter() - start
+print(f'Raster resample (7200x3600 -> 720x360): {elapsed:.2f}s')
+print(f'30 daily rasters (1 month CHIRPS): {elapsed * 30:.1f}s')
+"
+```
+
+### 12.4 Disk I/O
+
+```bash
+# Sequential read/write test with fio
+sudo apt install -y fio
+
+# Sequential read (simulates Parquet scan)
+fio --name=seq-read --rw=read --bs=1M --size=4G --numjobs=1 \
+    --directory=/data --ioengine=libaio --direct=1 --runtime=30
+
+# Sequential write (simulates Parquet generation)
+fio --name=seq-write --rw=write --bs=1M --size=4G --numjobs=1 \
+    --directory=/data --ioengine=libaio --direct=1 --runtime=30
+
+# Random 4K read (simulates DuckDB predicate pushdown)
+fio --name=rand-read --rw=randread --bs=4k --size=2G --numjobs=4 \
+    --directory=/data --ioengine=libaio --direct=1 --iodepth=32 --runtime=30
+
+# Print summary
+echo "Target for NVMe Gen4:"
+echo "  Sequential read:  > 3,000 MB/s (ideal > 5,000 MB/s)"
+echo "  Sequential write: > 2,000 MB/s (ideal > 4,000 MB/s)"
+echo "  Random 4K read:   > 500K IOPS (ideal > 800K IOPS)"
+```
+
+### 12.5 Network Download Speed
+
+```bash
+# Test download speeds for key data sources
+echo "=== CHIRPS (UCSB FTP) ==="
+time wget -q --spider ftp://ftp.chg.ucsb.edu/pub/org/chg/products/CHIRPS-2.0/global_daily/tifs/p05/2024/chirps-v2.0.2024.01.01.tif.gz 2>&1 | head -5
+
+echo "=== ACLED API ==="
+time curl -s -o /dev/null -w "Speed: %{speed_download} bytes/sec\nTime: %{time_total}s\n" \
+    "https://api.acleddata.com/acled/read?limit=1&key=YOUR_KEY"
+
+echo "=== NASA Earthdata (MODIS) ==="
+# Requires .netrc with Earthdata credentials
+time wget -q --spider "https://e4ftl01.cr.usgs.gov/MOLT/MOD13A3.061/2024.01.01/" 2>&1 | head -5
+
+echo "=== General bandwidth test ==="
+curl -s https://speed.cloudflare.com/__down?bytes=100000000 -o /dev/null -w "Download: %{speed_download} bytes/sec\n"
+```
+
+---
+
+## 13. Power and Cooling
+
+> **Checked:** March 2025
+
+### 13.1 Power Consumption Estimates
+
+| Build Tier | Idle Power | Load Power (CPU+disk) | Peak Power (CPU+GPU+disk) | Annual kWh (est.) |
+|-----------|-----------|---------------------|-------------------------|------------------|
+| Budget (Ryzen 5 7600X, no GPU) | 45-65W | 120-180W | 200W | 700-1,100 kWh |
+| Mid-range (Ryzen 9 9900X, no GPU) | 55-80W | 180-250W | 300W | 1,000-1,600 kWh |
+| Mid-range + GPU (RTX 4060 Ti) | 65-95W | 200-300W | 450W | 1,200-1,900 kWh |
+| High-end (Ryzen 9 9950X + RTX 4070 Ti) | 75-110W | 250-350W | 550W | 1,500-2,200 kWh |
+| Workstation (Threadripper 7970X + GPU) | 100-150W | 350-500W | 750W | 2,200-3,200 kWh |
+| Mini PC (Minisforum MS-A2) | 15-25W | 65-95W | 120W | 400-600 kWh |
+| Used server (Dell R740, dual Xeon) | 120-200W | 350-600W | 800W | 2,500-3,800 kWh |
+
+**Estimation methodology:** Idle = system on, no computation. Load = sustained PCMCI or DuckDB workload. Peak = simultaneous CPU + GPU stress test. Annual kWh assumes 60% idle / 30% load / 10% peak duty cycle for an always-on development server.
+
+### 13.2 Power Cost Estimates
+
+| Electricity Rate | Budget Build | Mid-Range | High-End | Workstation | Used Server |
+|-----------------|-------------|-----------|----------|-------------|-------------|
+| $0.10/kWh (US average) | $70-110/yr | $100-160/yr | $150-220/yr | $220-320/yr | $250-380/yr |
+| $0.15/kWh (US urban) | $105-165/yr | $150-240/yr | $225-330/yr | $330-480/yr | $375-570/yr |
+| $0.30/kWh (EU/DE average) | $210-330/yr | $300-480/yr | $450-660/yr | $660-960/yr | $750-1,140/yr |
+| $0.35/kWh (EU/NL high) | $245-385/yr | $350-560/yr | $525-770/yr | $770-1,120/yr | $875-1,330/yr |
+
+**Key insight for Causal Atlas:** The mid-range build at US electricity rates costs approximately $10-20/month in power -- negligible compared to cloud hosting. However, at European electricity rates (relevant for Hetzner-hosted alternatives), power costs for a home server are 2-3x higher. This strengthens the case for Hetzner dedicated servers where electricity is included in the monthly fee.
+
+### 13.3 UPS Recommendations
+
+For always-on servers running data pipelines, a UPS is not optional -- it prevents data corruption during power outages, especially for DuckDB write operations and Parquet file generation.
+
+| Build Tier | UPS Recommendation | Capacity | Runtime at Load | Est. Price |
+|-----------|-------------------|----------|----------------|-----------|
+| Budget / Mid-range (no GPU) | CyberPower CP1000PFCLCD | 1000VA / 600W | 8-15 min at 200W | $140-170 |
+| Mid-range + GPU | APC Back-UPS Pro 1500S (BR1500MS2) | 1500VA / 900W | 8-12 min at 350W | $190-250 |
+| High-end | CyberPower CP1500PFCLCD | 1500VA / 1000W PFC Sinewave | 10-15 min at 400W | $200-250 |
+| Workstation | APC Smart-UPS SMT2200C | 2200VA / 1980W | 8-12 min at 600W | $600-800 |
+| Used server | APC Smart-UPS SMT3000 | 3000VA / 2700W | 10-15 min at 600W | $800-1,200 |
+
+**Critical UPS features for Causal Atlas:**
+- **Pure sine wave output:** Required for systems with active PFC power supplies (all modern 80+ Gold/Platinum PSUs). Simulated sine wave UPS can cause instability and potential hardware damage
+- **USB communication:** Connect to server via USB for automatic graceful shutdown when battery is low. Use `apcupsd` (for APC) or `nut` (Network UPS Tools, for CyberPower and others) on Ubuntu
+- **Replace battery every 3-5 years:** Lead-acid batteries degrade. Set a calendar reminder
+
+**Ubuntu UPS configuration (using NUT):**
+
+```bash
+# Install Network UPS Tools
+sudo apt install -y nut nut-client nut-server
+
+# Configure UPS driver (/etc/nut/ups.conf)
+cat <<'EOF' | sudo tee /etc/nut/ups.conf
+[causal-atlas-ups]
+    driver = usbhid-ups
+    port = auto
+    desc = "CyberPower CP1500PFCLCD"
+EOF
+
+# Configure shutdown thresholds (/etc/nut/upsmon.conf)
+# FINALDELAY: wait 5 seconds then shutdown
+# LOWBATT: shutdown when battery is low
+
+sudo systemctl enable nut-server nut-monitor
+sudo systemctl start nut-server nut-monitor
+
+# Test UPS detection
+upsc causal-atlas-ups
+```
+
+### 13.4 Cooling Considerations
+
+| Scenario | Ambient Temp Limit | Recommendation |
+|----------|-------------------|----------------|
+| Desktop in air-conditioned office | < 25C | Stock or tower cooler (Noctua NH-D15). No special considerations |
+| Desktop in non-AC room (summer) | 25-35C | Good case airflow (mesh front panel), 2-3 case fans, tower cooler. Monitor CPU temps during sustained PCMCI |
+| Closet or enclosed space | Variable | NOT recommended without ventilation. CPU and SSD throttle above 80-95C. Minimum: intake and exhaust vents |
+| Rack-mounted server | Datacenter spec | Rack servers (R740, etc.) are designed for 35C ambient. Ensure 1U-2U spacing for airflow |
+| Mini PC (always-on) | < 30C | Small form factor limits cooling. Monitor thermals during sustained load. Place on ventilated surface |
+
+**Temperature monitoring on Ubuntu:**
+
+```bash
+# Install and use lm-sensors
+sudo apt install -y lm-sensors
+sudo sensors-detect --auto
+sensors  # Show current temperatures
+
+# Continuous monitoring
+watch -n 5 sensors
+
+# For NVMe SSD temperature
+sudo apt install -y nvme-cli
+sudo nvme smart-log /dev/nvme0
+
+# Set up thermal alert (add to cron)
+# Alert if CPU > 85C or NVMe > 70C
+```
+
+---
+
+## 14. Data Sovereignty and Legal
+
+> **Checked:** March 2025
+
+### 14.1 Data Residency by Source
+
+| Data Source | Licence | Residency Requirements | Storage Restrictions |
+|------------|---------|----------------------|---------------------|
+| **ACLED** | Free for non-commercial use; attribution required; commercial use requires licence | No explicit residency requirement. Terms of use restrict redistribution of raw micro-data. Aggregate statistics can be freely shared | Do not expose individual event coordinates via public API |
+| **UCDP GED** | CC-BY-4.0 | No residency requirements | Free to redistribute with attribution |
+| **CHIRPS** | Public domain (US Government funded) | None | None |
+| **MODIS/VIIRS** | Public domain (NASA) | None | None |
+| **USGS Earthquakes** | Public domain (US Government) | None | None |
+| **OpenAQ** | CC-BY-4.0 | None | Free to redistribute with attribution |
+| **WFP food prices** | CC-BY-SA-3.0 IGO | No explicit requirements. Handled via HDX | Share-alike required |
+| **World Bank** | CC-BY-4.0 | None | Free to redistribute with attribution |
+| **FAO** | Varies by dataset; generally open | None for statistical data | Check per-dataset licence |
+| **GDELT** | Open, derived from news sources | None | Attribution appreciated but not legally required |
+| **EM-DAT** | Registration required; academic/research use free | No explicit residency | Do not redistribute full database without permission |
+| **UNHCR/IOM** | Varies; some datasets restricted | May require data sharing agreements. UNHCR data protection policy applies to personal data | Avoid co-locating with conflict actor data |
+| **WHO disease data** | Generally open for aggregate statistics | No residency for aggregate data | Individual-level health data subject to national regulations |
+
+### 14.2 GDPR Considerations
+
+If Causal Atlas serves European users (likely, given Hetzner hosting), GDPR applies to any personal data collected -- even basic user account information.
+
+**What constitutes personal data for Causal Atlas:**
+- User email addresses (for API keys, notifications)
+- IP addresses in server logs
+- Any user-uploaded annotations linked to an identifiable person
+- ORCID identifiers (linked to real names)
+
+**What is NOT personal data:**
+- Aggregated grid-level statistics (anonymised by design -- 0.5 degree resolution covers ~55 km)
+- Conflict event counts, precipitation values, food prices at grid level
+- Analysis results (correlations, causal graphs)
+
+**GDPR compliance measures:**
+
+| Requirement | Implementation |
+|------------|---------------|
+| **Lawful basis** | Legitimate interest (research platform) + consent (user accounts) |
+| **Data minimisation** | Collect only email and ORCID for accounts; no demographic data |
+| **Right to erasure** | Implement user account deletion API |
+| **Data protection impact assessment** | Required if processing sensitive data at scale |
+| **Data processing agreement** | Needed with Hetzner (they provide standard DPA) |
+| **Privacy policy** | Publish on the website; disclose data collected and purposes |
+| **Cookie consent** | Minimal cookies (session only); no third-party tracking |
+
+### 14.3 Server Location Recommendations
+
+| Jurisdiction | Data Protection Strength | Hetzner Availability | Recommendation |
+|-------------|------------------------|---------------------|----------------|
+| **Germany** (Falkenstein, Nuremberg) | Excellent (GDPR + BDSG) | Primary DC locations | **First choice** -- strong data protection, well-connected, Hetzner HQ |
+| **Finland** (Helsinki) | Excellent (GDPR + Finnish DPA) | Hetzner DC | Good alternative -- additional geographic redundancy |
+| **Netherlands** | Excellent (GDPR + Dutch DPA) | Various providers | Good for European deployment |
+| **United States** | Moderate (no federal data protection law; CLOUD Act allows cross-border access) | AWS/GCP | Acceptable for public/open data; avoid for personal data of EU users |
+| **Singapore** | Good (PDPA) | Various providers | For Asia-Pacific serving |
+
+**Recommendation:** Host the primary Causal Atlas instance on Hetzner in Germany (Falkenstein or Nuremberg). This provides GDPR compliance by default, strong data protection, and the best price-performance ratio. For a CDN layer, use Cloudflare which has PoPs globally but does not store data persistently.
+
+### 14.4 Responsible Data Handling for Conflict Data
+
+Causal Atlas handles data about armed conflict, which requires ethical consideration beyond legal compliance:
+
+1. **Do not expose precise event locations:** ACLED events are geocoded to specific coordinates. Our 0.5-degree grid aggregation naturally anonymises, but the raw data partition should be access-controlled
+
+2. **Do not enable targeting:** If the system identifies causal predictors of conflict, this information could theoretically be misused. Follow the VIEWS project's responsible disclosure framework -- publish findings in academic venues, not as real-time operational intelligence
+
+3. **Consider the affected populations:** People in conflict zones are the subjects of this data. Design the platform with their interests in mind. Display data respectfully, not sensationally
+
+4. **Avoid hosting in conflict-party jurisdictions:** Do not host servers containing conflict data in countries that are parties to the conflicts described in the data
+
+Source: [UNHCR Data Protection](https://www.unhcr.org/us/data-protection), [Data Protection in Humanitarian Action (Journal)](https://jhumanitarianaction.springeropen.com/articles/10.1186/s41018-020-00078-0), [GDPR and Server Location](https://techgdpr.com/blog/server-location-gdpr/)
+
+---
+
+## 15. Backup and Disaster Recovery
+
+> **Checked:** March 2025
+
+### 15.1 The 3-2-1 Rule Applied to Causal Atlas
+
+The 3-2-1 backup rule: keep **3** copies of data, on **2** different media types, with **1** offsite.
+
+| Copy | Location | Media | What | Update Frequency |
+|------|----------|-------|------|-----------------|
+| **Primary** | Server NVMe SSD | NVMe Gen4 | Processed Parquet + analysis results | Live (current data) |
+| **Local backup** | Server HDD (RAID 1 mirror) | 7200 RPM HDD | Full mirror of processed data + raw archive | Daily rsync |
+| **Offsite backup** | Backblaze B2 or Hetzner Storage Box | Cloud object storage | Processed data + analysis results + config | Daily rclone sync |
+
+### 15.2 Data Classification: Regenerable vs Irreplaceable
+
+| Data Category | Regenerable? | Backup Priority | Recovery Method |
+|--------------|-------------|-----------------|-----------------|
+| **Raw downloads** (ACLED CSV, CHIRPS TIFFs, etc.) | Yes -- re-download from source APIs | LOW | Re-run adapters in full-refresh mode |
+| **Processed Parquet files** (canonical grid data) | Yes -- re-process from raw data | MEDIUM | Re-run adapter pipeline (hours to days) |
+| **Analysis results** (PCMCI outputs, correlations) | Expensive to regenerate (hours-days of CPU) | HIGH | Restore from backup; re-run if lost |
+| **Claude interpretations** (cached AI narratives) | Regenerable but costs money ($) | MEDIUM | Re-run interpretation pipeline |
+| **User annotations** (causal link labels, comments) | **Irreplaceable** | CRITICAL | Must be backed up; no re-generation possible |
+| **Configuration** (adapter configs, API keys, .env) | Partially regenerable | HIGH | Version-controlled in Git (sans secrets) |
+| **DuckDB materialized views** | Regenerable from Parquet | LOW | Rebuild from setup_views.sql |
+
+### 15.3 Automated Backup Scripts
+
+**Daily backup to Backblaze B2:**
+
+```bash
+#!/bin/bash
+# /opt/causal-atlas/scripts/daily-backup.sh
+# Cron: 0 2 * * * /opt/causal-atlas/scripts/daily-backup.sh
+
+set -euo pipefail
+
+LOG="/var/log/causal-atlas/backup-$(date +%Y%m%d).log"
+REMOTE="b2:causal-atlas-backup"  # rclone remote
+
+exec >> "$LOG" 2>&1
+echo "=== Backup started: $(date -u) ==="
+
+# 1. Sync processed Parquet (incremental -- only changed files)
+echo "--- Syncing processed Parquet ---"
+rclone sync /data/processed/ "$REMOTE/processed/" \
+    --fast-list \
+    --transfers 8 \
+    --checkers 16 \
+    --stats 60s \
+    --stats-one-line \
+    --log-level INFO
+
+# 2. Sync analysis results (irreplaceable computations)
+echo "--- Syncing analysis results ---"
+rclone sync /data/analysis/ "$REMOTE/analysis/" \
+    --fast-list \
+    --transfers 4
+
+# 3. Sync user annotations (critical -- irreplaceable)
+echo "--- Syncing annotations ---"
+rclone sync /data/annotations/ "$REMOTE/annotations/" \
+    --fast-list
+
+# 4. Backup DuckDB databases (small, fast)
+echo "--- Backing up DuckDB ---"
+rclone copy /data/causal_atlas.duckdb "$REMOTE/duckdb/" \
+    --immutable
+
+# 5. Backup configuration (exclude secrets)
+echo "--- Backing up config ---"
+rclone sync /opt/causal-atlas/config/ "$REMOTE/config/" \
+    --exclude ".env" \
+    --exclude "*.key"
+
+echo "=== Backup completed: $(date -u) ==="
+
+# Verify a random sample of backed-up files
+echo "--- Verification ---"
+rclone check /data/processed/ "$REMOTE/processed/" \
+    --one-way \
+    --size-only \
+    --stats-one-line \
+    2>&1 | tail -3
+```
+
+**Weekly backup to Hetzner Storage Box (secondary offsite):**
+
+```bash
+#!/bin/bash
+# /opt/causal-atlas/scripts/weekly-backup-hetzner.sh
+# Cron: 0 4 * * 0 /opt/causal-atlas/scripts/weekly-backup-hetzner.sh
+
+set -euo pipefail
+
+REMOTE="hetzner-storagebox:causal-atlas"
+
+# Full sync of all critical data
+rclone sync /data/processed/ "$REMOTE/processed/" --fast-list --transfers 4
+rclone sync /data/analysis/ "$REMOTE/analysis/" --fast-list
+rclone sync /data/annotations/ "$REMOTE/annotations/"
+
+# Also sync raw data checksums (for verifying re-downloads)
+find /data/raw/ -name "*.sha256" | while read f; do
+    rclone copy "$f" "$REMOTE/raw-checksums/$(dirname ${f#/data/raw/})/"
+done
+```
+
+**rclone remote configuration:**
+
+```bash
+# Configure Backblaze B2
+rclone config create b2 b2 \
+    account YOUR_B2_KEY_ID \
+    key YOUR_B2_APPLICATION_KEY
+
+# Configure Hetzner Storage Box (via SFTP)
+rclone config create hetzner-storagebox sftp \
+    host uXXXXXX.your-storagebox.de \
+    user uXXXXXX \
+    port 23 \
+    key_file /root/.ssh/hetzner_storagebox_key
+```
+
+### 15.4 Recovery Time Objectives
+
+| Scenario | Recovery Time Objective (RTO) | Recovery Point Objective (RPO) | Procedure |
+|----------|------------------------------|-------------------------------|-----------|
+| **Single file corruption** | < 15 minutes | Last backup (< 24 hours) | Restore specific file from B2 |
+| **NVMe drive failure** | 2-4 hours | Last backup (< 24 hours) | Replace drive, restore from B2 |
+| **Full server failure** | 4-8 hours | Last backup (< 24 hours) | Provision new Hetzner server, restore from B2 |
+| **Datacenter outage** | 8-24 hours | Last backup (< 24 hours) | Provision in different DC, restore from B2 |
+| **Accidental data deletion** | 15-60 minutes | Last backup (< 24 hours) | Restore from B2 (versioning enabled) |
+
+**B2 versioning:** Enable B2 file versioning to protect against accidental deletion and ransomware. B2 keeps previous versions for a configurable retention period (recommend 30 days). This allows point-in-time recovery.
+
+```bash
+# Enable versioning on B2 bucket
+b2 update-bucket --lifecycle '{"daysFromHidingToDeleting": 30, "daysFromUploadingToHiding": null}' causal-atlas-backup allPublic
+```
+
+### 15.5 Cost of Backups
+
+| Service | Storage | Monthly Cost | Notes |
+|---------|---------|-------------|-------|
+| **Backblaze B2** (primary offsite) | 200 GB processed + 50 GB analysis | ~$1.50/month ($0.006/GB) | + $0.01/GB download on restore |
+| **Hetzner Storage Box** (secondary) | 1 TB plan | ~$4.00/month | Unlimited traffic to/from Hetzner DCs |
+| **Total backup cost** | | ~$5.50/month | |
+
+At ~$5.50/month for dual-offsite backup of all critical data, backup costs are negligible and not worth economising on.
+
+---
+
+## 16. Network Architecture
+
+> **Checked:** March 2025
+
+### 16.1 Home Lab Setup
+
+For running Causal Atlas from a home server (development or small-scale deployment):
+
+```
+Internet
+    │
+    ▼
+┌────────────────┐
+│  ISP Router    │  WAN IP: dynamic (or static if available)
+│  NAT/Firewall  │
+└────────┬───────┘
+         │ LAN (192.168.1.0/24)
+         │
+    ┌────┴────────────────────────┐
+    │  Home Network Switch        │
+    │  (Gigabit minimum)          │
+    ├─────────┬──────────┬────────┤
+    │         │          │        │
+    ▼         ▼          ▼        ▼
+  Other    Causal      NAS     Developer
+  devices  Atlas      (backup)  laptop
+           Server
+           .100                  .101
+```
+
+**Static IP vs Dynamic DNS:**
+
+| Option | Cost | Reliability | Setup Complexity |
+|--------|------|-------------|-----------------|
+| **Static IP from ISP** | $5-20/month (if available) | Best -- never changes | Low -- point DNS A record to IP |
+| **Dynamic DNS (DuckDNS)** | Free | Good -- updates within 60s of IP change | Low -- run ddclient daemon |
+| **Cloudflare Tunnel** | Free | Excellent -- no port forwarding needed | Medium -- install cloudflared |
+
+**Recommended: Cloudflare Tunnel (zero-trust, no port forwarding):**
+
+```bash
+# Install cloudflared
+curl -L --output cloudflared.deb \
+    https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+sudo dpkg -i cloudflared.deb
+
+# Authenticate
+cloudflared tunnel login
+
+# Create tunnel
+cloudflared tunnel create causal-atlas
+
+# Configure tunnel (/etc/cloudflared/config.yml)
+cat <<'EOF' | sudo tee /etc/cloudflared/config.yml
+tunnel: causal-atlas
+credentials-file: /root/.cloudflared/<TUNNEL_ID>.json
+
+ingress:
+  - hostname: atlas.example.com
+    service: http://localhost:8000
+  - hostname: grafana.example.com
+    service: http://localhost:3000
+  - service: http_status:404
+EOF
+
+# Run as service
+sudo cloudflared service install
+sudo systemctl enable cloudflared
+sudo systemctl start cloudflared
+```
+
+**Advantages of Cloudflare Tunnel:**
+- No port forwarding required on home router
+- No static IP needed
+- Built-in DDoS protection
+- Free with Cloudflare account
+- SSH access possible via `cloudflared access` (no exposed SSH port)
+
+### 16.2 Hetzner Network Configuration
+
+For Hetzner dedicated servers (AX102 / AX162-S):
+
+```
+Internet
+    │
+    ▼
+┌────────────────────┐
+│  Cloudflare CDN    │  DNS + CDN + DDoS
+│  (free tier)       │  protection
+└────────┬───────────┘
+         │  Origin pull
+         ▼
+┌────────────────────┐
+│  Hetzner Firewall  │  Allow: 80/443 (from Cloudflare IPs only)
+│  (Cloud Firewall)  │  Allow: SSH from admin IPs only
+└────────┬───────────┘
+         │
+┌────────┴───────────┐
+│  AX102 / AX162-S   │  Primary IP: x.x.x.x
+│  Ubuntu 24.04 LTS  │  Floating IP: y.y.y.y (optional, for failover)
+│                    │
+│  ┌──────────────┐  │
+│  │  Docker       │  │
+│  │  Compose      │  │
+│  │  network      │  │
+│  │  (bridge)     │  │
+│  └──────────────┘  │
+└────────────────────┘
+```
+
+**Hetzner Firewall rules (via hcloud CLI or web console):**
+
+```bash
+# Install hcloud CLI
+brew install hcloud  # or download from GitHub
+
+# Create firewall
+hcloud firewall create --name causal-atlas-fw
+
+# Allow SSH from admin IP only
+hcloud firewall add-rule causal-atlas-fw \
+    --direction in --protocol tcp --port 22 \
+    --source-ips "YOUR_ADMIN_IP/32" \
+    --description "SSH from admin"
+
+# Allow HTTP/HTTPS from Cloudflare IPs only
+# Cloudflare IPv4 ranges: https://www.cloudflare.com/ips-v4
+for ip in 173.245.48.0/20 103.21.244.0/22 103.22.200.0/22 \
+          103.31.4.0/22 141.101.64.0/18 108.162.192.0/18 \
+          190.93.240.0/20 188.114.96.0/20 197.234.240.0/22 \
+          198.41.128.0/17 162.158.0.0/15 104.16.0.0/13 \
+          104.24.0.0/14 172.64.0.0/13 131.0.72.0/22; do
+    hcloud firewall add-rule causal-atlas-fw \
+        --direction in --protocol tcp --port 80 \
+        --source-ips "$ip" \
+        --description "HTTP from Cloudflare"
+    hcloud firewall add-rule causal-atlas-fw \
+        --direction in --protocol tcp --port 443 \
+        --source-ips "$ip" \
+        --description "HTTPS from Cloudflare"
+done
+```
+
+### 16.3 SSH Hardening
+
+```bash
+# /etc/ssh/sshd_config.d/hardening.conf
+# Apply to both home lab and Hetzner servers
+
+# Disable password authentication (key-only)
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+
+# Disable root login
+PermitRootLogin no
+
+# Only allow specific users
+AllowUsers causal-atlas
+
+# Use strong key exchange and ciphers
+KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org
+Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com
+MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com
+
+# Rate limiting (fail2ban handles the rest)
+MaxAuthTries 3
+LoginGraceTime 30
+
+# Idle timeout (disconnect after 15 min of inactivity)
+ClientAliveInterval 300
+ClientAliveCountMax 3
+```
+
+```bash
+# Install and configure fail2ban
+sudo apt install -y fail2ban
+
+cat <<'EOF' | sudo tee /etc/fail2ban/jail.local
+[sshd]
+enabled = true
+port = ssh
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 3
+bantime = 3600
+findtime = 600
+EOF
+
+sudo systemctl enable fail2ban
+sudo systemctl start fail2ban
+```
+
+### 16.4 Cloudflare Free Tier Configuration
+
+```
+Cloudflare Free Tier provides:
+- DNS hosting (fast, anycast)
+- CDN (static asset caching at edge)
+- DDoS protection (L3/L4 + basic L7)
+- SSL/TLS (Full Strict mode with origin cert)
+- 1 page rule
+- 1 rate limiting rule
+- Web Application Firewall (basic rules)
+- Analytics
+
+Configuration for Causal Atlas:
+1. Set SSL/TLS mode to "Full (Strict)"
+2. Create origin certificate (15-year, installed on Hetzner server)
+3. Enable "Always Use HTTPS"
+4. Set minimum TLS version to 1.2
+5. Enable HSTS (max-age=31536000, includeSubDomains)
+6. Cache level: Standard
+7. Browser cache TTL: 4 hours (for API responses)
+8. Under-attack mode: Off (enable manually during DDoS)
+```
+
+---
+
+## 17. Complete Build Guides
+
+> **Checked:** March 2025
+>
+> **Pricing note:** DDR5 RAM prices are significantly elevated as of early 2026 due to global AI-driven DRAM shortages. The prices below reflect current market conditions. Monitor [Tom's Hardware RAM Price Index](https://www.tomshardware.com/pc-components/ram/ram-price-index-2026-lowest-price-on-ddr5-and-ddr4-memory-of-all-capacities) for price movements before purchasing.
+
+### 17.1 Recommended Mid-Range Build: Complete Parts List
+
+This build targets continental-scale PCMCI analysis, full data pipeline operation, and comfortable DuckDB querying of the complete processed dataset.
+
+| # | Component | Exact Model | Est. Price (Mar 2025) | Notes |
+|---|-----------|------------|----------------------|-------|
+| 1 | **CPU** | AMD Ryzen 9 9900X (12C/24T, 4.4-5.6 GHz, AM5) | $360-390 | Currently ~$360-390 at Amazon/Micro Center. 170W TDP. No cooler included |
+| 2 | **CPU Cooler** | Noctua NH-D15 chromax.black | $110 | Dual-tower air cooler, quiet, handles 250W+. Includes AM5 mounting kit |
+| 3 | **Motherboard** | ASUS TUF Gaming B650E-PLUS WiFi | $200-220 | AM5, DDR5, 2x M.2 slots, 2.5GbE, WiFi 6E, PCIe 4.0 x16 |
+| 4 | **RAM** | G.Skill Trident Z5 64GB (2x32GB) DDR5-5600 CL36 | $500-700 | Price highly volatile. Check current listings. DDR5-5600 is the sweet spot for Ryzen 9000 |
+| 5 | **Boot SSD** | WD Black SN850X 1 TB NVMe Gen4 | $85-100 | 7,300/6,300 MB/s. OS + applications |
+| 6 | **Data SSD** | Samsung 990 Pro 4 TB NVMe Gen4 | $320-540 | 7,450/6,900 MB/s. Parquet files + raw data. Price currently elevated (~$540 at Amazon) |
+| 7 | **Archive HDD** | Seagate IronWolf 8 TB (ST8000VN004) | $150-170 | 7200 RPM, CMR, 3-year warranty. For raw data archive and local backups |
+| 8 | **GPU** | *(Optional)* NVIDIA RTX 4060 Ti 16GB | $400-450 | Only if planning RAPIDS/GNN work. Skip to save ~$430 |
+| 9 | **PSU** | Corsair RM750x (2024) 750W 80+ Gold | $100-110 | Fully modular, ATX 3.1, quiet fan mode. 850W if adding GPU |
+| 10 | **Case** | Fractal Design Meshify 2 Compact | $110-130 | Excellent airflow, mesh front, 2x 140mm fans included, supports full ATX |
+| 11 | **Case Fans** | 2x Noctua NF-A14 PWM (140mm) | $55 (2-pack) | Add as front intake. Total: 4 fans (2 front intake + 1 rear + 1 top exhaust) |
+
+| | **Total (without GPU)** | | **~$1,890-2,415** |
+|---|---|---|---|
+| | **Total (with GPU)** | | **~$2,290-2,865** |
+
+**Cost-saving alternatives:**
+- RAM: If 64 GB DDR5 exceeds $600, consider a DDR4 AM4 build (Ryzen 7 5800X + 64 GB DDR4-3600 for ~$200-250 total CPU+RAM savings)
+- Data SSD: Crucial T500 4TB ($250-300) is a viable alternative to the Samsung 990 Pro when the Samsung is at elevated pricing
+- Cooler: Thermalright Peerless Assassin 120 SE ($35) is 90% of the Noctua's performance at 30% of the price
+
+### 17.2 Assembly Notes
+
+**What to watch out for:**
+
+1. **AM5 socket handling:** The CPU has no pins (LGA), but the socket has delicate pins. Lower the CPU straight down -- do not slide it. Verify the golden triangle on the CPU aligns with the triangle on the socket
+
+2. **NVMe SSD placement:** The M.2 slot closest to the CPU (M.2_1) typically connects directly via CPU PCIe lanes and is fastest. Use it for the boot SSD. The second slot (M.2_2) goes through the chipset -- use it for the data SSD
+
+3. **RAM DIMM slots:** For 2-DIMM kits, use slots A2 and B2 (second and fourth from the CPU). This is the standard for dual-channel operation on most AM5 motherboards. Check the motherboard manual
+
+4. **CPU cooler clearance:** The NH-D15 is 165mm tall. The Meshify 2 Compact supports up to 169mm. This is tight but works. Verify before ordering if using a different case
+
+5. **PSU cable management:** Route the 24-pin ATX and 8-pin CPU cables through the back panel before starting component installation. The Meshify 2 Compact has good cable management space behind the motherboard tray
+
+6. **Thermal paste:** The NH-D15 comes with pre-applied thermal paste on the base. If you prefer to apply your own, use Noctua NT-H1 (included in box) or Thermal Grizzly Kryonaut. Rice-grain size in the centre of the CPU IHS
+
+### 17.3 Ubuntu 24.04 LTS Installation
+
+**Pre-installation:**
+
+```
+1. Download Ubuntu Server 24.04 LTS ISO from ubuntu.com/download/server
+2. Create bootable USB with: dd if=ubuntu-24.04-live-server-amd64.iso of=/dev/sdX bs=4M status=progress
+   (Or use Rufus/Ventoy on Windows)
+3. Boot from USB (press F2/DEL for BIOS, set USB as first boot device)
+```
+
+**Installation choices:**
+
+| Setting | Recommendation |
+|---------|---------------|
+| Language | English |
+| Keyboard | Your layout |
+| Network | DHCP initially; configure static IP post-install |
+| Storage layout | **Custom:** See partition table below |
+| Profile | Username: `causal-atlas` (or your preference) |
+| SSH | Install OpenSSH server: Yes |
+| Snaps | None (we install everything via apt/pip) |
+
+**Partition table:**
+
+```
+/dev/nvme0n1 (1 TB boot SSD):
+  /dev/nvme0n1p1    512 MB    EFI System Partition    fat32
+  /dev/nvme0n1p2    48 GB     swap                    swap
+  /dev/nvme0n1p3    remainder /                       ext4
+
+/dev/nvme1n1 (4 TB data SSD):
+  /dev/nvme1n1p1    4 TB      /data                   xfs
+
+/dev/sda (8 TB HDD):
+  /dev/sda1         8 TB      /archive                xfs
+```
+
+**Why 48 GB swap:** With 64 GB RAM, 48 GB swap provides a safety net for larger-than-memory DuckDB queries without excessive SSD wear. For 128 GB RAM systems, 32 GB swap is sufficient.
+
+### 17.4 Post-Install Setup Script
+
+```bash
+#!/bin/bash
+# post-install.sh -- Run after fresh Ubuntu 24.04 LTS Server installation
+# Usage: sudo bash post-install.sh
+#
+# This script installs all software required for Causal Atlas development
+# and configures the system for optimal performance.
+
+set -euo pipefail
+
+echo "=== Causal Atlas: Post-Install Setup ==="
+echo "Date: $(date)"
+echo "Host: $(hostname)"
+echo ""
+
+# ── 1. System Update ──────────────────────────────────────────
+echo "--- 1. Updating system packages ---"
+apt update && apt upgrade -y
+apt autoremove -y
+
+# ── 2. Essential System Packages ──────────────────────────────
+echo "--- 2. Installing essential packages ---"
+apt install -y \
+    build-essential cmake pkg-config git git-lfs curl wget unzip \
+    htop glances iotop ncdu tmux duf \
+    tree jq ripgrep fd-find \
+    ufw fail2ban \
+    lm-sensors smartmontools nvme-cli \
+    net-tools iperf3
+
+# ── 3. Geospatial C/C++ Libraries ────────────────────────────
+echo "--- 3. Installing geospatial libraries ---"
+apt install -y \
+    libgdal-dev gdal-bin python3-gdal \
+    libgeos-dev libproj-dev proj-data proj-bin \
+    libspatialindex-dev
+
+# ── 4. HDF5 and NetCDF (for climate data) ────────────────────
+echo "--- 4. Installing HDF5/NetCDF ---"
+apt install -y \
+    libhdf5-dev libnetcdf-dev netcdf-bin
+
+# ── 5. Image and Compression Libraries ───────────────────────
+echo "--- 5. Installing image/compression libraries ---"
+apt install -y \
+    libjpeg-dev libpng-dev libtiff-dev \
+    zlib1g-dev liblz4-dev libzstd-dev
+
+# ── 6. Python Environment ────────────────────────────────────
+echo "--- 6. Setting up Python environment ---"
+apt install -y python3-dev python3-pip python3-venv
+
+# Install uv (fast Python package manager)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+export PATH="$HOME/.local/bin:$PATH"
+
+# Create project virtual environment
+mkdir -p /opt/causal-atlas
+cd /opt/causal-atlas
+uv venv --python 3.12 .venv
+source .venv/bin/activate
+
+# Install Python packages
+uv pip install \
+    numpy pandas scipy scikit-learn statsmodels \
+    geopandas rasterio xarray shapely fiona pyproj \
+    rasterstats pysal \
+    tigramite \
+    duckdb pyarrow polars h5py netCDF4 \
+    fastapi "uvicorn[standard]" pydantic pydantic-settings \
+    matplotlib plotly \
+    structlog tenacity httpx \
+    anthropic \
+    pytest ruff mypy ipython \
+    rclone-python
+
+echo "Python packages installed successfully"
+
+# ── 7. Node.js (for React frontend) ──────────────────────────
+echo "--- 7. Installing Node.js ---"
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt install -y nodejs
+
+# ── 8. Docker ─────────────────────────────────────────────────
+echo "--- 8. Installing Docker ---"
+apt install -y docker.io docker-compose-v2
+usermod -aG docker causal-atlas
+systemctl enable docker
+
+# ── 9. Firewall ───────────────────────────────────────────────
+echo "--- 9. Configuring firewall ---"
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow ssh
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw --force enable
+
+# ── 10. SSH Hardening ─────────────────────────────────────────
+echo "--- 10. Hardening SSH ---"
+cat > /etc/ssh/sshd_config.d/hardening.conf <<'SSHEOF'
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+PermitRootLogin no
+MaxAuthTries 3
+LoginGraceTime 30
+ClientAliveInterval 300
+ClientAliveCountMax 3
+SSHEOF
+systemctl restart sshd
+
+# ── 11. fail2ban ──────────────────────────────────────────────
+echo "--- 11. Configuring fail2ban ---"
+cat > /etc/fail2ban/jail.local <<'F2BEOF'
+[sshd]
+enabled = true
+port = ssh
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 3
+bantime = 3600
+findtime = 600
+F2BEOF
+systemctl enable fail2ban
+systemctl start fail2ban
+
+# ── 12. Data Directories ─────────────────────────────────────
+echo "--- 12. Creating data directories ---"
+mkdir -p /data/{raw,processed,analysis,grid,tiles,exports,annotations}
+mkdir -p /data/processed/{domain=conflict,domain=climate,domain=food_security}
+mkdir -p /data/processed/{domain=natural_hazards,domain=environment,domain=socioeconomic}
+mkdir -p /data/.checkpoints
+chown -R causal-atlas:causal-atlas /data
+
+# ── 13. Log Directory ─────────────────────────────────────────
+mkdir -p /var/log/causal-atlas
+chown causal-atlas:causal-atlas /var/log/causal-atlas
+
+# ── 14. Sensors Detection ─────────────────────────────────────
+echo "--- 14. Detecting hardware sensors ---"
+sensors-detect --auto || true
+echo "Run 'sensors' to check CPU temperatures"
+
+# ── 15. Performance Tuning ────────────────────────────────────
+echo "--- 15. Applying performance tuning ---"
+
+# Increase inotify watches (for file-based triggers)
+echo "fs.inotify.max_user_watches=524288" >> /etc/sysctl.conf
+
+# Increase open file limits (for DuckDB with many Parquet files)
+cat >> /etc/security/limits.conf <<'LIMEOF'
+causal-atlas soft nofile 65536
+causal-atlas hard nofile 65536
+LIMEOF
+
+# Optimize for NVMe I/O scheduler
+echo "none" > /sys/block/nvme0n1/queue/scheduler 2>/dev/null || true
+echo "none" > /sys/block/nvme1n1/queue/scheduler 2>/dev/null || true
+
+sysctl -p
+
+# ── Summary ───────────────────────────────────────────────────
+echo ""
+echo "=== Setup Complete ==="
+echo ""
+echo "Next steps:"
+echo "  1. Log out and back in (for Docker group membership)"
+echo "  2. Copy SSH public key: ssh-copy-id causal-atlas@<this-server>"
+echo "  3. Clone the repo: git clone https://github.com/aldred-coetzee/causal-atlas.git /opt/causal-atlas/repo"
+echo "  4. Create .env file with API keys (ACLED_API_KEY, CLAUDE_API_KEY)"
+echo "  5. Run benchmarks: bash /opt/causal-atlas/scripts/benchmark.sh"
+echo "  6. Verify GPU (if installed): nvidia-smi"
+echo ""
+echo "System info:"
+echo "  CPU: $(lscpu | grep 'Model name' | sed 's/Model name: *//')"
+echo "  RAM: $(free -h | awk '/Mem:/ {print $2}')"
+echo "  Disks:"
+lsblk -d -o NAME,SIZE,MODEL | grep -v loop
+echo "  Python: $(python3 --version)"
+echo "  DuckDB: $(python3 -c 'import duckdb; print(duckdb.__version__)')"
+echo "  GDAL: $(gdal-config --version)"
+```
+
+### 17.5 Performance Verification Tests
+
+After completing the build and post-install setup, run these tests to verify the system meets expectations:
+
+```bash
+#!/bin/bash
+# scripts/verify-build.sh -- Verify build performance meets Causal Atlas requirements
+
+set -euo pipefail
+
+echo "=== Causal Atlas Build Verification ==="
+echo "Date: $(date)"
+echo "Host: $(hostname)"
+echo ""
+
+# ── 1. CPU ──────────────────────────────────────────────────
+echo "--- 1. CPU Info ---"
+lscpu | grep -E "Model name|CPU\(s\)|Thread|Core|MHz"
+echo ""
+
+# ── 2. Memory ───────────────────────────────────────────────
+echo "--- 2. Memory ---"
+free -h
+echo ""
+
+# ── 3. Storage ──────────────────────────────────────────────
+echo "--- 3. Storage ---"
+df -h /data /archive / 2>/dev/null || df -h
+echo ""
+
+# ── 4. DuckDB Benchmark ────────────────────────────────────
+echo "--- 4. DuckDB Parquet Benchmark ---"
+source /opt/causal-atlas/.venv/bin/activate
+
+python3 -c "
+import time
+import numpy as np
+import pyarrow as pa
+import pyarrow.parquet as pq
+import duckdb
+
+# Generate test data (10M rows)
+print('Generating 10M row test dataset...')
+n = 10_000_000
+table = pa.table({
+    'gid': np.random.randint(1, 259201, n, dtype=np.int32),
+    'year': np.random.randint(2015, 2025, n, dtype=np.int16),
+    'month': np.random.randint(1, 13, n, dtype=np.int8),
+    'variable': np.random.choice(['var_' + str(i) for i in range(20)], n),
+    'value': np.random.randn(n).astype(np.float64),
+})
+pq.write_table(table, '/tmp/verify_bench.parquet', compression='snappy', row_group_size=100_000)
+size_mb = pq.read_metadata('/tmp/verify_bench.parquet').serialized_size / 1e6
+print(f'  File size: {size_mb:.1f} MB')
+
+con = duckdb.connect()
+
+# Full scan
+start = time.perf_counter()
+con.execute('SELECT variable, AVG(value), COUNT(*) FROM read_parquet(\"/tmp/verify_bench.parquet\") GROUP BY variable').fetchall()
+t1 = time.perf_counter() - start
+status1 = 'PASS' if t1 < 2 else 'SLOW'
+print(f'  Full scan + aggregation: {t1:.3f}s [{status1}] (target < 2s)')
+
+# Point query
+start = time.perf_counter()
+con.execute('SELECT year, month, variable, value FROM read_parquet(\"/tmp/verify_bench.parquet\") WHERE gid = 142567 ORDER BY variable, year, month').fetchall()
+t2 = time.perf_counter() - start
+status2 = 'PASS' if t2 < 0.2 else 'SLOW'
+print(f'  Point query (single cell): {t2:.3f}s [{status2}] (target < 0.2s)')
+
+con.close()
+import os
+os.unlink('/tmp/verify_bench.parquet')
+"
+
+echo ""
+
+# ── 5. PCMCI Benchmark ─────────────────────────────────────
+echo "--- 5. PCMCI Single-Cell Benchmark ---"
+python3 -c "
+import time
+import numpy as np
+from tigramite import data_processing as pp
+from tigramite.pcmci import PCMCI
+from tigramite.independence_tests.parcorr import ParCorr
+
+np.random.seed(42)
+data = np.random.randn(120, 20)
+data[:, 1] = 0.5 * data[:, 0] + 0.5 * np.random.randn(120)
+
+dataframe = pp.DataFrame(data, var_names=[f'v{i}' for i in range(20)])
+pcmci = PCMCI(dataframe=dataframe, cond_ind_test=ParCorr(significance='analytic'), verbosity=0)
+
+start = time.perf_counter()
+results = pcmci.run_pcmci(tau_max=12, pc_alpha=0.05)
+elapsed = time.perf_counter() - start
+
+status = 'PASS' if elapsed < 30 else 'SLOW'
+print(f'  Single cell (20 vars, T=120, tau_max=12): {elapsed:.2f}s [{status}] (target < 30s)')
+
+import multiprocessing
+cores = multiprocessing.cpu_count()
+global_hours = (elapsed * 64800) / cores / 3600
+print(f'  Estimated global land ({cores} threads): {global_hours:.1f} hours')
+"
+
+echo ""
+
+# ── 6. Disk I/O ────────────────────────────────────────────
+echo "--- 6. Disk I/O (quick test) ---"
+if command -v fio &>/dev/null; then
+    # 1 GB sequential read
+    fio --name=quick-read --rw=read --bs=1M --size=1G --numjobs=1 \
+        --directory=/data --ioengine=libaio --direct=1 --runtime=10 \
+        --output-format=json 2>/dev/null | \
+        python3 -c "import sys,json; d=json.load(sys.stdin); r=d['jobs'][0]['read']; print(f'  Sequential read: {r[\"bw\"]/1024:.0f} MB/s')"
+
+    # Clean up
+    rm -f /data/quick-read.0.0
+else
+    echo "  fio not installed -- skipping disk benchmark"
+    echo "  Install with: sudo apt install -y fio"
+fi
+
+echo ""
+
+# ── 7. Network ─────────────────────────────────────────────
+echo "--- 7. Network bandwidth (Cloudflare test) ---"
+speed=$(curl -s -o /dev/null -w "%{speed_download}" https://speed.cloudflare.com/__down?bytes=50000000 2>/dev/null)
+speed_mbps=$(python3 -c "print(f'{$speed * 8 / 1e6:.1f}')")
+echo "  Download speed: ${speed_mbps} Mbps"
+
+echo ""
+echo "=== Verification Complete ==="
+```
+
+---
+
 ## Sources
 
 - [AMD Ryzen 9 9950X — PassMark Benchmark](https://www.cpubenchmark.net/cpu.php?cpu=AMD+Ryzen+9+9950X&id=6211)
@@ -1132,3 +2335,46 @@ Causal Atlas handles data relevant to humanitarian contexts (conflict data, food
 - [GPU Hierarchy 2026 — Tom's Hardware](https://www.tomshardware.com/reviews/gpu-hierarchy,4388.html)
 - [VIIRS Nighttime Lights — Earth Engine Data Catalog](https://developers.google.com/earth-engine/datasets/catalog/NOAA_VIIRS_DNB_MONTHLY_V1_VCMCFG)
 - [MODIS Vegetation Index Products](https://modis.gsfc.nasa.gov/data/dataprod/mod13.php)
+
+### Benchmarking and Performance (Section 12)
+- [DuckDB Benchmarking Ourselves Over Time](https://duckdb.org/2024/06/26/benchmarks-over-time) -- Internal performance tracking
+- [DuckDB vs Polars: Performance on Parquet](https://www.codecentric.de/en/knowledge-hub/blog/duckdb-vs-polars-performance-and-memory-with-massive-parquet-data) -- Comparative benchmarks
+- [DuckDB Big Data on the Cheapest MacBook](https://duckdb.org/2026/03/11/big-data-on-the-cheapest-macbook) -- Real-world performance
+- [Tigramite Documentation](https://jakobrunge.github.io/tigramite/) -- PCMCI implementation details
+- [How to Speed Up PCMCI (GitHub Discussion)](https://github.com/jakobrunge/tigramite/discussions/208) -- Performance optimisation
+
+### Power and Cooling (Section 13)
+- [Home Server Power Consumption Guide](https://www.ecoflow.com/us/blog/home-server-power-guide) -- Power consumption estimates
+- [UPS for Home Lab (How-To Geek)](https://www.howtogeek.com/your-homelab-needs-an-uninterruptible-power-supply-prime-day-2025/) -- UPS selection guide
+- [Home Server Needs UPS (XDA)](https://www.xda-developers.com/home-server-needs-ups-more-than-better-specs/) -- Why UPS matters
+- [Selecting UPS for Servers (NewServerLife)](https://newserverlife.com/articles/how-to-choose-ups-for-a-server/) -- Capacity sizing guide
+- [UPS for 750W PSU (Linus Tech Tips)](https://linustechtips.com/topic/1528002-ups-for-750w-psu/) -- Community guidance
+
+### Data Sovereignty and Legal (Section 14)
+- [GDPR and Server Location (TechGDPR)](https://techgdpr.com/blog/server-location-gdpr/) -- Does server location matter?
+- [UNHCR Data Protection Policy](https://www.unhcr.org/us/data-protection) -- Humanitarian data protection
+- [Data Protection in Humanitarian Action (Journal)](https://jhumanitarianaction.springeropen.com/articles/10.1186/s41018-020-00078-0) -- GDPR and NGO data collection
+- [UNHCR Renewed Data Protection Approach](https://www.unhcr.org/blogs/a-renewed-approach-towards-personal-data-protection-in-the-un-refugee-agency/) -- Updated 2024 framework
+
+### Backup and Disaster Recovery (Section 15)
+- [Backblaze B2 + rclone Documentation](https://rclone.org/b2/) -- rclone B2 integration
+- [Backblaze B2 rclone Quickstart](https://help.backblaze.com/hc/en-us/articles/1260804565710-Quickstart-Guide-for-Rclone-and-B2-Cloud-Storage) -- Setup guide
+- [Cloud Backup with rclone (Arnaud Loos)](https://arnaudloos.com/2019/cloud-backup-with-rclone.md/) -- Automated backup patterns
+- [Backup to B2 with restic + rclone](https://jdheyburn.co.uk/blog/backup-to-backblaze-b2-using-restic-and-rclone/) -- Alternative backup approach
+
+### Network Architecture (Section 16)
+- [Cloudflare Free Plan Features](https://www.cloudflare.com/plans/free/) -- CDN and DDoS protection
+- [Cloudflare DDoS Protection Best Practices](https://developers.cloudflare.com/ddos-protection/best-practices/) -- Configuration guidance
+- [Cloudflare Rate Limiting (Free Plan)](https://eastondev.com/blog/en/posts/dev/20251201-cloudflare-rate-limiting-guide/) -- Defence against CC attacks
+- [Grafana + Prometheus + Loki Home Lab Setup (XDA)](https://www.xda-developers.com/set-up-grafana-loki-prometheus-alloy-home-lab/) -- Monitoring stack
+
+### Build Guides (Section 17)
+- [AMD Ryzen 9 9900X (AMD Official)](https://www.amd.com/en/products/processors/desktops/ryzen/9000-series/amd-ryzen-9-9900x.html) -- CPU specifications
+- [AMD Ryzen 9 9900X Price History (Pangoly)](https://pangoly.com/en/price-history/amd-ryzen-9-9900x) -- Price tracking
+- [DDR5 RAM Price Index 2026 (Tom's Hardware)](https://www.tomshardware.com/pc-components/ram/ram-price-index-2026-lowest-price-on-ddr5-and-ddr4-memory-of-all-capacities) -- Current pricing
+- [Samsung 990 Pro 4TB Price (Amazon)](https://www.amazon.com/SAMSUNG-Computing-Workstations-MZ-V9P4T0B-AM/dp/B0CHGT1KFJ) -- SSD pricing
+- [Samsung 990 Pro 4TB Price History (Pangoly)](https://pangoly.com/en/price-history/samsung-990-pro-4tb) -- Price tracking
+- [Ubuntu 24.04 Server Installation Guide (LinuxTechi)](https://www.linuxtechi.com/how-to-install-ubuntu-server/) -- Step-by-step installation
+- [Ubuntu 24.04 Post-Install Setup (DigitalOcean)](https://www.digitalocean.com/community/tutorials/set-up-configure-application-server-ubuntu-24-04) -- Server configuration
+- [nginx + Let's Encrypt Docker Compose (GitHub)](https://github.com/eugene-khyst/letsencrypt-docker-compose) -- Automated SSL setup
+- [CPU Price Index 2025 (Tom's Hardware)](https://www.tomshardware.com/news/lowest-cpu-prices) -- CPU pricing tracker
