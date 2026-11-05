@@ -7,9 +7,8 @@ Last updated 2026-11-05.
 checksums in `data/manifest.toml`. Decision 0013 records his answers: events to district level, and
 climate only, with food prices dropped from Phase 1. The plan's amendments section has the effect.
 
-**Waiting for the owner:** whether "don't ask me again" drops the stop at each gate. Rule 6 was
-quoted back on 2026-11-05. Until he confirms, recommendations on design choices are taken and
-reported, and each gate still stops for his yes, including the end of 1b.
+**Gates that pass no longer stop** (decision 0014): send the report and carry on. Stop only if it
+really needs his guidance. The end of 1d always stops. Waiting on nothing from him at present.
 
 He can reverse the PCMCI and CCM deferral at any gate.
 
