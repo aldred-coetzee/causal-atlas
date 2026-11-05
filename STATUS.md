@@ -2,12 +2,13 @@
 
 Last updated 2026-11-05.
 
-**Phase 1: step 1b is closed (decision 0020). Next, from a fresh context: the growing refit on spent seeds.** Nothing is running.
+**Phase 1: the growing refit passed its development test on spent seeds (`results/refit-dev.md`). Waiting for the owner before sources start.** Nothing is running.
 
-1b's result: the third design is quiet (8 of 8 spent nulls within 0.005) and with a single fit does not reach 0.02 on effects worth 0.10 to 0.14 (0 of 3; skills 0.008 to 0.017). Marks A and B did not run; seeds 3001 to 3020 are unspent. Nothing here is about real data. Full account: `results/1b-known-answer.md`, last two sections.
+The refit: quiet 8 of 8, hears 2 of 3 (1011 at 0.0215, interval 0.008 to 0.034; 1016 at 0.0226, 0.011 to 0.034; 1017 at 0.011, missing). A thin pass on spent seeds, with no shuffle run, so it does not show the gain comes from the inputs. Not detection and not a mark; seeds 3001 to 3020 are unspent. Nothing here is about real data. A 51-shuffle replicate is about 1.7 hours. The earlier close of 1b: `results/1b-known-answer.md`, last two sections.
 
-**Next steps, in order:**
-1. Refit that grows as scored months pass, in the model of `scripts/run_1b_third.py` and `src/causal_atlas/nested.py`, with spent seeds and the same development test: all 8 nulls (pure_null 2001 to 2003, 9001 to 9005) within 0.005, and at least 2 of planted_3.00 seeds 1011, 1016, 1017 at skill 0.02 or more with lower bound above 0. Write the rule into the results file first, and check it with next-pattern before it runs. Estimate 60k fresh, line 75k, under the Phase 1 cap. State the cost per shuffle replicate under refits, so we know before any marks whether the full test is affordable on this box. Keep to what the development test needs. If it misses, report it: whether sources go ahead is then put to the owner.
+**Why it is waiting.** This session's transcripts stand at about 1.97M fresh, Phase 0 included and next-pattern's share not, against the 3M cap, with most of the plan to run. The owner's refined aim (decision 0021) may also change what sources are worth fetching, and his wider reading request is being put to him with this result. Recommendation sent: settle the aim's effect and the budget first, then sources.
+
+**Next steps, in order, once he has answered:**
 2. At most five sources, 300k, each named with its mechanism before fetching and entered in `data/manifest.toml` and `docs/data-sources.md`.
 3. The plan revision, on the list in `docs/plan-phase-1.md` (Amendments after step 1b), checked by next-pattern before anything runs. The margin is the owner's call.
 
