@@ -270,7 +270,11 @@ active in those months, and it can be nothing, even where it is large over the w
 - **Lesson for the revision:** a 48-month score depends on which cells are active in those months. Evaluate over a longer
   or rolling window, still scored once, and carry the stabilising learner settings to baseline and test alike.
 
-## Second run: how the window is picked, committed before the candidates' numbers were read
+## Second run: how the window is picked, committed with four of the five candidates' numbers unread
+
+The 48 month counts (9 at ratio 3.00, 13 at 3.50) were already in this file, and the counts over all months (18 and 20) were known.
+The 96 to 240 month columns had not been read.
+
 
 Decision 0017. Candidates: the last 48, 96, 144, 192 or 240 target months, as one scored block.
 
@@ -311,6 +315,35 @@ far sparser and the run goes ahead. Nothing else was read from the real panel.
 **Second-run panels, in order:** planted_3.50, pure_null, shared_null, combo_null, planted_3.00, planted_2.40, planted_combo_6.
 Each 20 replicates, seeds 3001 to 3020. The three below the mark come last, so they are what gets cut if the 1M ceiling nears.
 Anomaly means use months up to 194 only. Settings are `SETTINGS` in `detector.py`, unchanged.
+
+### Before the first fit: what next-pattern's check added
+
+**Validation's other jobs.** The plan also used the validation block for: choosing between B and B0, the tuning grids for B, M1 and
+M2, 1c's calibration report, and refitting on train plus validation. In this run there is no grid and no choice of baseline, as in the
+first run: B stays the baseline, B0 is reported beside it, and the final fit is on months 36 to 194 alone. On real data, the plan revision
+must state the replacement from training months only. The one proposed here is B fitted on 36 to 146 against B0 on 147 to 194, for
+the same displacement rule, and the same split for calibration. No tuning grid: the settings stay fixed.
+
+**A secondary score, with no mark.** From the same fitted models, each replicate's skill, interval and verdict are also reported on
+indices 195 to 386 alone, which on the real calendar is the window without today's held-out block (2021-04 on). It is evidence for the
+plan revision's choice between scoring all 240 months once or keeping the last 48 unseen. The shuffle skip changes to: shuffle when
+criterion 1 is met on either span. That adds fits only where the secondary alone passes. The main verdict does not change, and those
+extra fits are counted and reported.
+
+**What the mark panel is worth.** planted_3.50, last 240 months, seeds 101 to 120: 10th percentile 0.070, median 0.168, 90th 0.437; 18 of
+20 at or above 0.05. It has about 1.75 times the non-zero cell-months of the pure null (medians 27,990 and 16,050).
+
+**This sentence travels with every summary of the second run:** the mark panel is an effect that accounts for a large part of all
+activity, so a pass says the machinery finds effects that large, and a later "no" on real data rules out only effects that large.
+
+**Limit: drift.** A model trained to 2005 is scored for twenty years. The generator's fixed hot-cell fields do not move, its slow
+regional component and episodes are stationary, and its reporting does not change; on the real panel, where conflict is and how
+well it is reported both moved between 2005 and 2025. So a pass here does not show robustness to drift. The nearest checks: long
+episodes and the slow component, unrelated to inputs, are in every panel; shared_null adds a linear regional trend shared with the
+drought. None of them moves reporting or relocates hot cells.
+
+**A miss.** If 16 of 20 is missed, including because 159 training months are too few, that is a real result. It is reported as one
+and work stops there to talk to next-pattern.
 
 ## Result
 
