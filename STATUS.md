@@ -11,7 +11,7 @@ Last updated 2026-11-05.
 2. At most five sources, 300k, each named with its mechanism before fetching and entered in `data/manifest.toml` and `docs/data-sources.md`.
 3. The plan revision, on the list in `docs/plan-phase-1.md` (Amendments after step 1b), checked by next-pattern before anything runs. The margin is the owner's call.
 
-**The aim was refined by the owner on 2026-11-05 evening, in his words: `docs/decisions/0021-owner-refines-the-aim.md`.** It supersedes the working statement in `CLAUDE.md`, which awaits his direct word to change. It starts no work.
+**The aim was refined by the owner on 2026-11-05 evening, in his words: `docs/decisions/0021-owner-refines-the-aim.md`.** `CLAUDE.md` and `README.md` carry it. It starts no work.
 
 1c and 1d are not run on real data, and the held-out set stays unscored.
 Step 1a is done. Sources are in `docs/data-sources.md`, data in the ignored `data/raw/`, checksums in

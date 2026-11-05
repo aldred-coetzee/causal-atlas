@@ -17,6 +17,15 @@ Working hypothesis, to be tested and not assumed: lagged signals from other
 domains improve the prediction of an outcome in a place beyond what that
 place's own history and seasonality already give.
 
+**Refined by the owner, 2026-11-05 evening** (his full words: decision 0021): given
+a whole bunch of factors, and "we don't know what those factors are", find
+"combinations of all of these things, some of these things, or any number of these
+things that might actually help us to predict or infer a direction", including
+combinations nobody would have thought of. A named hypothesis "could be one of the
+things we look at as well". "I don't have the answers as to how we do this yet.
+That's what we're trying to figure out." Phase 1's design, rules and not-now list
+stand until a plan revision and his yes change them.
+
 Update this statement, with the date, when the owner refines it.
 
 ## Who does what

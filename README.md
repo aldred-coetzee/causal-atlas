@@ -5,6 +5,13 @@ indicator data from different domains (conflict, climate, food, prices and
 others) onto one grid of place and month, find time-lagged relationships between
 domains, and use them to predict trends.
 
+The owner's aim, refined on 2026-11-05, is broader than any one link: from many
+factors, not known in advance, find combinations that help to predict or infer a
+direction, including combinations nobody would have thought of. How to do that is
+still an open question. His words are in
+`docs/decisions/0021-owner-refines-the-aim.md`. The first experiment below tests
+the narrower question.
+
 **Nothing has been found yet.** The repo holds its rules, its decisions, a
 pre-registered design for one experiment, and the data sources it has checked.
 `STATUS.md` says where things stand.
