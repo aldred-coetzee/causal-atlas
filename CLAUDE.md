@@ -75,7 +75,8 @@ Update this statement, with the date, when the owner refines it.
 7. **Subagents.** None by default. At most three at once, each with a written
    spec, estimated cost stated before spawning. Sonnet for mechanical work,
    Haiku for link and DOI checks. Independent review only for a result that
-   decides something or is surprising.
+   decides something or is surprising. The owner allows Fable for deep thinking
+   where it would help (2026-11-05); the spec and cost rules still apply.
 8. **Context.** `autoCompactWindow` is checked, not assumed (200000 on
    2026-11-05). Keep `STATUS.md` good enough to start a cold session. Inspect
    data with DuckDB queries, never by reading large files into context.
