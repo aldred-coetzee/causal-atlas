@@ -230,6 +230,14 @@ replicates at full size, each reporting ratio, share of cells, linked share of t
 **Combination panel.** In linked cells the log rate gains ln(R) times the smaller of the drought and ONI excesses past
 0.5 SD; alone, neither has any effect. combo_null has the same structure at R 3 on independent copies of the inputs.
 
+**Shuffles run only where they can matter.** A timed full replicate took 29.5 minutes, partly alongside other work,
+so 140 would pass the 24 hour ceiling. The verdict needs all three criteria, so a replicate failing criterion 1 is
+already a no under both schemes, and its shuffles are skipped. No verdict can change and no replicate is cut. What
+is lost is the shuffled distribution on those replicates, so the first 3 seeds of each null keep their shuffles
+regardless. Order: ratio 3.00, the three nulls, ratio 2.40, the combination, ratio 2.00. If the ceiling is reached, the run
+stops and reports which panels are incomplete. The timed replicate on pure_null seed 1001 is not counted; it is
+rerun in order, with the same seed.
+
 ## Result
 
 Not yet computed.

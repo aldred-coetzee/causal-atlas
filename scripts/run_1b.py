@@ -24,7 +24,15 @@ def subpanel(lat, lon, cells=SUB_CELLS):
     return np.sort(np.argsort(dist, kind="stable")[:cells])
 
 
-def replicate(panel, seed, size, timing=False):
+def shuffled(obs, b, m_skill, drought, oni):
+    shifts = [float(d.skill(obs, m_skill(d.circular_shift(drought, k), d.circular_shift(oni, k), b), b))
+              for k in range(1, d.SHIFTS + 1)]
+    perms = [float(d.skill(obs, m_skill(d.year_permutation(drought, 5000 + i), d.year_permutation(oni, 5000 + i), b), b))
+             for i in range(PERMS)]
+    return shifts, perms
+
+
+def replicate(panel, seed, size, timing=False, always_shuffle=False):
     _, lat, lon = load()
     if size == "sub":
         keep = subpanel(lat, lon)
@@ -57,18 +65,24 @@ def replicate(panel, seed, size, timing=False):
                     b_seconds=round(after_b - started, 1), m_seconds=round(after_m - after_b, 1),
                     skill=observed, events_held=int(obs.sum()))
     low, high = d.block_interval(obs, m, b)
-    shifts = [float(d.skill(obs, m_skill(d.circular_shift(drought, k), d.circular_shift(oni, k), b), b))
-              for k in range(1, d.SHIFTS + 1)]
-    perms = [float(d.skill(obs, m_skill(d.year_permutation(drought, 5000 + i), d.year_permutation(oni, 5000 + i), b), b))
-             for i in range(PERMS)]
+    if not always_shuffle and not (observed >= 0.02 and low > 0):
+        # Criterion 1 failed, so the verdict is already no under either scheme; shuffles cannot change it.
+        shifts, perms = None, None
+    else:
+        shifts, perms = shuffled(obs, b, m_skill, drought, oni)
+    out = dict(panel=panel, seed=seed, size=size, cells=n, skill=observed, ci=[low, high],
+               b0_skill_of_b=float(d.skill(obs, b, np.maximum(d.naive_b0(y)[:, -shape[1]:], 1e-3))),
+               events_held=int(obs.sum()))
+    if shifts is None:
+        no = dict(first=False, second=None, third=None, all=False)
+        out.update(shuffled=False, circular=no, permutation=no)
+    else:
+        out.update(shuffled=True, shift_max=max(shifts), shift_median=float(np.median(shifts)),
+                   perm_max=max(perms), perm_median=float(np.median(perms)),
+                   circular=d.verdict(observed, low, shifts), permutation=d.verdict(observed, low, perms))
     months_held = np.arange(d.HELD[0], d.HELD[1] + 1)
     rate, no_link = g["rate"], g["rate_no_link"]
-    out = dict(panel=panel, seed=seed, size=size, cells=n, skill=observed, ci=[low, high],
-               shift_max=max(shifts), shift_median=float(np.median(shifts)),
-               perm_max=max(perms), perm_median=float(np.median(perms)),
-               circular=d.verdict(observed, low, shifts), permutation=d.verdict(observed, low, perms),
-               b0_skill_of_b=float(d.skill(obs, b, np.maximum(d.naive_b0(y)[:, -shape[1]:], 1e-3))),
-               events_held=int(obs.sum()), seconds=round(time.time() - started, 1))
+    out["seconds"] = round(time.time() - started, 1)
     if rate is not None and no_link is not None and panel.startswith("planted"):
         linked = g["linked"].any(axis=1) if g["linked"].ndim > 1 else g["linked"]
         out.update(best_all=float(d.skill(y[:, 36:], rate[:, 36:], no_link[:, 36:])),
@@ -85,9 +99,10 @@ if __name__ == "__main__":
     ap.add_argument("seed", type=int)
     ap.add_argument("size", choices=["sub", "full"])
     ap.add_argument("--timing", action="store_true")
+    ap.add_argument("--always-shuffle", action="store_true")
     ap.add_argument("--out", default=str(ROOT / "results" / "1b-replicates.jsonl"))
     a = ap.parse_args()
-    result = replicate(a.panel, a.seed, a.size, a.timing)
+    result = replicate(a.panel, a.seed, a.size, a.timing, a.always_shuffle)
     if a.timing:
         print(json.dumps(result))
     else:
