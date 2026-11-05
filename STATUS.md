@@ -11,7 +11,7 @@ Last updated 2026-11-05.
 
 The refit's development test: quiet 8 of 8, hears 2 of 3 (1011 at 0.0215, interval 0.008 to 0.034; 1016 at 0.0226, 0.011 to 0.034; 1017 at 0.011, missing). A thin pass on spent seeds, with no shuffle run, so it does not show the gain comes from the inputs. Not detection; nothing here is about real data (`results/refit-dev.md`).
 
-**The cap is 4M for both sessions, and the order is decision 0023's.** About 2.44M was spent at 18:22 (1.84M here, 606k next-pattern). `CLAUDE.md`'s caps line still says 3M until the owner says to change it. A step at its line stops and says so; every agent's cost is stated before it spawns, checks included.
+**The cap is 4M for both sessions, and the order is decision 0023's.** About 2.44M was spent at 18:22 (1.84M here, 606k next-pattern). A step at its line stops and says so; every agent's cost is stated before it spawns, checks included.
 
 **Next steps, in order:**
 1. Marks on fresh seeds, running, as above.

@@ -102,7 +102,7 @@ Update this statement, with the date, when the owner refines it.
 
 ## Token caps
 
-Phase 0: 300k. Phase 1: 3M. Both cover this session and next-pattern. A cap
+Phase 0: 300k. Phase 1: 4M (raised from 3M, decision 0023). Both cover this session and next-pattern. A cap
 counts fresh tokens (input + output + cache writes); cache reads are reported
 beside them at every gate (decision 0006).
 
