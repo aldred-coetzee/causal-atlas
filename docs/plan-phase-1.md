@@ -27,6 +27,10 @@ these disagree with the text below, these win, and results files copy the amende
   p <= 0.05 for a single comparison. Under year permutation the plan's p <= 0.02 stands.
 - **A 1b replicate** is 2 + 19 + 32 = about 53 fits.
 
+**Order changed after the 1b stop (decision 0015).** Fix the generator, finish 1b, add about 10
+sources under a 150k cap, then stop for the owner to set the margin and pre-register a multi-input
+test. 1c and 1d are deferred, and the held-out set stays unscored.
+
 ## The question, and what would answer it
 
 Does adding lagged climate and food-price inputs improve the forecast of conflict

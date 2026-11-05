@@ -120,6 +120,18 @@ share 0.54 against 0.56. Its author reports longest episode 17 months against 46
 nulls may be easier than the real data. Returned `rate` is not capped where the draw is, which spoils
 oracle skill at very high rates only.
 
+## Amendment to the rule (decision 0015), before any detector result
+
+Disclosed departures from the rule above. The first table in the previous section sets nothing: the
+generator is fixed first and the worth of each effect re-measured.
+
+- **Planted panels.** After the fix, the three ratios are chosen so that the median best possible skill
+  is about 0.01, 0.02 and 0.05, on the fixed generator and before any detector exists. The plan's 1.05,
+  1.15 and 1.40 are reported for their best possible skill only.
+- **Each panel reports** its ratio, the share of cells it affects and its best possible skill.
+- **Pass mark.** Detection at least 80% on the panel worth about 0.05. The nulls' mark is unchanged.
+- **The 2% margin** stays in the verdict here, and the owner sets the final margin later, with this result.
+
 ## Result
 
-Not yet computed. Waiting for the owner.
+Not yet computed.

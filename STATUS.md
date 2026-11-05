@@ -2,12 +2,10 @@
 
 Last updated 2026-11-05.
 
-**Phase 1, step 1b: stopped, waiting for the owner.** The outcome panel, shape statistics and generator
-are done; the detector is not written. The planted effects are worth far less than the 2% margin, so 1b's
-pass mark cannot be met by any method: see `results/1b-known-answer.md`. Generator fixes are also pending.
-He then asked to go broader: collect more datasets first, then study other kinds of mathematics and
-biological systems. Rule 6 was quoted back on 2026-11-05 with options; **no work starts until he confirms.**
-Recommended: finish 1b, leave the held-out set unscored, then add sources under a cap.
+**Phase 1, step 1b: in progress, order changed by decision 0015.** Next, in order: fix the generator and
+re-measure; finish 1b under its amended rule (`results/1b-known-answer.md`); add about 10 sources under a
+150k cap; then stop for the owner to set the margin and pre-register a multi-input test. 1c and 1d are
+deferred, and the held-out set stays unscored. The detector is not written yet.
 Step 1a is done. Sources are in `docs/data-sources.md`, data in the ignored `data/raw/`, checksums in
 `data/manifest.toml`. Decision 0013 has his answers after 1a and the plan's amendments section their effect.
 
