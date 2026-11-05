@@ -178,6 +178,24 @@ replicates, at most 14 of 20 replicates are worth 0.02 at any ratio tried up to 
 needs 0.02. So 80% detection (16 of 20) is out of reach for any method. This is a design finding and not
 yet a detector result.
 
+## Second amendment (decisions 0015 and 0016), before any detector result on a planted panel
+
+- **All 20 replicates run at full size.** One fit takes about 7 to 9 seconds at 10,228 cells, not the minutes
+  assumed, so the 2,000-cell sub-panel is dropped and with it the departure from the brief's "same size". The
+  pass mark is unchanged at 16 of 20, on ratio 3.00 (full panel: median worth 0.075, 18 of 20 worth at least
+  0.02, one month ahead). If a timed full replicate projects past the 24 hour ceiling, this stops and reports.
+- **Learner settings.** The plan's default-style settings diverge: on null panels, predictions reach 1e54,
+  because a rare huge count against a tiny base rate gives an enormous Newton step. Six settings were compared
+  on two pure-null seeds (2001, 2002) at both sizes, on synthetic validation months only, with no input in the
+  model. Fixed: learning rate 0.05, 15 leaves, 100 rounds, L2 100, at least 200 rows per leaf; skill against a
+  constant rate 0.555 to 0.568 at full size, where B0 reached 0.413 to 0.439. Skill differences among the stable
+  settings were under 0.01. No per-model tuning grid runs here. `fit_predict` now stops loudly if a fit diverges.
+- **Interval.** 95%, as in this file's rule, since one comparison is made per replicate.
+- **B0** is reported beside B on held-out months, without the extra validation fit 1d would use.
+- **A multi-input panel and its null are added** (decision 0016): reported, with no pass mark of their own
+  beyond the nulls' mark for the null. Their ratio is fixed from best possible skill before they meet the detector.
+- **Detection is also reported by best possible skill** in that replicate, because a ratio has no single worth.
+
 ## Result
 
 Not yet computed.
