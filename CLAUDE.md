@@ -110,7 +110,11 @@ beside them at every gate (decision 0006).
 
 - `STATUS.md`: the honest current state.
 - `docs/decisions/NNNN-title.md`: context, decision, consequences, status.
-  Immutable: superseded by a new entry, never edited.
+  Immutable: superseded by a new entry, never edited. A record, not reading:
+  open one only when its reason is needed. Write a new entry only for a choice
+  that could favour a result (if in doubt, it could), a change to a rule, or
+  anything the owner ruled on. Any other choice goes in its commit message or
+  the results file (decision 0022).
 - `results/`: one file per experiment, rule first, committed before the numbers.
 - `docs/plan-phase-1.md`: the pre-registered Phase 1 design.
 - `docs/data-sources.md`: every source checked, its access route, links and licence
