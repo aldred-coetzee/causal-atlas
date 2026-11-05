@@ -1,0 +1,3 @@
+{"seed": 1011, "worth": 0.14136446160786253, "true_effect_on_r": -4.7457, "truth_vs_r": 0.1541, "no_link_vs_r": 0.0148, "r_vs_b": 0.0007, "learn_true_ratio_t100": 0.0117, "share_of_events_from_link": 0.2758, "share_cell_months_ratio_over_1_5": 0.0564}
+{"seed": 1016, "worth": 0.10005398367060869, "true_effect_on_r": -21.4895, "truth_vs_r": 0.1016, "no_link_vs_r": 0.0017, "r_vs_b": 0.0087, "learn_true_ratio_t100": 0.0177, "share_of_events_from_link": 0.1589, "share_cell_months_ratio_over_1_5": 0.052}
+{"seed": 1017, "worth": 0.12373630545037706, "true_effect_on_r": -13.4244, "truth_vs_r": 0.1256, "no_link_vs_r": 0.0022, "r_vs_b": 0.0016, "learn_true_ratio_t100": 0.025, "share_of_events_from_link": 0.198, "share_cell_months_ratio_over_1_5": 0.0298}

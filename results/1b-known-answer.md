@@ -500,3 +500,24 @@ The owner decided in 0019: the second run does not go ahead, and the settings re
 ### Second run
 
 Not run: superseded before any fit (decision 0019).
+
+### Third design: development result (spent seeds only; marks A and B not run)
+
+**Outcome: the committed test to proceed was missed, so A and B did not run and seeds 3001 to 3020 are unspent.** The rule asks for this report: as designed, this method does not reach the 0.02 margin on planted effects, and the reasons are below as far as they are known. No change to g's settings was used, because the diagnostic below shows none of those tried would pass.
+
+- **Quiet: yes.** All 8 null seeds (pure_null 2001 to 2003, 9001 to 9005) within 0.005: skill -0.0036 to -0.0001, no lower bound above 0. The first and second runs' gaps between fitted models are gone. Only pure_null, on spent seeds.
+- **Hears: no.** Needed 2 of seeds 1011, 1016, 1017 at skill 0.02 or more with lower bound above 0; got 0 of 3. Skill (95% interval, worth): 1011 .0088 (.0006 to .0161, .141); 1016 .0165 (.0068 to .0275, .100); 1017 .0078 (-.0009 to .0169, .124). The others: 1015 .0152 (.0054 to .0251, .097), 1012 .0035 (-.0012 to .0101, .280), 1010 .0016 (-.0066 to .0082, .002).
+- **An observation, not a result.** All 6 planted skills lie above all 8 null skills. It is 14 spent seeds, no shuffle test ran, and a lower margin chosen after seeing this would be a rule change that favours a result.
+- **Level correction: kept by its rule, weakly.** It lowered mean deviance by 0.65% over the 8 nulls but was lower on only 2 of them.
+- **g chose trees on nulls** (17 to 54), so "may be zero" did not happen at this tolerance; skill stayed inside the band regardless.
+
+**Diagnostics, seeds 1011, 1016, 1017** (`scripts/diagnose_1b_third.py`, of which only the last version is kept; outputs `results/1b-third-dev-diagnostic*.jsonl`):
+
+- Fixed tree counts 25, 50, 100, 300 and larger trees (15 leaves, minimum 500): best .0078, .0132, .0085. Handing g the generator's true linked flag: .0059, .0175, .0091. So neither tree count, capacity, nor knowing which cells are linked closes the gap.
+- The reference is sound: the no-link rate beats it by only .015, .002, .002, while the full truth beats it by .154, .102, .126.
+- Handing g the log of the true ratio reaches only .0117, .0177, .025. Multiplying the reference by the true ratio scores -4.7, -21.5, -13.4, because ratios reach 10^7 to 10^8 where the no-link rate is near zero. **A planted rate ratio far from 3 in these cell-months means the worth figure is not a good ruler for a multiplicative model.**
+- Worth is concentrated: about 50 of 10,228 cells carry all of the net gain, and the top 12 of 240 months carry 65%, 86%, 94%.
+- Most of the effect comes after training: excess events in training against scored are 391 against 20,595, 9,013 against 11,375, 2,406 against 11,737. The seed with the most in training has the best skill, on 3 seeds, so this is suggestive only.
+- **Withdrawn inference.** Fitting on the scored months themselves gave .17, .11, .12, which looked as if the inputs explain the effect. Nulls score .08, .03, .15 the same way (`scripts/diagnose_1b_third_null.py`), so that fit shows nothing: the global columns can act as a month label.
+
+**Not established:** that later episodes are the cause, that a method refitted as months pass would hear them, or that real data behaves this way. The earlier sentence about what a "no" rules out travels with this too: this says nothing yet about real effects of any size.
