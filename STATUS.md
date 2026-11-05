@@ -2,14 +2,11 @@
 
 Last updated 2026-11-05.
 
-**Phase 1, step 1b: stopped on a committed stop, talking to next-pattern.** Current order is decisions 0016, 0017, 0018 (1b ceiling 1M fresh tokens).
-The first run ended at ratio 3.00's 20 replicates. It detected 1 or 2 of the 8 replicates worth at least 0.05, and in some replicates shuffled inputs alone
-beat the baseline by 0.10 to 0.14, cause unknown (`results/1b-known-answer.md`, Result). The null check came in at -0.0134, below its -0.01 line,
-so the settings re-fix in that file is next by rule, once this is talked through.
+**Phase 1, step 1b: the second run is superseded, and a third design is with next-pattern for checking.** Current order is decisions 0016 to 0019 (1b ceiling 1M of this session's own fresh tokens).
+The first run missed replicates clearly worth finding, and gaps between two fitted models far exceeded the margin (`results/1b-known-answer.md`, Result). The third design, in that file, makes the
+test model the baseline times a small correction that can be nothing at all. Nothing runs until next-pattern checks it. `scripts/run_1b_second.py` is unused.
 
-Then: second run, `nice -n 19` with `OMP_NUM_THREADS=6`, `scripts/run_1b_second.py all`, `results/1b-second-replicates.jsonl` (no closing script yet). Then at most
-five sources (300k) and the multi-input test as a plan revision, checked by next-pattern, settling whether real scoring uses the 240 month window as
-its one scoring or keeps 2021-04 on held out.
+Then: at most five sources (300k) and the multi-input test as a plan revision, checked by next-pattern, settling whether real scoring uses the 240 month window as its one scoring or keeps 2021-04 on held out.
 
 1c and 1d are not run on real data, and the held-out set stays unscored.
 Step 1a is done. Sources are in `docs/data-sources.md`, data in the ignored `data/raw/`, checksums in

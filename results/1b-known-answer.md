@@ -365,6 +365,35 @@ shuffles; for each seed, both inputs, drought only and ONI only. `scripts/check_
 
 No planted panel is touched, so this cannot favour detection, and the null marks on seeds 3001 to 3020 still judge the result.
 
+## Third design: fix the comparison, then test it (proposal, decision 0019)
+
+Nothing here has run. next-pattern checks it first.
+
+**The change.** Today B and M are two separate fits, so their gap holds everything that differs between two fits. Instead M becomes **B times a correction g(inputs)**: g is a small Poisson booster fitted to y/B with weight B, the
+same offset for baseline and test. Its columns are the inputs, latitude, longitude and log B. **Its number of trees is chosen on a block held back from training, and may be zero, in which case M is B exactly.** So on inputs that hold
+nothing, M should stay at B. B itself keeps its settings. Shuffles refit only g, which shortens the run a lot.
+
+- **g, fixed:** learning rate 0.05, 6 leaves, up to 100 trees, minimum leaf 2000, L2 100.
+- **Training:** targets 36 to 194, scored last 240 months as the committed criterion chose; mark panel 3.50. B fitted on 36 to 146 predicts 147 to 194, g is fitted on 36 to 146, and trees chosen on 147 to 194 out of sample. Then B and g are refitted on 36 to 194 with that tree count.
+- **Level.** B's rate in each 5 degree block is multiplied by (observed + 50) / (predicted + 50) over the 24 months ending at the last month known at forecast time. The form and the 50 are fixed now. **This uses later observed months as a forecaster would have them,
+  so it is not "from training months only".** It applies to B before g, so to both models alike. It stays only if it lowers B's mean deviance on the spent null seeds; otherwise off.
+
+**Development, on spent seeds only.** Nulls: pure_null 2001 to 2003 and 9001 to 9005. Planted, ratio 3.00: 1010, 1012, 1015, and 1011, 1016, 1017 (worth 0.22, 0.19, 0.29). It goes on to the marks only if all 8 null seeds have skill within 0.005 in size, and at least 2 of 1011, 1016, 1017 reach
+skill 0.02 with a lower bound above 0. At most two changes to g's fixed settings are allowed, each recorded. If it still fails, **we report that this method as designed cannot detect planted effects, and why**, and stop.
+
+**Marks, on seeds never fitted (3001 to 3020), committed before they run.**
+
+- **A, quiet.** pure_null, shared_null, combo_null, with their real-shaped inputs and again with pure noise in the same input columns (four cell-level and four global): M against B within 0.005 in size on at least 18 of 20, for each panel and each kind of input. **No planted panel runs until A passes.** If it fails, stop and talk.
+- **B, hears.** planted_3.50: at least 16 of 20 detected, last 240 months, three months' lead, as in the verdict (skill at least 0.02, lower bound above 0, above all shuffles, shuffled median under 0.01). The generator's upper bound there: 19 of 20 worth 0.02, median 0.168. Nulls under the same verdict: at most 1 of 20 per panel.
+  The first three seeds of each null get shuffles regardless. Secondary span (195 to 386) is reported with no mark, for the real-window choice.
+- **Described, no mark:** planted_3.00, planted_2.40, planted_combo_6, by worth.
+
+A quiet instrument can be quiet because it is deaf, which is why A alone says nothing and B is required.
+
+**Limits carried forward.** The sentence on what a pass means and the drift limit above both stand. The mark panel is a large effect. Tree counts chosen on 48 months can miss a slow or rare effect. No result here is about real data.
+
+**Estimate.** About 100k fresh tokens, 25% line 125k, all under the 1M of this session's own spend. Machine about 1 hour development, 2 hours A, up to 10 hours B. Cut first if time or tokens run short: planted_2.40 and planted_combo_6, then planted_3.00. Never the nulls or the mark panel.
+
 ## Result
 
 Rule as it ran: commit b94c22b, with the closing rule in "How 1b closes" and the early stop in decision 0018.
@@ -455,8 +484,8 @@ cause is not found.** By the rule, we think again before spending. Not measured:
 So part of the surprise is B's level running far off on some seeds, and the cause is still only partly found: why B overshoots there, and what carries the rest, are not measured. M's 3% to 6% training gain is also larger than most of these
 replicates are worth, which is consistent with overfitting the inputs, but this check does not separate the two. Four seeds, chosen because they looked odd.
 
-The re-fix and the second run wait for the owner.
+The owner decided in 0019: the second run does not go ahead, and the settings re-fix falls with it.
 
 ### Second run
 
-Not run.
+Not run: superseded before any fit (decision 0019).
