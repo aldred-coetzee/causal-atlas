@@ -29,13 +29,14 @@ def choose_trees(X, y, ref, fit, stop):
     return next(i for i, s in enumerate(scores) if s <= limit)
 
 
-def apply_trees(X, y, ref, fit, trees):
-    """ref itself at no trees; otherwise ref times a booster of that many trees fitted on the fit rows."""
+def apply_trees(X, y, ref, fit, trees, at=None):
+    """ref itself at no trees; otherwise ref times a booster of that many trees fitted on the fit rows. at limits the rows returned."""
+    at = np.ones(len(y), bool) if at is None else at
     if trees == 0:
-        return ref.copy()
+        return ref[at].copy()
     model = HistGradientBoostingRegressor(max_iter=trees, **G_SETTINGS)
     model.fit(X[fit], y[fit] / ref[fit], sample_weight=ref[fit])
-    return np.maximum(ref * model.predict(X), FLOOR)
+    return np.maximum(ref[at] * model.predict(X[at]), FLOOR)
 
 
 def level_factor(y, forecast, lat, lon, first_target, lead=3, months=LEVEL_MONTHS, shrink=LEVEL_SHRINK):
