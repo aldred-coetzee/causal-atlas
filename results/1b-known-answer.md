@@ -258,6 +258,18 @@ under both schemes (seed 1006), skills -0.005 to 0.037. Any restated mark is the
 This also bears on any real test: what a true effect is worth in 48 months depends on which cells happen to be
 active in those months, and it can be nothing, even where it is large over the whole period.
 
+## How 1b closes (agreed with next-pattern, 2026-11-05)
+
+- **The committed mark stays and is reported as missed and unreachable** (16 of 20 on ratio 3.00; 9 of 20 can reach
+  0.02 in the scored window). It is not rewritten, and no second pass mark is added: a new scoring design will need its
+  own known-answer test with marks defined in its scored window, committed first.
+- **The nulls and the choice of shuffle scheme are reported against their unchanged marks.** That part carries over.
+- **Detection is described, with no mark:** every planted replicate's held-out worth at three months from the
+  generator and whether the detector passed, and "of the n replicates worth at least 0.05, k were detected" with its
+  exact binomial interval. If the machinery misses replicates clearly worth 0.05 or more, that is a stop, before the plan revision.
+- **Lesson for the revision:** a 48-month score depends on which cells are active in those months. Evaluate over a longer
+  or rolling window, still scored once, and carry the stabilising learner settings to baseline and test alike.
+
 ## Result
 
 Not yet computed.
