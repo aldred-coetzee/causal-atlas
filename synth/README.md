@@ -90,3 +90,25 @@ for the planted panels.
   coverage did NOT improve, since lowering b0 to offset the slow field's mean removed small-rate cells.
   The planted panels and shared_null were not re-checked by the author after this change; the project
   session checked them on six seeds (see `results/1b-known-answer.md`).
+
+## Revision 4 (combination panels, lead forecasts)
+
+- `planted_combo_<R>`: same linked cells, base process and inputs as the single-input planted panels. In
+  linked cells the log-rate gains ln(R) * clip(min(excess_drought, excess_oni), 0, 3), where each excess is
+  the standardised lag-weighted input (same lags and weights as the single link; dryness for drought,
+  ONI as is) minus a threshold of 0.5 SD. Either alone does nothing. Active in about 10.5% of
+  cell-months of linked cells (seeds 101-106).
+- `combo_null`: the outcome follows the same combination rule at R=3 but of independent drought and ONI
+  drawn under new keys (110, 120); the returned `drought`/`oni` are the usual draws. `rate_no_link`
+  equals `rate`, `linked` all False.
+- Combination best-possible skill 1 - D(rate)/D(rate_no_link), months 36-434, seeds 101-106: R=2 median
+  0.0009 (min -0.0002, max 0.0026); R=3 0.0035 (0.0008, 0.041); R=4 0.011 (0.002, 0.104); R=6 0.038
+  (0.010, 0.230); R=8 0.143 (0.035, 0.359). combo_null vs pure_null (seeds 101-103, medians): mean 0.0103
+  vs 0.0083, zeros 0.9959 vs 0.9967, variance/mean 9.0 vs 10.3.
+- `lead_rates(panel, lat, lon, seed, lead=3, n_sim=6)`: forecast of y[tau] from y through tau-lead,
+  inputs known through tau, by Monte Carlo forward simulation of the true process (months before 36 are
+  NaN). no_link switches the link off from tau-lead+1. Lead 1 is exactly `rate`/`rate_no_link`. MC error:
+  on planted_3.00 seed 101, skill 0.1096 at 6 paths vs 0.1143 at 24 paths (about 4% relative), forecast
+  mean 0.01645 vs y mean 0.01612. About 16 s per seed at full size.
+- Note: at lead>1 the link's feedback through excitation is part of the gap, so skill at lead 3 can exceed
+  lead 1.

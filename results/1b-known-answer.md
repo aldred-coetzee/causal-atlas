@@ -196,6 +196,40 @@ yet a detector result.
   beyond the nulls' mark for the null. Their ratio is fixed from best possible skill before they meet the detector.
 - **Detection is also reported by best possible skill** in that replicate, because a ratio has no single worth.
 
+## The rule as it runs (third amendment), committed before any detector fit on a planted panel
+
+This replaces the panel list, ratio and mark above wherever they differ. The numbers that moved it are the
+generator's own truth, never a detector's: the only detector fit so far is on a pure null, for timing, and
+its result is not counted. The commit that holds this section is named under Result.
+
+**Summary to carry everywhere.** Worth depends on the linked cells' share of the rate, not on the ratio alone. A
+"no" is stated as "no effect worth 2% of deviance", beside the ratio-and-share combinations that would have been.
+
+**Lead.** Three months, the primary lead. Worth is `lead_rates` from the generator: Monte Carlo forward simulation
+with inputs known through the target month, so an upper bound (6 paths, about 4% error on one check; 24 paths gave
+0.1143 against 0.1096). It exceeds one-month worth because the link's feedback through self-excitation is in the gap.
+
+| Panel | Worth at 3 months: 10th pct, median, 90th (seeds 101 to 120) | Worth 0.02 or more | Role |
+|---|---|---|---|
+| planted, ratio 2.00 | 0.003, 0.012, 0.048 | 6 of 20 | reported |
+| planted, ratio 2.40 | 0.007, 0.055, 0.176 | 16 of 20 | reported |
+| planted, ratio 3.00 | 0.036, 0.116, 0.334 | 18 of 20 | **pass mark** |
+| planted_combo, ratio 6 | 0.015, 0.143, 0.331 | 17 of 20 | reported, no mark |
+
+**The mark moved, and this favours passing.** Decision 0015 put 80% on the panel worth about 0.05. That panel is
+ratio 2.40, where only 16 of 20 can reach 0.02, so 80% would need every one detected. The mark is therefore on ratio
+3.00, worth about 0.12 at most. Passing means the machinery finds effects of about that worth, not 0.05, and
+the 2.40 and 2.00 rows say what happens below it. No panel sits at 0.02; detection by each replicate's own worth
+covers that range.
+
+**Pass, for each scheme.** At least 16 of 20 detected on ratio 3.00; at most 1 of 20 false positives on each of
+pure_null, shared_null and combo_null, with the exact binomial bound. Schemes: circular shift, above all 32 shifts;
+year permutation, above all 19 draws. Choice between schemes as in the rule. Seeds 1001 to 1020 on seven panels, 140
+replicates at full size, each reporting ratio, share of cells, linked share of the rate and its own worth.
+
+**Combination panel.** In linked cells the log rate gains ln(R) times the smaller of the drought and ONI excesses past
+0.5 SD; alone, neither has any effect. combo_null has the same structure at R 3 on independent copies of the inputs.
+
 ## Result
 
 Not yet computed.

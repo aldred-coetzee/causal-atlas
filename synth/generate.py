@@ -34,6 +34,7 @@ P = dict(
     drought_sd=0.94,
     oni_r=0.93, oni_period=42.0, oni_noise=0.12, oni_sd=0.85,
     # link design
+    combo_thr_d=0.5, combo_thr_o=0.5, combo_null_R=3.0,
     link_share_thr=1.0, link_L=6.0, link_threshold=1.0, link_cap=3.0,
     # shared_null extras
     shared_trend_counts=0.9, shared_trend_drought=0.8, shared_seas_drought=0.7,
@@ -91,9 +92,9 @@ def _smooth_field_series(seed, key, lat, lon, L, TT, phi_f, phi_s, w_slow, M=400
     return Phi @ A.T                                                       # C x TT
 
 
-def _oni_series(seed, TT):
+def _oni_series(seed, TT, key=20):
     """Stochastic oscillator (period ~ 4+ years) plus a little persistent noise."""
-    r = _rng(seed, 20)
+    r = _rng(seed, key)
     n = TT + 300
     rr, th = P["oni_r"], 2 * np.pi / P["oni_period"]
     p1, p2 = 2 * rr * np.cos(th), -rr ** 2
@@ -150,10 +151,11 @@ def _nb8(z, iy, ix, shape):
     return s[iy, ix] / 8.0
 
 
-def generate(panel, lat, lon, seed):
-    if panel not in PANELS:
+def generate(panel, lat, lon, seed, _keep=False):
+    if panel not in PANELS and panel != "combo_null":
         try:
-            ok = panel.startswith("planted_") and float(panel[8:]) > 0
+            ok = (panel.startswith("planted_combo_") and float(panel[14:]) > 0) or \
+                 (panel.startswith("planted_") and float(panel[8:]) > 0)
         except ValueError:
             ok = False
         if not ok:
@@ -196,8 +198,18 @@ def generate(panel, lat, lon, seed):
     # ---- planted link
     linked = np.zeros(C, bool)
     link = None
-    if panel.startswith("planted_"):
-        R = float(panel.split("_")[1])
+    combo = panel.startswith("planted_combo_") or panel == "combo_null"
+    if combo or panel.startswith("planted_"):
+        if combo:
+            R = P["combo_null_R"] if panel == "combo_null" else float(panel[14:])
+            # combo_null: the outcome responds to its OWN independent inputs (new keys)
+            dr_l, on_l = drought, oni
+            if panel == "combo_null":
+                dr_l = _smooth_field_series(seed, 110, lat, lon, P["drought_L"], TT,
+                                            P["drought_phi_fast"], P["drought_phi_slow"], P["drought_slow"]) * P["drought_sd"]
+                on_l = _oni_series(seed, TT, key=120)
+        else:
+            R = float(panel.split("_")[1]); dr_l, on_l = drought, oni
         f_l = _Field(seed, 60, P["link_L"])(lat, lon)
         linked = f_l > P["link_share_thr"]
         idx = np.where(linked)[0]
@@ -207,17 +219,23 @@ def generate(panel, lat, lon, seed):
             Ud = np.zeros((idx.size, TT))
             for L, w in enumerate(W_DROUGHT):
                 if w:
-                    Ud[:, L:] += w * (-drought[idx][:, :TT - L])    # dry = negative index
+                    Ud[:, L:] += w * (-dr_l[idx][:, :TT - L])    # dry = negative index
             Uo = np.zeros(TT)
             for L, w in enumerate(W_ONI):
                 if w:
-                    Uo[L:] += w * oni[:TT - L]
+                    Uo[L:] += w * on_l[:TT - L]
             Ud /= Ud[:, BURN:].std(); Uo = (Uo - Uo[BURN:].mean()) / Uo[BURN:].std()
             Ud = Ud - Ud[:, BURN:].mean()
-            u = np.sqrt(alpha)[:, None] * Ud + np.sqrt(1 - alpha)[:, None] * Uo[None, :]
-            u[:, :12] = 0.0                                  # lags not fully observed in burn-in
             link = np.zeros((C, TT))
-            link[idx] = np.log(R) * np.clip(u - P["link_threshold"], 0, P["link_cap"])
+            if combo:
+                # both inputs must be past their thresholds; R per SD of the smaller excess
+                ex = np.minimum(Ud - P["combo_thr_d"], Uo[None, :] - P["combo_thr_o"])
+                ex[:, :12] = 0.0
+                link[idx] = np.log(R) * np.clip(ex, 0, P["link_cap"])
+            else:
+                u = np.sqrt(alpha)[:, None] * Ud + np.sqrt(1 - alpha)[:, None] * Uo[None, :]
+                u[:, :12] = 0.0                              # lags not fully observed in burn-in
+                link[idx] = np.log(R) * np.clip(u - P["link_threshold"], 0, P["link_cap"])
 
     # ---- count process
     rng = _rng(seed, 70)
@@ -228,7 +246,11 @@ def generate(panel, lat, lon, seed):
     rate = np.zeros((C, TT)); rate_nl = np.zeros((C, TT))
     Sf = np.zeros(C); Ss = np.zeros(C); Sn = np.zeros(C)
     ig = 1.0 / P["phi"]
+    if _keep:
+        hist = np.zeros((3, TT, C))
     for t in range(TT):
+        if _keep:
+            hist[0, t] = Sf; hist[1, t] = Ss; hist[2, t] = Sn
         exc = P["A_f"] * Sf + P["A_s"] * Ss + P["A_n"] * Sn
         base = mu[:, t] + np.minimum(exc, P["exc_cap"])
         r_t = base if link is None else base * np.exp(link[:, t])
@@ -241,6 +263,54 @@ def generate(panel, lat, lon, seed):
         Ss = P["d_s"] * Ss + z
         Sn = P["d_n"] * Sn + _nb8(z, iy, ix, shape)
 
+    if panel == "combo_null":                       # no link to the RETURNED inputs
+        rate_nl = rate.copy(); linked = np.zeros(C, bool)
+    kept = dict(hist=hist, mu=mu, link=link, iy=iy, ix=ix, shape=shape, y=y) if _keep else None
     out = dict(y=y[:, BURN:], drought=drought[:, BURN:], oni=oni[BURN:],
                rate=rate[:, BURN:], rate_no_link=rate_nl[:, BURN:], linked=linked)
+    if _keep:
+        out["_kept"] = kept
     return out
+
+
+def lead_rates(panel, lat, lon, seed, lead=3, n_sim=6, d=None):
+    """Upper-bound forecasts of y[tau] given y through tau-lead, inputs known through tau.
+
+    Returns (with_link, no_link), C x T float arrays; months 0..35 are NaN (tau < 36).
+    Monte Carlo forward simulation of the true process over the lead-1 unobserved months
+    (n_sim paths, common seed for both variants); rate at tau is the path average.
+    with_link keeps the true link; no_link zeroes it from tau-lead+1 onward.  lead=1 needs no
+    simulation and equals rate / rate_no_link exactly.  Pass d (from generate(..., _keep=True))
+    to reuse a run.
+    """
+    if d is None:
+        d = generate(panel, lat, lon, seed, _keep=True)
+    k = d["_kept"]; C = len(lat)
+    W = np.full((C, T), np.nan); N = np.full((C, T), np.nan)
+    if lead == 1:
+        W[:, 36:] = d["rate"][:, 36:]; N[:, 36:] = d["rate_no_link"][:, 36:]
+        return W, N
+    mu, link, hist, ig = k["mu"], k["link"], k["hist"], 1.0 / P["phi"]
+    zero = np.zeros(C)
+    for tau in range(36, T):
+        s = tau - lead                        # last observed month (unpadded)
+        t0 = BURN + s + 1                     # first unobserved, padded index
+        tp = BURN + tau
+        for variant, store in ((True, W), (False, N)):
+            rng = _rng(seed, 80 + 1000 * tau)  # new key; same draws for both variants
+            acc = np.zeros(C)
+            for _ in range(n_sim):
+                Sf, Ss, Sn = hist[0, t0].copy(), hist[1, t0].copy(), hist[2, t0].copy()
+                for t in range(t0, tp):
+                    exc = P["A_f"] * Sf + P["A_s"] * Ss + P["A_n"] * Sn
+                    lk = link[:, t] if (variant and link is not None) else zero
+                    r = np.minimum((mu[:, t] + np.minimum(exc, P["exc_cap"])) * np.exp(lk), P["rate_cap"])
+                    yy = rng.poisson(r * rng.gamma(ig, P["phi"], C))
+                    z = yy.astype(float) ** P["zpow"]
+                    Sf = P["d_f"] * Sf + z; Ss = P["d_s"] * Ss + z
+                    Sn = P["d_n"] * Sn + _nb8(z, k["iy"], k["ix"], k["shape"])
+                exc = P["A_f"] * Sf + P["A_s"] * Ss + P["A_n"] * Sn
+                lk = link[:, tp] if (variant and link is not None) else zero
+                acc += np.minimum((mu[:, tp] + np.minimum(exc, P["exc_cap"])) * np.exp(lk), P["rate_cap"])
+            store[:, tau] = acc / n_sim
+    return W, N

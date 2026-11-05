@@ -73,6 +73,7 @@ def replicate(panel, seed, size, timing=False):
         linked = g["linked"].any(axis=1) if g["linked"].ndim > 1 else g["linked"]
         out.update(best_all=float(d.skill(y[:, 36:], rate[:, 36:], no_link[:, 36:])),
                    best_held=float(d.skill(obs, rate[:, months_held], no_link[:, months_held])),
+                   best_lead3=float(d.skill(y[:, 36:], *[r[:, 36:] for r in synth.lead_rates(panel, lat, lon, seed, lead=3)])),
                    linked_share=float(linked.mean()),
                    linked_rate_share=float(no_link[linked][:, 36:].sum() / no_link[:, 36:].sum()))
     return out
