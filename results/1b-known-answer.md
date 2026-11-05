@@ -417,6 +417,20 @@ Seeds 1010, 1012, 1015, 1011 of ratio 3.00, first-run design and settings, `scri
   and no input or window can be judged on this score whichever of the above holds.
 - Also reported for the top 10: whether each has an extreme observed count or an extreme prediction from either model.
 
+**Diagnostic result.** Skill, then without the top 10 cell-months, then the noise control:
+
+| Seed | Skill | Without top 10 | Top 10's share of absolute gain | Noise column |
+|---|---|---|---|---|
+| 1010 | 0.167 | 0.112 | 0.28 | 0.054 |
+| 1012 | 0.256 | 0.264 | 0.05 | 0.008 |
+| 1015 | -0.163 | -0.010 | 0.45 | 0.003 |
+| 1011 | 0.018 | 0.020 | 0.15 | -0.004 |
+
+Under the rule above this is **spread out** (1 of 4 seeds concentrated, 3 needed), so my guess that a few huge counts carry it is not supported, except on seed 1015, where one cell predicted
+near 0 by M against 195 to 640 observed carries most of the loss. The noise control is above 0.02 on 1 of 4, so the learner is not declared unstable by the rule, though 0.054 on seed 1010 is more than
+twice the margin from a column of pure noise. The top cell-months are mixed: B predicting 141 to 265 against 0 to 9 observed on 1010, large observed counts on 1012 and 1011, M near 0 on 1015. **The
+cause is not found.** By the rule, we think again before spending. Not measured: whether M and B differ in overall level; predictions were not kept.
+
 The re-fix and the second run wait for the owner.
 
 ### Second run
