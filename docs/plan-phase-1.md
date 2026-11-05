@@ -4,7 +4,8 @@ Written 2026-11-05 by the project session, before any data has been fetched or a
 number computed. For audit by next-pattern and approval by the owner. Each step ends
 at a gate; nothing starts without the owner's yes. Each results file copies its rule
 from here and is committed before its numbers. Any later change to this rule is a
-disclosed deviation.
+disclosed deviation. Revised the same day after next-pattern's audit, still before any
+data (decision 0011).
 
 **Nothing in this plan about a data source is a fact yet.** Coverage, licences and
 access are what step 1a checks (rules 4 and 5). Sizes are rough arithmetic.
@@ -18,10 +19,10 @@ the gain vanishing when the inputs are shuffled in time?
 
 A "no" is an acceptable and publishable answer.
 
-## Proposed changes to the defaults, for the owner's decision
+## Departures from the brief, decided under the owner's delegation
 
-The defaults are accepted (decision 0005). The design below departs from them in
-four places, and also adds a fixed lead and margin the brief left open.
+The defaults are accepted (decision 0005). The owner left design choices to this session
+and next-pattern (decisions 0010 and 0011). These depart from the brief or fill its gaps:
 
 1. **Prices are tested separately from climate (H2 below), on the cells and months
    that have them.** Why: food price monitoring plausibly starts because a crisis has
@@ -29,10 +30,13 @@ four places, and also adds a fixed lead and margin the brief left open.
    let a tree model use "a price exists here" as a crisis flag and report that as a
    price effect. Cost: two comparisons instead of one, so a stricter interval.
 2. **Three inputs, not four.** Fewer choices, fewer ways to get lucky.
-3. **Full-size synthetic panels only if the box can afford them** (see 1b). Otherwise
-   a smaller repeat panel, disclosed.
+3. **Most synthetic replicates run on a smaller panel** (see 1b), a disclosed departure
+   from the brief's "same size", to keep a box shared with live apps under 24 hours.
 4. **Baseline and test use the same learner.** So a gain cannot come from a better
    learner. The brief does not require this; it closes an obvious way to fool ourselves.
+5. **PCMCI and convergent cross mapping are deferred until after the 1d verdict.** This
+   is a deferral, not a drop. They decide nothing in Phase 1, and they are where 1b would
+   most likely overrun. The owner can reverse this at any gate.
 
 Open for the owner: the **2% margin** and the **3-month lead**. Reasons are below;
 both are judgement calls and he may prefer others. Recommendation: accept both. If he
@@ -73,10 +77,13 @@ reported.
 - **M2, prices, sub-panel (H2):** M2 adds to its baseline, per cell, the median over
   staple commodities of the 12-month log price change at the nearest market within 100
   km. Sub-panel: cell-months inside a market series' span, excluding its first 12 months
-  after it starts, so that series onset is not a signal. Baseline B is refitted on that
-  sub-panel. The exact staple list is fixed at the 1a gate from coverage counts, with no
-  look at outcomes. If 1a shows too little coverage, H2 is dropped and H1 keeps a 95%
-  interval.
+  after it starts, so that series onset is not a signal. A row needs a present price
+  feature at t; otherwise it is dropped for both M2 and its baseline, decided at t from
+  the past only. A price is never passed to the learner as missing, because "no price
+  this month" would then be the crisis flag this design removes. Baseline B is refitted
+  on that sub-panel. The exact staple list, and the coverage number that counts as too
+  little, are proposed at the 1a gate from coverage counts, before any join with outcomes.
+  If coverage is too little, H2 is dropped and H1 keeps a 95% interval.
 
 **Split, by rule, not by date.** E is the last month of the frozen outcome release.
 - Held-out: the last 48 target months up to E. Scored once.
@@ -95,20 +102,40 @@ a count, mostly zero, and the score must reward a correct rate.
 
 **Interval.** Moving-block bootstrap over held-out months, whole Africa per month,
 blocks of 6 months, 10,000 draws, fixed seed. Whole months keep the spatial dependence;
-blocks keep the temporal. Two comparisons, so a 97.5% interval (Bonferroni). 1b checks
-empirically whether this interval is honest.
+blocks keep the temporal. Two comparisons, so a two-sided 97.5% interval (Bonferroni), its
+lower end at the 1.25th percentile. About eight blocks, on a mean that a few cell-months can
+dominate, may under-cover: 1b checks this on nulls built to be as hard as the real data.
 
-**Shuffle test.** Inputs only, in train, validation and held-out alike: permute the
-years, applied identically to all cells in that draw, keeping calendar month. This keeps
-each input's seasonality and spatial pattern and breaks its link to any given year's
-outcome, so a gain that is only the input acting as a seasonal clock survives shuffling
-and does not count. Prices permute years within each market series' span. Refit, rescore,
-99 draws.
+**Shuffle test.** Inputs only, in train, validation and held-out alike, applied identically
+to all cells in a draw and keeping calendar month, so each input's seasonality and spatial
+pattern survive. A gain that is only the input acting as a seasonal clock therefore survives
+too and does not count. Refits use M's frozen settings, with no retuning. Two schemes are
+named now, and one is fixed at the 1b gate, before any real number:
+- **Year permutation,** 99 draws. It destroys an input's year-to-year persistence, so a
+  persistent input lining up with a persistent conflict episode by chance has no shuffled
+  counterpart, and real can beat shuffled for a reason that is not a link.
+- **Circular shift** of the whole input series by k whole years, for every k: one less than
+  the years in the panel, about 29 if the panel has 30 years. It keeps persistence and breaks
+  alignment. Its smallest possible p is 1/(shifts+1), about 0.033.
+
+Prices apply either scheme to whole years within each market series' span, so far fewer shifts
+may exist; the count available goes in the 1a gate report.
+
+**Choosing the scheme, at the 1b gate.** A scheme qualifies if it meets 1b's pass marks. If
+both qualify, the circular shift is used, because it answers the persistence problem. If only
+one does, that one. If neither does, 1b fails.
 
 **Verdict, for each of H1 and H2, all three required:**
 1. Skill at least **0.02** (2%) and the lower end of its 97.5% interval above 0.
-2. Observed skill above all but at most 1 of the 99 shuffled skills, p <= 0.02.
+2. Under year permutation: observed skill above all but at most 1 of the 99 shuffled skills,
+   p <= 0.02. Under circular shift: above every shift, p = 1/(shifts+1). That cannot reach the
+   0.025 a Bonferroni correction would ask for, unless the series is longer than 39 years. This
+   is a limit of the data, and is stated beside the result.
 3. The median shuffled skill is under 0.01 in size, half the margin: the gain vanishes.
+
+**Diagnostic, stated beside the verdict, not changing it.** The share of the gain owed to the
+single largest country and to the single largest year. M is also reported at B's settings, so
+a gain owed to tuning rather than to inputs can be seen.
 
 **Why 2%.** A gain below that would not change anyone's reading of a forecast, and a
 margin set once we can see the data is worthless, so it is fixed now on judgement. 1b
@@ -138,15 +165,15 @@ plus 25%.
 | Step | What | Estimate | Stop at |
 |---|---|---:|---:|
 | 1a | Data check | 200k | 250k |
-| 1b | Known-answer test | 600k | 750k |
+| 1b | Known-answer test, including its one subagent (about 100k) | 450k | 560k |
 | 1c | Baseline on validation | 300k | 375k |
 | 1d | The test | 500k | 625k |
 | | Independent review of 1d (rule 7) | 150k | 190k |
 | | next-pattern's audit of the result | 150k | 190k |
-| | **Total, leaving about 1.1M unused** | **1.9M** | cap 3M |
+| | **Total, leaving about 1.25M unused** | **1.75M** | cap 3M |
 
-The unused 1.1M is not a target. No subagents are planned except the review. If that
-changes, the spec and cost come first.
+The unused 1.25M is not a target. The only subagents planned are the generator's author in
+1b and the review. Anything else states its spec and cost first.
 
 ### 1a. Data check. Gate.
 
@@ -160,7 +187,8 @@ check rests on the source's own page, cited with date, not on memory.
 Queries for the rule: share of events by geocoding precision, and price series coverage by
 market and year, with no join between prices and outcomes. Also the first `pyproject.toml`.
 
-Where SPEI and CHIRPS both pass, a European host breaks the tie (decision 0003).
+Where SPEI and CHIRPS both pass, a European host breaks the tie (decision 0003). The gate report
+also proposes the staple list and H2's coverage number, and states how many shifts each input allows.
 
 *Stop if* no fetchable, licensed outcome source exists. That ends the design and goes to
 the owner.
@@ -171,42 +199,50 @@ Can the 1d machinery find a planted link, and stay quiet where there is none? Re
 first, at `results/1b-known-answer.md`.
 
 **Generator** in `synth/`, committed before any detector code, importing nothing from
-`src/`. An import test enforces this. Its mechanism differs from the detector's assumptions
-on purpose: a self-exciting negative binomial count process over a latent spatial rate, with
-threshold input effects spread over distributed lags and present in only some cells. A
-limit, stated: the same session writes both, so the independence is in code and form, not
-in authorship.
+`src/`. An import test enforces this. It is written by one Sonnet subagent, about 100k fresh,
+from a written spec that holds the shape statistics and the panel list and withholds this
+plan's "Test models" section, and that forbids opening this plan or `src/`. The reason: the
+detector is already fixed, so the open risk runs the other way, an author who knows its lag
+windows planting links that are easy for it. The spec asks for a mechanism unlike a boosted
+model on lag windows: a self-exciting negative binomial count process over a latent spatial
+rate, with threshold input effects over distributed lags the author chooses, in only some
+cells. The spec and cost are stated at the 1b gate before spawning, and the owner can say no;
+this session then writes the generator, with that limit disclosed.
 
 The real outcome panel is built here, because the synthetic shape comes from it, from the
 training block only: size, share of zeros, lag-1 and lag-12 autocorrelation, seasonal
-amplitude, spatial clustering. No statistic is computed on a validation or held-out month.
+amplitude, spatial clustering, concentration of events (share in the top 1% of cell-months),
+and regional episode length. No statistic is computed on a validation or held-out month.
 
-**Panels**, each with synthetic inputs shaped like the real ones:
+**Panels**, each with synthetic inputs shaped like the real ones, with real-like multi-year
+persistence:
 - Planted, rate ratio per standard deviation of input at 1.05, 1.15 and 1.40.
-- Pure null: no links.
-- Shared-driver null: input and outcome share a seasonal driver and a slow regional trend
-  but have no link. This is the realistic trap.
+- Pure null: no links, but large multi-year regional episodes unrelated to the inputs, so the
+  nulls are as hard as the real data.
+- Shared-driver null: as the pure null, and input and outcome also share a seasonal driver and
+  a slow regional trend, with no link. This is the realistic trap.
 
-Each gets 20 replicates, full pipeline with 19 shuffles per replicate, and the oracle's skill
-(the generator's own true rate) to show what each effect is worth in deviance.
+Each gets 20 replicates through the full pipeline, with both shuffle schemes, and the oracle's
+skill (the generator's own true rate) to show what each effect is worth in deviance. Both schemes
+run on the planted panels as well as the nulls, because a scheme that is quiet on nulls must also
+be shown to detect. Year permutation uses 19 draws per replicate, fewer than 1d because of
+runtime, so it tests criterion 2 only coarsely, at 1 in 20; disclosed.
 
-**Pass, or stop:** detection at least 80% at the 1.40 ratio; false positives at most 2 of 20
-on each null. The 1.15 result is reported, and tells the owner what 2% means. These are
-counted with intervals (20 replicates cannot show much better than plus or minus 10 points).
-Fewer shuffles than 1d because of runtime, disclosed; so 1b tests criteria 1 and 3 fully and
-criterion 2 only coarsely, at 1 in 20.
+**Pass, or stop, for each scheme:** detection at least 80% at the 1.40 ratio; false positives at
+most 1 of 20 on each null, with the exact binomial bound printed beside the count, since even 0
+of 20 bounds the true rate only loosely. Criterion 1's false-positive rate is also reported alone,
+which is the check on the interval. The 1.15 result is reported, and tells the owner what 2% means.
 
-**Runtime.** One fit is timed first. The brief asks for panels of the same size as the real
-one. The design is 5 panels x 20 replicates x 21 fits = 2,100 fits; at about one minute per
-fit (a guess) that is about 35 hours of a shared box. If the measured total exceeds 48 hours,
-one replicate per panel runs at full size and the rest on a contiguous sub-panel of 2,000
-cells. That is a disclosed departure from the brief.
+**Runtime.** One replicate per panel runs at full size and the other 19 on a contiguous sub-panel
+of 2,000 cells, a disclosed departure from the brief's "same size". Each replicate is 2 + 19 + about
+29 = about 50 fits. At a guessed minute per full-size fit and a fifth of that on the sub-panel, this
+is about 4 hours plus 16. **The ceiling is 24 hours in total.** One fit of each size is timed first;
+if the projection is over the ceiling, this stops and reports at a gate rather than cutting
+replicates unasked.
 
-**Candidates.** PCMCI (tigramite) and convergent cross mapping (pyEDM) run on the same panels,
-on a sample of 200 cells, with link and lag recovery and false discoveries reported beside
-runtime. They do not enter the verdict: the test in 1d is predictive and needs no discovery
-step. A candidate that recovers planted lags with few false ones is proposed for the next
-phase; one that fails, perhaps on zero-heavy counts, is dropped, and that is a result.
+**Candidates, deferred.** PCMCI (tigramite) and convergent cross mapping (pyEDM) stay candidates
+and do not run in 1b. The test in 1d is predictive and needs no discovery step, so they matter
+only if the answer is "extend". They would then need this same known-answer test first (rule 3).
 
 ### 1c. Baseline. Gate.
 
@@ -218,8 +254,9 @@ same grid, before the single run.
 
 ### 1d. The test. next-pattern audits. Gate, with a recommendation.
 
-`results/1d-test.md`, rule first, with the commit hash of the code. One script scores B, M1,
-M2 and all 198 shuffled fits, writing only at the end, so no partial look is possible. Run
+`results/1d-test.md`, rule first, with the commit hash of the code and the shuffle scheme fixed at
+the 1b gate. One script scores B, M1, M2, each M at B's settings and all shuffled fits, writing only
+at the end, so no partial look is possible. Run
 once. A crash before output may be rerun, disclosed. A rerun after any output is not allowed.
 A reviewer recomputes the deciding numbers from the stored predictions (rule 7).
 
