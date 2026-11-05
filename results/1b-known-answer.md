@@ -304,6 +304,14 @@ in the first run. The criterion measures what the effect is worth, not what a mo
 **Far sparser, as a number, fixed before the count below is run:** the real panel's non-zero cell-months in the window under half
 the synthetic median (planted_3.50 and pure_null, seeds 101 to 120, each taken alone).
 
+**The count.** Non-zero cell-months in indices 195 to 434: real 21,147. Synthetic median (min to max, seeds 101 to 120):
+planted_3.50 27,990 (13,251 to 53,372), pure_null 16,050 (8,558 to 25,628). Half the medians are 13,995 and 8,025, so real is not
+far sparser and the run goes ahead. Nothing else was read from the real panel.
+
+**Second-run panels, in order:** planted_3.50, pure_null, shared_null, combo_null, planted_3.00, planted_2.40, planted_combo_6.
+Each 20 replicates, seeds 3001 to 3020. The three below the mark come last, so they are what gets cut if the 1M ceiling nears.
+Anomaly means use months up to 194 only. Settings are `SETTINGS` in `detector.py`, unchanged.
+
 ## Result
 
 Not yet computed.
