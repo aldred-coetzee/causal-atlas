@@ -2,14 +2,19 @@
 
 Last updated 2026-11-05.
 
-**Phase 1: the marks for the refit design are written and await next-pattern's check (`results/refit-marks.md`). Nothing is running; seeds 3001 to 3020 are untouched.** After its check: `PYTHONPATH=src uv run python scripts/run_refit_marks.py marks`, detached (`nohup`, log to the scratchpad), about 17 to 30 hours; `summary` reads the outcome at any time, including from a cold session. Do not sit awake watching it.
+**Phase 1: the marks on fresh seeds are running (`results/refit-marks.md`), started 2026-11-05 19:18 by next-pattern from 92065c3 after its check, no edits. About 17 to 30 hours, ceiling 36. Do nothing in this repo's results until it ends, and do not sit awake watching it.**
+
+- **Is it running:** `systemctl is-active causal-atlas-refit-marks`. Clean end: "inactive"; crash: "failed". It is its own system unit, not inside this session, because the nightly restart would kill a job started here.
+- **Outcome at any time:** `PYTHONPATH=src uv run python scripts/run_refit_marks.py summary`. Rows `results/refit-marks.jsonl`, log `results/refit-marks.log`; both untracked until it ends. The last log line says FINISHED or A MISSED.
+- **If it stops early:** ask next-pattern; do not start it from a session. Restart skips what is done, but a replicate killed between its real and noise rows would be skipped and leave A incomplete, so check first for a null seed with one row.
+- **When it ends:** fill the Result section of `results/refit-marks.md` (A by panel and input; B by scheme; shuffled medians on the three planted seeds; the caveats in its limits), commit the jsonl, send the gate report to the owner and next-pattern. A miss stops: whether anything goes ahead is put to the owner. A pass carries on to step 2. Tokens for this step: 52.9k of its 80k line were spent before launch, so read with DuckDB or `summary`, not the whole file, and stop at the line.
 
 The refit's development test: quiet 8 of 8, hears 2 of 3 (1011 at 0.0215, interval 0.008 to 0.034; 1016 at 0.0226, 0.011 to 0.034; 1017 at 0.011, missing). A thin pass on spent seeds, with no shuffle run, so it does not show the gain comes from the inputs. Not detection; nothing here is about real data (`results/refit-dev.md`).
 
 **The cap is 4M for both sessions, and the order is decision 0023's.** About 2.44M was spent at 18:22 (1.84M here, 606k next-pattern). `CLAUDE.md`'s caps line still says 3M until the owner says to change it. A step at its line stops and says so; every agent's cost is stated before it spawns, checks included.
 
 **Next steps, in order:**
-1. Marks on fresh seeds, as above: estimate 65k, line 80k. If A or B misses, report and stop: whether anything goes ahead is put to the owner.
+1. Marks on fresh seeds, running, as above.
 2. One reading check: does anything similar already exist? One question, one page, 150k all in, cost stated first. The owner's wider reading is not approved.
 3. At most five sources, 300k, chosen in the light of decision 0021, each named with its reason before fetching and entered in `data/manifest.toml` and `docs/data-sources.md`.
 4. The plan revision, on the list in `docs/plan-phase-1.md` (Amendments after step 1b), checked by next-pattern before anything runs, then the real test, the stop at the end of 1d and next-pattern's result audit. The margin is the owner's call. The revision must set a null with many input columns before anything runs on many real inputs.

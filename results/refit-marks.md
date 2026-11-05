@@ -70,4 +70,4 @@ Smoke test before the check, spent seed only (pure_null 2001, one draw per schem
 
 ## Result
 
-Not yet run.
+Running since 2026-11-05 19:18, as the system unit `causal-atlas-refit-marks`, started by next-pattern after its check with no edits, because the nightly restart would stop a job launched from the session. Same command, same `nice`.
