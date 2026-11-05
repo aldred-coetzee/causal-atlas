@@ -64,10 +64,14 @@ Update this statement, with the date, when the owner refines it.
    from memory.
 6. **Budgets and gates.** Each phase has a token cap. At each gate report in at
    most ten lines: what was done, the result with its interval and caveats,
-   tokens against the cap, the proposed next step and its estimate. Then stop
-   and wait for the owner's yes. Never start the next step on your own. If a
-   step is heading 25% over its estimate, stop and say so. If the owner says to
-   go broader or to stop pausing, quote this rule back and ask him to confirm.
+   tokens against the cap, the proposed next step and its estimate. If the gate
+   passes its pre-registered marks, send the report, say why it passed and carry
+   on. Stop and ask only when it really needs his guidance: a missed mark, a
+   surprise that questions the design, a rule change that could favour a result,
+   a choice outside the plan. The end of 1d is always a stop (decision 0014,
+   changing the brief at the owner's word). If a step is heading 25% over its
+   estimate, stop and say so. If the owner says to go broader, quote this rule
+   back and ask him to confirm.
 7. **Subagents.** None by default. At most three at once, each with a written
    spec, estimated cost stated before spawning. Sonnet for mechanical work,
    Haiku for link and DOI checks. Independent review only for a result that
