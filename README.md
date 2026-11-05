@@ -5,8 +5,8 @@ indicator data from different domains (conflict, climate, food, prices and
 others) onto one grid of place and month, find time-lagged relationships between
 domains, and use them to predict trends.
 
-**Nothing is built and nothing has been found yet.** The repo holds its rules,
-its decisions and, shortly, a pre-registered design for one experiment.
+**Nothing has been found yet.** The repo holds its rules, its decisions, a
+pre-registered design for one experiment, and the data sources it has checked.
 `STATUS.md` says where things stand.
 
 ## The question
@@ -34,10 +34,12 @@ makes no model calls: it is deterministic at runtime.
 
 - `CLAUDE.md`: the standing brief for the working session.
 - `STATUS.md`: the honest current state.
+- `docs/data-sources.md`: every source checked, how to get it and what its
+  licence requires.
+- `docs/plan-phase-1.md`: the design.
 - `docs/decisions/`: decision records, immutable once written.
-
-Later, `docs/plan-phase-1.md` for the design and `results/` for one file per
-experiment, each with its rule committed before its numbers.
+- `results/`: one file per experiment, its rule committed before its numbers.
+- `data/manifest.toml`: versions and checksums. `scripts/`: fetch scripts.
 
 ## Licence
 

@@ -10,6 +10,23 @@ data (decision 0011).
 **Nothing in this plan about a data source is a fact yet.** Coverage, licences and
 access are what step 1a checks (rules 4 and 5). Sizes are rough arithmetic.
 
+## Amendments after step 1a (decision 0013)
+
+Made after the data check and before any outcome was computed by place or period. Where
+these disagree with the text below, these win, and results files copy the amended rule.
+
+- **H2 and M2 are dropped.** Only H1 and M1 remain, with one comparison: a two-sided 95%
+  interval, its lower end at the 2.5th percentile. No food prices are used.
+- **Outcome:** events with `where_prec` 1 to 3, assigned to the month of `date_start`.
+- **Drought input:** SPEI-3 from SPEIbase 2.11.
+- **E** is the last target month with its inputs, 2025-03: held-out 2021-04 to 2025-03,
+  validation 2017-04 to 2021-03, train 1992-01 to 2017-03, the same target months at every lead.
+  That is 399 months and 10,228 cells.
+- **ONI:** at t-1, and its 3, 6 and 12 month means ending at t-1.
+- **Circular shift:** 32 whole-year shifts, smallest p 1/33, about 0.030. Criterion 2 requires
+  p <= 0.05 for a single comparison. Under year permutation the plan's p <= 0.02 stands.
+- **A 1b replicate** is 2 + 19 + 32 = about 53 fits.
+
 ## The question, and what would answer it
 
 Does adding lagged climate and food-price inputs improve the forecast of conflict

@@ -11,4 +11,6 @@ dependencies = [
     "numpy",
     "shapely>=2.2.0",
     "pyshp>=3.1.6",
+    "scikit-learn>=1.9.1",
+    "pytest>=9.2.0",
 ]

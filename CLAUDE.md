@@ -99,6 +99,9 @@ beside them at every gate (decision 0006).
   Immutable: superseded by a new entry, never edited.
 - `results/`: one file per experiment, rule first, committed before the numbers.
 - `docs/plan-phase-1.md`: the pre-registered Phase 1 design.
+- `docs/data-sources.md`: every source checked, its access route, links and licence
+  requirements. The owner counts this as part of the project's value: update it in the
+  same commit as any source change, with `data/manifest.toml` (decision 0013).
 
 ## Git
 
