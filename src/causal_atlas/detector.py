@@ -59,12 +59,12 @@ def base_features(y, lat, lon, lead=LEAD):
     return np.stack([c.ravel() for c in cols], axis=1).astype(np.float32)
 
 
-def input_features(drought, oni, lead=LEAD):
+def input_features(drought, oni, lead=LEAD, train_months=TRAIN):
     """M1's inputs: the cell's drought anomaly over 1, 3, 6, 12 months to t, and ONI at t-1 and its means."""
     _, ts = _targets(lead)
     n = drought.shape[0]
     anom = drought.astype(float).copy()
-    train = np.arange(TRAIN[0], TRAIN[1] + 1)
+    train = np.arange(train_months[0], train_months[1] + 1)
     for m in range(12):
         where = train[train % 12 == m]
         anom[:, np.arange(drought.shape[1]) % 12 == m] -= anom[:, where].mean(axis=1, keepdims=True)

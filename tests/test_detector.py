@@ -89,3 +89,14 @@ def test_fit_stays_stable_on_a_rare_huge_count():
     rows = np.ones(50000, dtype=bool)
     p = d.fit_predict(X, y, rows, rows)
     assert p.max() < 5000
+
+
+def test_anomaly_months_can_stop_before_the_scored_window():
+    y, drought, oni = small()[:3]
+    later = drought.astype(float).copy()
+    later[:, 195:] += 5.0
+    rows = d.input_features(drought, oni, train_months=(36, 194)).reshape(drought.shape[0], 434 - 36 + 1, 8)
+    moved = d.input_features(later, oni, train_months=(36, 194)).reshape(drought.shape[0], 434 - 36 + 1, 8)
+    assert np.array_equal(rows[:, : 194 - 36 + 1], moved[:, : 194 - 36 + 1])
+    usual = d.input_features(later, oni).reshape(drought.shape[0], 434 - 36 + 1, 8)
+    assert not np.array_equal(rows[:, : 194 - 36 + 1], usual[:, : 194 - 36 + 1])

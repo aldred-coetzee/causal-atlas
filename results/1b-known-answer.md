@@ -345,6 +345,10 @@ drought. None of them moves reporting or relocates hot cells.
 **A miss.** If 16 of 20 is missed, including because 159 training months are too few, that is a real result. It is reported as one
 and work stops there to talk to next-pattern.
 
+**Seen before the run, on a seed outside it.** A smoke test of `scripts/run_1b_second.py` on pure_null seed 9001 gave skill -0.027
+(interval -0.039 to -0.010) on the main span and -0.015 (-0.030 to -0.001) on the secondary: on 159 training months, on this one seed, the
+inputs cost skill on a null. No rule changes for it.
+
 ## Result
 
 Not yet computed.
