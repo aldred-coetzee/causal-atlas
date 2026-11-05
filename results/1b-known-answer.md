@@ -367,4 +367,45 @@ No planted panel is touched, so this cannot favour detection, and the null marks
 
 ## Result
 
-Not yet computed.
+Rule as it ran: commit b94c22b, with the closing rule in "How 1b closes" and the early stop in decision 0018.
+
+### First run (20 replicates of ratio 3.00, 48 scored months, 303 training months)
+
+- **The 16 of 20 mark is missed and was out of reach.** Detected: 1 of 20 under circular shifts (interval 0.001 to 0.249), 2 of 20 under year
+  permutations (0.012 to 0.317). Only 10 of these 20 replicates are worth at least 0.02 in the scored window. The scoring window, not tokens,
+  stopped this design from passing.
+- **Nulls and the shuffle-scheme choice: not run** (decision 0018), so their marks have no first-run result. Other planted panels were not run.
+- **By worth:** of the 8 replicates worth at least 0.05, 1 was detected under circular shifts (0.003 to 0.527), 2 under permutations. Of the 12 worth
+  less, none was detected under either. Worth is an upper bound.
+
+| Seed | Worth | Skill | Interval | Shuffled median (shift, year) |
+|---|---|---|---|---|
+| 1017 | 0.291 | 0.069 | 0.003 to 0.105 | -0.012, -0.007 |
+| 1016 | 0.188 | 0.024 | -0.019 to 0.050 | not reached |
+| 1011 | 0.221 | 0.018 | -0.010 to 0.031 | not reached |
+| 1015 | 0.137 | -0.163 | -0.451 to 0.043 | not reached |
+| 1005 | 0.086 | 0.008 | -0.006 to 0.019 | not reached |
+| 1004 | 0.063 | 0.021 | -0.009 to 0.053 | not reached |
+| 1006 | 0.057 | 0.037 | 0.003 to 0.058 | 0.001, -0.002 |
+| 1007 | 0.051 | 0.016 | -0.001 to 0.037 | not reached |
+| 1012 | 0.019 | 0.256 | 0.143 to 0.341 | 0.098, 0.102 |
+| 1008 | 0.016 | 0.186 | 0.076 to 0.251 | 0.021, 0.018 |
+| 1010 | 0.003 | 0.167 | 0.053 to 0.302 | 0.140, 0.137 |
+
+- **This triggers the committed stop: the machinery misses replicates clearly worth 0.05 or more.** Seeds 1011 and 1016 capture a tenth of their worth.
+- **A second finding, not expected:** three replicates worth under 0.02 show skill of 0.17 to 0.26, more than the generator's best possible by a
+  long way, and with seeds 1010 and 1012 shuffled inputs alone reach 0.10 to 0.14; seed 1015 goes to -0.16. So the gap between two fitted models here
+  can be far larger than the 0.02 margin, whatever the inputs hold. The shuffle criteria caught these: none passed. The cause is not yet known.
+
+Worth depends on linked cells' share of the rate, not the ratio alone. Any "no" is stated as no effect worth 2% of deviance, beside the ratio and
+share combinations that would have been worth that.
+
+### The inputs' cost on a null (decision 0018's check)
+
+pure_null, seeds 9001 to 9005, 159 training months, last 240 months scored. Skill with both inputs: -0.027, -0.001, -0.006, -0.021, -0.012, **mean
+-0.0134, at or below the -0.01 line**. Drought alone: mean -0.0079. ONI alone: mean -0.0099. Neither input carries it alone, so the guess that ONI acts
+as a clock is not shown. By the committed rule, the settings would be re-fixed next.
+
+### Second run
+
+Not run.

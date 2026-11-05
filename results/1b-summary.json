@@ -1,0 +1,258 @@
+{
+ "panels": {
+  "planted_3.00": {
+   "n": 20,
+   "criterion_1_alone": 6,
+   "circular": {
+    "detected": 1,
+    "interval": [
+     0.001,
+     0.249
+    ]
+   },
+   "permutation": {
+    "detected": 2,
+    "interval": [
+     0.012,
+     0.317
+    ]
+   },
+   "shuffled_n": 6,
+   "shift_median_largest": 0.1400129539182211,
+   "perm_median_largest": 0.13661893766083444,
+   "skill_median": 0.017018354890492915
+  }
+ },
+ "worth_at_least_0.02": {
+  "n": 10,
+  "detected": {
+   "circular": 1,
+   "permutation": 2
+  },
+  "circular_interval": [
+   0.003,
+   0.445
+  ]
+ },
+ "worth_below_0.02": {
+  "n": 10,
+  "detected_circular": 0
+ },
+ "worth_at_least_0.05": {
+  "n": 8,
+  "detected": {
+   "circular": 1,
+   "permutation": 2
+  },
+  "circular_interval": [
+   0.003,
+   0.527
+  ]
+ },
+ "worth_below_0.05": {
+  "n": 12,
+  "detected_circular": 0
+ },
+ "replicates": [
+  {
+   "panel": "planted_3.00",
+   "seed": 1001,
+   "skill": -0.004962322467403357,
+   "worth_held_lead3": 0.004260108399043783,
+   "best_lead3": 0.0644459034457856,
+   "linked_rate_share": 0.26419781395807185,
+   "circular": false,
+   "permutation": false
+  },
+  {
+   "panel": "planted_3.00",
+   "seed": 1002,
+   "skill": 0.013067621512474203,
+   "worth_held_lead3": -0.002111834326514961,
+   "best_lead3": 0.20307728797850588,
+   "linked_rate_share": 0.3411826429294738,
+   "circular": false,
+   "permutation": false
+  },
+  {
+   "panel": "planted_3.00",
+   "seed": 1003,
+   "skill": -0.003040896519207026,
+   "worth_held_lead3": 0.0008652429480034973,
+   "best_lead3": 0.08808439518286504,
+   "linked_rate_share": 0.1927661497109227,
+   "circular": false,
+   "permutation": false
+  },
+  {
+   "panel": "planted_3.00",
+   "seed": 1004,
+   "skill": 0.02113924679900203,
+   "worth_held_lead3": 0.06251981693076936,
+   "best_lead3": 0.07105513949388764,
+   "linked_rate_share": 0.48793324476491035,
+   "circular": false,
+   "permutation": false
+  },
+  {
+   "panel": "planted_3.00",
+   "seed": 1005,
+   "skill": 0.008218263553162686,
+   "worth_held_lead3": 0.0856994035013594,
+   "best_lead3": 0.102153232629137,
+   "linked_rate_share": 0.2325255769111153,
+   "circular": false,
+   "permutation": false
+  },
+  {
+   "panel": "planted_3.00",
+   "seed": 1006,
+   "skill": 0.03718846622256111,
+   "worth_held_lead3": 0.05684649329032865,
+   "best_lead3": 0.11271812428610761,
+   "linked_rate_share": 0.49351098699365736,
+   "circular": true,
+   "permutation": true
+  },
+  {
+   "panel": "planted_3.00",
+   "seed": 1007,
+   "skill": 0.015721832180351836,
+   "worth_held_lead3": 0.050616872140395786,
+   "best_lead3": 0.08689314578631413,
+   "linked_rate_share": 0.1556971967455383,
+   "circular": false,
+   "permutation": false
+  },
+  {
+   "panel": "planted_3.00",
+   "seed": 1008,
+   "skill": 0.1856018586396342,
+   "worth_held_lead3": 0.016135669878641123,
+   "best_lead3": 0.25390630561611105,
+   "linked_rate_share": 0.38215271503962145,
+   "circular": false,
+   "permutation": false
+  },
+  {
+   "panel": "planted_3.00",
+   "seed": 1009,
+   "skill": -0.012215160628303856,
+   "worth_held_lead3": 0.009737776493947248,
+   "best_lead3": 0.022977337309814994,
+   "linked_rate_share": 0.37123680510724844,
+   "circular": false,
+   "permutation": false
+  },
+  {
+   "panel": "planted_3.00",
+   "seed": 1010,
+   "skill": 0.1673931409308831,
+   "worth_held_lead3": 0.002564220133122408,
+   "best_lead3": 0.0010189211326180336,
+   "linked_rate_share": 0.045237512026205066,
+   "circular": false,
+   "permutation": false
+  },
+  {
+   "panel": "planted_3.00",
+   "seed": 1011,
+   "skill": 0.018314877600633994,
+   "worth_held_lead3": 0.22083879760873204,
+   "best_lead3": 0.12639001013008444,
+   "linked_rate_share": 0.27455544193054127,
+   "circular": false,
+   "permutation": false
+  },
+  {
+   "panel": "planted_3.00",
+   "seed": 1012,
+   "skill": 0.2563392392490984,
+   "worth_held_lead3": 0.019489089628727307,
+   "best_lead3": 0.2234088419987147,
+   "linked_rate_share": 0.2477467742739094,
+   "circular": false,
+   "permutation": false
+  },
+  {
+   "panel": "planted_3.00",
+   "seed": 1013,
+   "skill": 0.004384448815175079,
+   "worth_held_lead3": 0.03342171026153917,
+   "best_lead3": 0.010018371504208146,
+   "linked_rate_share": 0.10062438725922254,
+   "circular": false,
+   "permutation": false
+  },
+  {
+   "panel": "planted_3.00",
+   "seed": 1014,
+   "skill": -0.0019983113596788726,
+   "worth_held_lead3": 0.0022902226713288343,
+   "best_lead3": 0.036675289648195775,
+   "linked_rate_share": 0.383766026030294,
+   "circular": false,
+   "permutation": false
+  },
+  {
+   "panel": "planted_3.00",
+   "seed": 1015,
+   "skill": -0.16252399373755955,
+   "worth_held_lead3": 0.1367816305641264,
+   "best_lead3": 0.08943043574315857,
+   "linked_rate_share": 0.2024552715420691,
+   "circular": false,
+   "permutation": false
+  },
+  {
+   "panel": "planted_3.00",
+   "seed": 1016,
+   "skill": 0.024242045545609603,
+   "worth_held_lead3": 0.1875660168066584,
+   "best_lead3": 0.11184337899263297,
+   "linked_rate_share": 0.3540075007957948,
+   "circular": false,
+   "permutation": false
+  },
+  {
+   "panel": "planted_3.00",
+   "seed": 1017,
+   "skill": 0.06871764047922913,
+   "worth_held_lead3": 0.29145475504536666,
+   "best_lead3": 0.09708400532294659,
+   "linked_rate_share": 0.21533100602444316,
+   "circular": false,
+   "permutation": true
+  },
+  {
+   "panel": "planted_3.00",
+   "seed": 1018,
+   "skill": 0.018570706373461032,
+   "worth_held_lead3": 0.0019204253670006555,
+   "best_lead3": 0.0710972025749087,
+   "linked_rate_share": 0.2684437143434637,
+   "circular": false,
+   "permutation": false
+  },
+  {
+   "panel": "planted_3.00",
+   "seed": 1019,
+   "skill": 0.02554762113442255,
+   "worth_held_lead3": 0.006283298849520058,
+   "best_lead3": 0.19991763301250787,
+   "linked_rate_share": 0.4512203222719609,
+   "circular": false,
+   "permutation": false
+  },
+  {
+   "panel": "planted_3.00",
+   "seed": 1020,
+   "skill": 0.00038887001340204286,
+   "worth_held_lead3": 0.043503968122237,
+   "best_lead3": 0.049896238695360084,
+   "linked_rate_share": 0.26524024475846797,
+   "circular": false,
+   "permutation": false
+  }
+ ]
+}
