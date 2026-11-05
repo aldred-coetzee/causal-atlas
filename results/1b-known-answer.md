@@ -287,6 +287,23 @@ Decision 0017. Candidates: the last 48, 96, 144, 192 or 240 target months, as on
   are active. Before anything is scored, the real panel's count of non-zero cell-months in the chosen window is reported against the
   synthetic count, and nothing else from the real panel. If real is far sparser, this stops: the mark would not transfer.
 
+### The window the criterion picks
+
+Replicates of 20 worth at least 0.02, from generator truth at three months, seeds 101 to 120 (upper bound: inputs known through
+the target, about 4% error):
+
+| Last months | 48 | 96 | 144 | 192 | 240 |
+|---|---|---|---|---|---|
+| Ratio 3.00 | 9 | 12 | 12 | 14 | 16 |
+| Ratio 3.50 | 13 | 15 | 16 | 17 | 19 |
+
+No window meets 18 at ratio 3.00, so as committed the mark panel moves to 3.50 and the window is the last 240 target months,
+2005-04 to 2025-03, indices 195 to 434. Training targets are 36 to 194, 159 months against the floor of 120 and against 303
+in the first run. The criterion measures what the effect is worth, not what a model trained on 159 months can find.
+
+**Far sparser, as a number, fixed before the count below is run:** the real panel's non-zero cell-months in the window under half
+the synthetic median (planted_3.50 and pure_null, seeds 101 to 120, each taken alone).
+
 ## Result
 
 Not yet computed.
