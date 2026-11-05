@@ -406,6 +406,19 @@ pure_null, seeds 9001 to 9005, 159 training months, last 240 months scored. Skil
 -0.0134, at or below the -0.01 line**. Drought alone: mean -0.0079. ONI alone: mean -0.0099. Neither input carries it alone, so the guess that ONI acts
 as a clock is not shown. By the committed rule, the settings would be re-fixed next.
 
+### Diagnostic on the first run's skill, committed before it runs
+
+Seeds 1010, 1012, 1015, 1011 of ratio 3.00, first-run design and settings, `scripts/diagnose_1b_skill.py`. Asked for by next-pattern. No alternative score is tried.
+
+- **Concentrated:** on at least 3 of the 4 seeds, removing the 10 cell-months with the largest absolute B-M deviance difference brings the size of skill below half
+  its full value. The fix is then in the score or in capping predictions, not the window, and the second run as committed does not start.
+- **Spread out:** otherwise. The cause is elsewhere, and we think again before spending.
+- **Noise control:** B against B plus one column of pure noise. If its skill is above 0.02 in size on at least 2 of the 4 seeds, the instability is the learner's,
+  and no input or window can be judged on this score whichever of the above holds.
+- Also reported for the top 10: whether each has an extreme observed count or an extreme prediction from either model.
+
+The re-fix and the second run wait for the owner.
+
 ### Second run
 
 Not run.
