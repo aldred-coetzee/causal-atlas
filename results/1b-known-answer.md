@@ -95,6 +95,31 @@ counted. This loses them for both models alike, and is a limit of the 0.5 degree
 The plan's "share of events in the top 1% of cell-months" is 1.0 here, because under 1% of cell-months
 hold any event, so it says nothing. The two finer shares are added.
 
+## Stop before the detector: the planted effects are worth less than the margin
+
+Found on 2026-11-05 by checking the generator, before any detector code existed and with no real
+input joined to any real outcome. "Best possible skill" is 1 - D(true rate) / D(true rate without
+the link), the generator's own truth, over months 36 to 434, median of 6 seeds. It is measured one
+month ahead on the generator's conditional rate. Skill at a 3-month lead is likely lower, not higher.
+
+| Ratio per SD past the threshold | As written (about 15% of cells, 1 SD threshold) | All cells, 1 SD threshold | All cells, no threshold |
+|---|---|---|---|
+| 1.40 | 0.0006 (0.0002 to 0.0054) | 0.0055 | 0.050 |
+| 2.00 | 0.014 (0.005 to 0.046) | 0.065 | 0.287 |
+| 3.00 | 0.216 (0.128 to 0.385) | 0.358 | 0.522 |
+
+So criterion 1 needs skill 0.02, and at the plan's strongest ratio even the truth reaches about 0.0006.
+The pass mark of 80% detection at 1.40 cannot be met by any method on this design. At 1.40 the link
+raises total events by 0.8%. These ratios and their worth depend on the generator's design, which is
+one author's choice, so they illustrate the margin and do not measure it for real conflict data.
+
+**Generator fit, six seeds, median against real, in training months.** Mean 0.0175 against 0.0097 (one
+seed to the next: 0.0087 to 0.0231), zeros 0.9936 against 0.9953, variance over mean 13 against 24.8,
+cells ever with an event 0.155 against 0.210, lag-1 0.39 against 0.37, lag-12 0.107 against 0.061, top 0.1%
+share 0.54 against 0.56. Its author reports longest episode 17 months against 46 on one seed, so the
+nulls may be easier than the real data. Returned `rate` is not capped where the draw is, which spoils
+oracle skill at very high rates only.
+
 ## Result
 
-Not yet computed.
+Not yet computed. Waiting for the owner.
