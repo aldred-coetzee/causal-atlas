@@ -15,7 +15,7 @@ The refit's development test: quiet 8 of 8, hears 2 of 3 (1011 at 0.0215, interv
 
 **Next steps, in order:**
 1. Marks on fresh seeds, running, as above.
-2. One reading check: does anything similar already exist? One question, one page, 150k all in, cost stated first. The owner's wider reading is not approved.
+2. One reading check, running in parallel with the marks at the owner's word: does anything similar already exist? One Sonnet agent, one page, `docs/reading/anything-similar.md`. Estimate 135k fresh all in (agent with its source checks 100k, spot-check 20k, this session 15k); line 150k, and at the line it stops and says so. The owner's wider reading is not approved.
 3. At most five sources, 300k, chosen in the light of decision 0021, each named with its reason before fetching and entered in `data/manifest.toml` and `docs/data-sources.md`.
 4. The plan revision, on the list in `docs/plan-phase-1.md` (Amendments after step 1b), checked by next-pattern before anything runs, then the real test, the stop at the end of 1d and next-pattern's result audit. The margin is the owner's call. The revision must set a null with many input columns before anything runs on many real inputs.
 
