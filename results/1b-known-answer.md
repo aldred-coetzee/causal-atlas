@@ -394,6 +394,8 @@ A quiet instrument can be quiet because it is deaf, which is why A alone says no
 
 **Estimate.** About 100k fresh tokens, 25% line 125k, all under the 1M of this session's own spend. Machine about 1 hour development, 2 hours A, up to 10 hours B. Cut first if time or tokens run short: planted_2.40 and planted_combo_6, then planted_3.00. Never the nulls or the mark panel.
 
+**Token risk.** This session is at about 828k of the 1M, and one wake after more than an hour idle rewrites its whole context, about 120k to 150k fresh (122k at 15:31 on 2026-11-05, which my earlier 760k projection did not allow for). So A runs into B automatically, stopping itself if A fails, and waits stay under an hour, or the work resumes from `STATUS.md` in a fresh context.
+
 ## Result
 
 Rule as it ran: commit b94c22b, with the closing rule in "How 1b closes" and the early stop in decision 0018.
