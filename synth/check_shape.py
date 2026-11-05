@@ -92,6 +92,15 @@ def main():
     add("Moran I log1p total", 0.555, moran8(lat, lon, np.log1p(y.sum(1))))
     e = episodes(lat, lon, y)
     add("episode length median", 1, e[0]); add("episode length p90", 4, e[1]); add("episode length max", 46, e[2])
+    by = np.floor(lat / 5).astype(int); bx = np.floor(lon / 5).astype(int); key = by * 1000 + bx
+    ann = []
+    for k in np.unique(key):
+        m = key == k
+        if y[m].sum() >= 12:
+            a = np.log1p(y[m].sum(0)[:300].reshape(25, 12).sum(1)); ann.append(a - a.mean())
+    ann = np.array(ann)
+    for lg, real in zip([1, 2, 3, 5], [0.63, 0.43, 0.30, 0.16]):
+        add(f"block annual log ac lag {lg}y", real, np.corrcoef(ann[:, :-lg].ravel(), ann[:, lg:].ravel())[0, 1])
     dr = d["drought"][:, LO:HI]
     mon = np.arange(LO, HI) % 12
     an = dr.copy()

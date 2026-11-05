@@ -132,6 +132,52 @@ generator is fixed first and the worth of each effect re-measured.
 - **Pass mark.** Detection at least 80% on the panel worth about 0.05. The nulls' mark is unchanged.
 - **The 2% margin** stays in the verdict here, and the owner sets the final margin later, with this result.
 
+## The fixed generator, and what each effect is worth
+
+Measured 2026-11-05 on the final generator, before any detector code exists. No real input is joined
+to any real outcome.
+
+**Fit, six seeds, median against real, training months.** Pure null: mean 0.0142 against 0.0097 (one
+seed to the next: 0.0061 to 0.0278), zeros 0.9953 against 0.9953, variance over mean 17.4 against 24.8,
+cells ever with an event 0.12 against 0.21, lag-1 0.29 against 0.37, lag-12 0.087 against 0.061, largest
+cell-month 436 against 609. Shared-driver null: much the same (mean 0.0148, cells ever 0.14). The
+multi-year persistence that was missing now mostly exists: 5 degree block-year autocorrelation at lags 1,
+2, 3 and 5 is 0.55, 0.37, 0.28, 0.11 against the real 0.63, 0.43, 0.30, 0.16.
+
+**Known misfits, kept and disclosed.** Events sit in too few cells (0.12 against 0.21) and persist a little
+less than real ones, so the nulls may be somewhat easier than real data, and a false-positive rate here
+may understate the real one. Calibration stopped here on cost.
+
+**Worth of each ratio.** Best possible skill as defined above, 20 seeds (101 to 120, not used for
+replicates), months 36 to 434, about 15% of cells linked. The sub-panel is the 2,000 cells nearest the
+median latitude and longitude of the land cells (9.25, 20.25), generated at that size.
+
+| Ratio | Sub-panel: 10th pct, median, 90th | Replicates at 0.02 or more, of 20 | Full panel: 10th pct, median, 90th | At 0.02 or more, of 20 | Rate lift, full |
+|---|---|---|---|---|---|
+| 1.05 | -0.0001, -0.0000, 0.0001 | 0 | -0.0000, -0.0000, 0.0001 | 0 | 1.000 |
+| 1.15 | -0.0002, -0.0000, 0.0002 | 0 | -0.0000, 0.0001, 0.0001 | 0 | 1.001 |
+| 1.40 | -0.0001, 0.0005, 0.0028 | 0 | 0.0000, 0.0002, 0.0034 | 0 | 1.005 |
+| 2.00 | -0.0001, 0.0065, 0.0478 | 6 | 0.0014, 0.0082, 0.0293 | 6 | 1.033 |
+| 2.40 | -0.0000, 0.0186, 0.1477 | 8 | 0.0040, 0.0375, 0.1272 | 15 | 1.082 |
+| 3.00 | -0.0000, 0.0693, 0.2877 | 13 | 0.0224, 0.0746, 0.2573 | 18 | 1.184 |
+| 3.50 | -0.0000, 0.1983, 0.4256 | 13 | not run | | |
+| 4.00 | -0.0000, 0.0783, 0.4431 | 14 | not run | | |
+
+**Ratios fixed for the planted panels: 2.00, 2.40, 3.00,** worth about 0.01, 0.02 and 0.05 to 0.07. The
+ratio per SD past a 1 SD threshold is large because the effect only acts in some cells and some months.
+
+**A ratio does not have one worth.** Median worth is not even monotonic in the ratio on the sub-panel.
+What sets a replicate's worth is whether the linked cells happen to be busy: at ratio 3.00 the Spearman
+correlation between best possible skill and the linked cells' share of the no-link rate is 0.85 on the
+sub-panel and 0.82 on the full panel, and that share runs from 0 to 0.83 although always about 15% of
+cells are linked. In 5 of 20 sub-panel replicates the linked cells hold under 2% of the rate. The metric
+sums over events, so an effect in quiet cells scarcely counts, whatever its size.
+
+**The amended pass mark cannot be met as written.** On the sub-panel, which is 19 of each panel's 20
+replicates, at most 14 of 20 replicates are worth 0.02 at any ratio tried up to 4.00, and criterion 1
+needs 0.02. So 80% detection (16 of 20) is out of reach for any method. This is a design finding and not
+yet a detector result.
+
 ## Result
 
 Not yet computed.

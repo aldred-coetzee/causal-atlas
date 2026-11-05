@@ -15,17 +15,20 @@ PANELS = ("planted_1.05", "planted_1.15", "planted_1.40", "pure_null", "shared_n
 # ---- tunable parameters (calibrated on pure_null, see README) ---------------
 P = dict(
     # latent base rate: log mu0 = b0 + s_a*f_a + s_b*f_b + s_h*max(f_h-1, 0)
-    b0=-11.7, s_a=1.8, L_a=4.0, s_b=2.0, L_b=1.0, s_h=3.5, L_h=2.5,
+    b0=-14.4, s_a=1.8, L_a=4.0, s_b=2.6, L_b=1.0, s_h=3.0, L_h=2.5,
     # seasonality of the count rate (log amplitude; phase varies smoothly in space)
     seas_amp=0.5, seas_amp_shared=0.8,
     # self-excitation: rate = exp(link) * (mu + min(A_f*Sf + A_s*Ss + A_n*Sn, exc_cap))
     # where S are decaying sums of y**zpow (own cell; Sn from the 8 neighbours)
-    A_f=0.6, d_f=0.5, A_s=0.012, d_s=0.90, A_n=0.05, d_n=0.5, zpow=0.6, exc_cap=80.0,
+    A_f=0.6, d_f=0.5, A_s=0.006, d_s=0.97, A_n=0.05, d_n=0.5, zpow=0.6, exc_cap=80.0,
     # negative binomial dispersion: var = m + phi*m^2; hard cap on the rate
-    phi=2.5, rate_cap=600.0,
+    phi=4.0, rate_cap=300.0,
     # long regional episodes, then short intense bursts (log-rate amplitude ~ |N(m, sd)|)
-    n_ep=130, ep_rad=(2.0, 8.0), ep_dur_med=30.0, ep_dur_sig=1.2, ep_amp=(1.3, 1.0),
-    n_burst=500, burst_rad=(0.7, 2.5), burst_dur_med=3.0, burst_amp=(4.4, 3.0),
+    n_ep=130, ep_rad=(2.0, 8.0), ep_dur_med=30.0, ep_dur_sig=1.2, ep_amp=(1.8, 0.6),
+    n_mega=20, mega_dur_med=70.0, mega_amp=(2.0, 0.3),
+    n_burst=300, burst_rad=(0.7, 2.5), burst_dur_med=3.0, burst_amp=(3.0, 2.0),
+    # slow regional component: smooth spatial field, AR(1) over months, unrelated to inputs
+    s_slow=2.2, slow_L=6.0, slow_phi_f=0.98, slow_w=0.85,
     # inputs
     drought_L=6.5, drought_slow=0.18, drought_phi_fast=0.68, drought_phi_slow=0.97,
     drought_sd=0.94,
@@ -113,6 +116,7 @@ def _episodes(seed, lat, lon, TT):
     specs = [
         # (key, n, radius range, median duration, duration log-sd, amp mean, amp sd, amp dist)
         (30, P["n_ep"], P["ep_rad"], P["ep_dur_med"], P["ep_dur_sig"], P["ep_amp"][0], P["ep_amp"][1]),
+        (32, P["n_mega"], (4.0, 8.0), P["mega_dur_med"], 0.4, P["mega_amp"][0], P["mega_amp"][1]),
         (31, P["n_burst"], P["burst_rad"], P["burst_dur_med"], 0.5, P["burst_amp"][0], P["burst_amp"][1]),
     ]
     for key, n, rr, dmed, dsig, am, asd in specs:
@@ -148,7 +152,12 @@ def _nb8(z, iy, ix, shape):
 
 def generate(panel, lat, lon, seed):
     if panel not in PANELS:
-        raise ValueError(panel)
+        try:
+            ok = panel.startswith("planted_") and float(panel[8:]) > 0
+        except ValueError:
+            ok = False
+        if not ok:
+            raise ValueError(panel)
     lat = np.asarray(lat, float); lon = np.asarray(lon, float)
     C = len(lat); TT = T + BURN
     shared = panel == "shared_null"
@@ -176,7 +185,9 @@ def generate(panel, lat, lon, seed):
     fh = _Field(seed, 52, P["L_h"])(lat, lon)
     logmu0 = P["b0"] + P["s_a"] * fa + P["s_b"] * fb + P["s_h"] * np.maximum(fh - 1.0, 0.0)
     amp = P["seas_amp_shared"] if shared else P["seas_amp"]
-    logm = logmu0[:, None] + amp * seas_shape + _episodes(seed, lat, lon, TT)
+    slow = _smooth_field_series(seed, 53, lat, lon, P["slow_L"], TT, P["slow_phi_f"], 0.99, P["slow_w"], M=250)
+    logm = logmu0[:, None] + amp * seas_shape + _episodes(seed, lat, lon, TT) + P["s_slow"] * slow
+    del slow
     if shared:
         logm = logm + P["shared_trend_counts"] * g_c[:, None] * trend
     mu = np.exp(logm)
@@ -221,8 +232,9 @@ def generate(panel, lat, lon, seed):
         exc = P["A_f"] * Sf + P["A_s"] * Ss + P["A_n"] * Sn
         base = mu[:, t] + np.minimum(exc, P["exc_cap"])
         r_t = base if link is None else base * np.exp(link[:, t])
-        rate_nl[:, t] = base; rate[:, t] = r_t
-        lam = np.minimum(r_t, P["rate_cap"]) * rng.gamma(ig, P["phi"], C)
+        r_t = np.minimum(r_t, P["rate_cap"])            # the mean actually used for the draw
+        rate_nl[:, t] = np.minimum(base, P["rate_cap"]); rate[:, t] = r_t
+        lam = r_t * rng.gamma(ig, P["phi"], C)
         y[:, t] = rng.poisson(lam)
         z = y[:, t].astype(float) ** P["zpow"]
         Sf = P["d_f"] * Sf + z

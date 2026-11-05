@@ -57,3 +57,36 @@ Not matched:
   (0.036); the shared drivers were not recalibrated.
 Calibration was by hand over five seeds, not an automated fit. The pure_null parameters were not tuned
 for the planted panels.
+
+## Revision (second pass, 6-seed medians on pure_null)
+
+- `rate` and `rate_no_link` are now the means actually used for the draw (both capped at 300). Where the
+  cap binds they are equal, so the ratio is below exp(link) there.
+- Changes: base b0 -13.1, spread s_b 2.6, hot spots s_h 3.0, dispersion phi 4, rate cap 300, bursts weaker
+  (500 -> 300, amplitude 3.0), long episodes stronger (amp 1.8), 20 very long "mega" episodes
+  (median 70 months, amp 2.0) added, slow excitation 0.97/month. The link is unchanged.
+- Result: see the final report. Not achieved: episode length max stays 10-17 months (target 46) in every
+  seed and variant tried, including mega-episodes; I did not find why (likely Poisson gaps break runs,
+  or the block mean absorbs the episode). Variance over mean is 8 (target 24.8): cutting the monster tail
+  to stop mean swings costs variance. Any-event share about 0.14 (0.21). Seed spread of the mean is
+  still 3x. shared_null was not tuned beyond the shared base parameters; its drought lag-1 is 0.755.
+- Link feedback check (seed 2, linked cells, training months): the link raises the draw history, and
+  `rate_no_link` is evaluated on that raised history, so it is not the counterfactual rate. At R=1.40
+  linked cells had 10,369 events against 7,043 for the same cells in pure_null, a 1.47x total effect, but
+  the mean per-month multiplier in active months is only 1.20 (rate/rate_no_link). At 1.05: 4,549 vs 7,043
+  (different realisation of the nulls, so this pair is not comparable across R, treat with caution).
+  The one-step multiplier is exact (exp(link)); the extra effect through self-excitation is not in
+  `rate_no_link`.
+
+## Revision 3 (slow regional component)
+
+- Added `s_slow * field` to the count log-rate: a smooth spatial field (exp kernel, 6 deg) whose
+  Fourier modes follow AR(1) at 0.98/month (85% of variance) and 0.99/month, independent of every input.
+  b0 lowered to -14.4 to hold the mean. `generate` now accepts `planted_<R>` for any positive float R.
+- `check_shape.py` prints the block annual-log autocorrelation at lags 1, 2, 3, 5 years (5-degree
+  blocks with at least 12 training events, log1p of each whole-year total, block mean removed).
+- Six-seed medians on pure_null: lags 0.55, 0.37, 0.28, 0.11 (real 0.63, 0.43, 0.30, 0.16; before
+  0.49, 0.25, 0.17, 0.03). Mean about 0.011 (seeds 0.006-0.028). Cells with any event 0.12 (real 0.21):
+  coverage did NOT improve, since lowering b0 to offset the slow field's mean removed small-rate cells.
+  The planted panels and shared_null were not re-checked by the author after this change; the project
+  session checked them on six seeds (see `results/1b-known-answer.md`).
