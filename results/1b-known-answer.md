@@ -238,6 +238,26 @@ regardless. Order: ratio 3.00, the three nulls, ratio 2.40, the combination, rat
 stops and reports which panels are incomplete. The timed replicate on pure_null seed 1001 is not counted; it is
 rerun in order, with the same seed.
 
+## The mark is out of reach in the window that is scored: found after 7 planted replicates
+
+The third amendment counted replicates worth 0.02 over all months (36 to 434). The detector is scored only on the
+48 held-out months. Checked from the generator's truth at three months, same seeds 101 to 120:
+
+| Panel | All months, median | Held-out: 10th pct, median, 90th | Worth 0.02 or more, held-out | 0.05 or more |
+|---|---|---|---|---|
+| ratio 3.00 | 0.116 | -0.0007, 0.0092, 0.361 | 9 of 20 | 6 |
+| ratio 3.50 | 0.229 | -0.0003, 0.047, 0.413 | 13 of 20 | 10 |
+| ratio 4.00 | 0.308 | 0.015, 0.077, 0.489 | 17 of 20 | 12 |
+| combination, ratio 8 | 0.254 | -0.0001, 0.0057, 0.153 | 8 of 20 | 5 |
+
+So 16 of 20 on ratio 3.00 cannot be met by any method, and the error is this session's: next-pattern's condition
+named the lead, and the window should have been checked too. **This was not found before fitting.** It was noticed from
+the first replicate's own record. When it was found, 7 replicates of ratio 3.00 had finished: 1 of 7 detected
+under both schemes (seed 1006), skills -0.005 to 0.037. Any restated mark is therefore made having seen those 7, and says so.
+
+This also bears on any real test: what a true effect is worth in 48 months depends on which cells happen to be
+active in those months, and it can be nothing, even where it is large over the whole period.
+
 ## Result
 
 Not yet computed.

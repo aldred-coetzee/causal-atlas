@@ -2,10 +2,11 @@
 
 Last updated 2026-11-05.
 
-**Phase 1, step 1b: in progress. Current order is decision 0016, replacing the sources step of 0015.** Generator
-committed; detector written (`src/causal_atlas/detector.py`, `scripts/run_1b.py`); multi-input panel being added
-by the generator's author; then the full run at full size, then at most five sources (300k), then a pre-registered
-multi-input test as a plan revision. 1c and 1d are not run on real data, and the held-out set stays unscored.
+**Phase 1, step 1b: the full run is in progress, and its pass mark is in question.** Current order is decision 0016.
+`scripts/run_1b_all.py` appends to `results/1b-replicates.jsonl` and resumes if restarted; it was started 2026-11-05 about
+13:30 UTC with a 24 hour ceiling. The 16 of 20 mark cannot be met in the scored window (see `results/1b-known-answer.md`), and
+next-pattern has been asked about restating it. Then at most five sources (300k), then a pre-registered multi-input test as a plan
+revision. 1c and 1d are not run on real data, and the held-out set stays unscored.
 Step 1a is done. Sources are in `docs/data-sources.md`, data in the ignored `data/raw/`, checksums in
 `data/manifest.toml`. Decision 0013 has his answers after 1a and the plan's amendments section their effect.
 
