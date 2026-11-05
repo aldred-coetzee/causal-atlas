@@ -439,6 +439,22 @@ cause is not found.** By the rule, we think again before spending. Not measured:
 - **Level in the scored months:** B's and M's scored totals differing by more than 5% of the observed total on at least 2 of the 4.
 - **Level explains the skill:** held-out skill with each model rescaled to the observed total falls below half its size on at least 3 of the 4. This is a diagnostic only, not a proposed score.
 
+**Level check result.**
+
+| Seed | Training skill of M | Training totals obs, B, M | Scored totals obs, B, M | Skill | Skill, level matched |
+|---|---|---|---|---|---|
+| 1010 | 0.035 | 25,746, 25,726, 25,691 | 5,163, 11,579, 7,712 | 0.167 | 0.070 |
+| 1012 | 0.064 | 107,930, 115,108, 116,305 | 18,145, 40,399, 18,749 | 0.256 | 0.133 |
+| 1015 | 0.033 | 74,867, 75,458, 75,343 | 41,865, 36,625, 39,145 | -0.163 | -0.166 |
+| 1011 | 0.040 | 58,520, 58,498, 58,433 | 24,937, 20,521, 19,895 | 0.018 | 0.021 |
+
+- **M clearly worse in training: no, on any seed.** M fits training months 3% to 6% better than B, and totals differ by at most 1.1%. So stopping before convergence is not shown.
+- **Level in the scored months: yes, on 3 of 4** (75%, 119%, 6% and 2.5% of the observed total). On 1010 and 1012 B predicts over twice what happened.
+- **Level explains the skill: no, on 1 of 4** (3 needed). On 1010 and 1012 it takes about half; on 1015 and 1011 almost none.
+
+So part of the surprise is B's level running far off on some seeds, and the cause is still only partly found: why B overshoots there, and what carries the rest, are not measured. M's 3% to 6% training gain is also larger than most of these
+replicates are worth, which is consistent with overfitting the inputs, but this check does not separate the two. Four seeds, chosen because they looked odd.
+
 The re-fix and the second run wait for the owner.
 
 ### Second run
