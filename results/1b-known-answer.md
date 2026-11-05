@@ -349,6 +349,22 @@ and work stops there to talk to next-pattern.
 (interval -0.039 to -0.010) on the main span and -0.015 (-0.030 to -0.001) on the secondary: on 159 training months, on this one seed, the
 inputs cost skill on a null. No rule changes for it.
 
+### Check before the second run: the inputs' cost on a null (decision 0018)
+
+Committed before any of these numbers. pure_null, seeds 9001 to 9005 (9001 was already seen, -0.027), trained on 36 to 194, main span, no
+shuffles; for each seed, both inputs, drought only and ONI only. `scripts/check_null_deficit.py`, results in `results/1b-null-deficit.jsonl`.
+
+- **Five-seed mean of both inputs above -0.01:** the second run goes as committed.
+- **At or below -0.01:** the settings are re-fixed. The first fixing compared settings on the baseline only, with no inputs, so it could not
+  see this; here the inputs are in. Candidates (learning rate, leaves, iterations, minimum leaf; L2 stays 100): (0.05, 15, 100, 200) as now,
+  (0.05, 7, 100, 500), (0.03, 7, 100, 1000), (0.05, 3, 100, 1000), (0.03, 7, 60, 2000). On pure_null seeds 2001 to 2003, same window: among those whose
+  baseline deviance is within 0.005 (as skill) of the best baseline, the highest mean skill with both inputs. Same settings for baseline and test.
+  Committed, then confirmed once on seeds 9001 to 9005 by the same -0.01 line.
+- **Still below after that:** stop and talk. If ONI alone carries it, that is a design finding about global series as inputs, and would apply to
+  the real test.
+
+No planted panel is touched, so this cannot favour detection, and the null marks on seeds 3001 to 3020 still judge the result.
+
 ## Result
 
 Not yet computed.
