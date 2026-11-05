@@ -521,3 +521,11 @@ Not run: superseded before any fit (decision 0019).
 - **Withdrawn inference.** Fitting on the scored months themselves gave .17, .11, .12, which looked as if the inputs explain the effect. Nulls score .08, .03, .15 the same way (`scripts/diagnose_1b_third_null.py`), so that fit shows nothing: the global columns can act as a month label.
 
 **Not established:** that later episodes are the cause, that a method refitted as months pass would hear them, or that real data behaves this way. The earlier sentence about what a "no" rules out travels with this too: this says nothing yet about real effects of any size.
+
+### How 1b closed (decision 0020)
+
+**No result in this file is about real data.** The first design could not tell an effect from the gap between two fits. The third design is quiet (8 of 8 spent nulls within 0.005) and, with a single fit, does not reach 0.02 on effects worth 0.10 to 0.14 (0 of 3; skills 0.008 to 0.017). Marks A and B did not run, so neither its quietness nor its deafness is shown on fresh seeds.
+
+Description only: on the 14 spent seeds all 6 planted skills lie above all 8 null skills, with no shuffle test, and a margin chosen after seeing this would favour a result.
+
+Tokens for 1b, this session's own with its subagents: 951,058 fresh when this was written, the closing commit adding a few thousand, against the 1M ceiling; about 17.2M cache reads beside them. What the plan revision must settle is in `docs/plan-phase-1.md`.

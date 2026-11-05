@@ -31,6 +31,18 @@ these disagree with the text below, these win, and results files copy the amende
 sources under a 150k cap, then stop for the owner to set the margin and pre-register a multi-input
 test. 1c and 1d are deferred, and the held-out set stays unscored.
 
+## Amendments after step 1b (decision 0020)
+
+1b closed without reaching its margin, so these must be settled in the plan revision, which next-pattern checks before anything runs, and before any real number:
+
+1. **The growing refit**, tried first, on spent seeds, against the same development test (`results/1b-known-answer.md`, third design).
+2. **The margin.** The noise floor measured on spent nulls is near 0.004. The owner decides, on a proposed number and reason, tested on fresh seeds first.
+3. **Shuffles under refits:** what they cost and how many are needed. A rough estimate at ten refits is 80 minutes per replicate.
+4. **The scored window,** and whether 48 months stay unseen.
+5. **Worth as a ruler.** It is a poor one for a multiplicative model: true ratios reach 10^7 to 10^8 where the no-link rate is near zero, and about 50 cells carry the net gain. Say what replaces or qualifies it.
+
+Order: refit on spent seeds, then sources (at most five, 300k), then the rest of the revision.
+
 ## The question, and what would answer it
 
 Does adding lagged climate and food-price inputs improve the forecast of conflict
