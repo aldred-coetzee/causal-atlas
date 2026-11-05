@@ -9,8 +9,8 @@ Last updated 2026-11-05.
 has been checked yet; that is step 1a. Do not begin it without the owner's yes.
 
 **Open for the owner, in the plan:** the 2% margin and the 3-month lead, which cannot change
-after step 1c; testing prices separately from climate; three inputs, not four; full-size
-synthetic panels only if under 48 hours.
+after step 1c. They have been explained to him in plain terms and he has not yet answered. The
+other design choices were delegated and taken (decision 0010); gates are still his.
 
 **Worth knowing.** Git's global email on this box is a personal address. This repo overrides
 it locally (decision 0009), and a fresh clone must set it again before committing.
