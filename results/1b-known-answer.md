@@ -270,6 +270,23 @@ active in those months, and it can be nothing, even where it is large over the w
 - **Lesson for the revision:** a 48-month score depends on which cells are active in those months. Evaluate over a longer
   or rolling window, still scored once, and carry the stabilising learner settings to baseline and test alike.
 
+## Second run: how the window is picked, committed before the candidates' numbers were read
+
+Decision 0017. Candidates: the last 48, 96, 144, 192 or 240 target months, as one scored block.
+
+- **Criterion.** The shortest candidate in which at least 18 of 20 replicates of ratio 3.00 (seeds 101 to 120, from
+  generator truth at three months) are worth at least 0.02, with at least 120 training target months left. If no
+  candidate meets it at ratio 3.00, the same test at ratio 3.50, and the mark panel moves there. If none then, stop and talk.
+- **Mark.** At least 16 of 20 detected on the mark panel, in that window. Nulls as before, at most 1 of 20. Seeds 3001 to 3020.
+- **Validation block.** A longer window takes in the validation months. Settings then come from the null panels, carried
+  over unchanged for baseline and test alike, so no real validation is needed for tuning. No real-data skill or baseline score
+  has been computed on any month; what has been seen outside training is 1a's coverage and event counts.
+- **One fit, no rolling origins.** Several refits with scored months pooled would keep training length, but at least triple
+  the fits on a replicate that reaches shuffles, past the 24 hour ceiling. A single fit is drift-prone, for both models alike.
+- **Limit.** The window is chosen on generator truth, so it inherits the generator's assumption about how often linked cells
+  are active. Before anything is scored, the real panel's count of non-zero cell-months in the chosen window is reported against the
+  synthetic count, and nothing else from the real panel. If real is far sparser, this stops: the mark would not transfer.
+
 ## Result
 
 Not yet computed.
