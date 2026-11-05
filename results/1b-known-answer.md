@@ -431,6 +431,14 @@ near 0 by M against 195 to 640 observed carries most of the loss. The noise cont
 twice the margin from a column of pure noise. The top cell-months are mixed: B predicting 141 to 265 against 0 to 9 observed on 1010, large observed counts on 1012 and 1011, M near 0 on 1015. **The
 cause is not found.** By the rule, we think again before spending. Not measured: whether M and B differ in overall level; predictions were not kept.
 
+**Level check, committed before it runs.** Same four seeds, first-run design, `scripts/diagnose_1b_level.py`. Agreed with next-pattern as the last step before the owner answers. Three marks:
+
+- **M clearly worse in training:** M has every column B has, so on training months it should fit at least as well. Clearly worse is M's training deviance over 0.5% above B's (training skill below
+  -0.005) on at least 2 of the 4 seeds, or the two models' training totals differing by more than 2% on at least 2. Either means the settings stop both models before they converge, and skill is
+  measuring how far each got, not what the inputs hold.
+- **Level in the scored months:** B's and M's scored totals differing by more than 5% of the observed total on at least 2 of the 4.
+- **Level explains the skill:** held-out skill with each model rescaled to the observed total falls below half its size on at least 3 of the 4. This is a diagnostic only, not a proposed score.
+
 The re-fix and the second run wait for the owner.
 
 ### Second run
