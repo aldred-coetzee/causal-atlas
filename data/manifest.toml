@@ -1,0 +1,42 @@
+# One entry per dataset, written when it is first fetched (rule 10). Data itself is never committed.
+
+[ucdp_ged]
+source_url = "https://ucdp.uu.se/downloads/ged/ged261-csv.zip"
+fetch_script = "scripts/fetch_ucdp_ged.py"
+version = "26.1, frozen release"
+licence = "CC BY 4.0; cite the publications listed at https://ucdp.uu.se/downloads/"
+fetched = "2026-11-05"
+sha256 = "8c941d84954e555ee2e54f40fa04d9203bf1e2f962203d0a9930966c4947c667"
+codebook_sha256 = "f767380ebbf365aec7586f98b6d100cafb69fb54010a908604d53bd9ad655972"
+coverage = "Global events 1989 to 2025; Africa 74,836 events"
+known_biases = "Fatal events only; 24.7% of African events placed coarser than 25 km; depends on media and other reporting, which may vary with access"
+
+[spei]
+source_url = "https://spei.csic.es/spei_database/nc/spei03.nc"
+fetch_script = "scripts/fetch_spei.py"
+version = "SPEIbase 2.11.0, built from CRU TS 4.09"
+licence = "ODbL 1.0, contents DbCL 1.0; results need attribution and an ODbL notice"
+fetched = "2026-11-05"
+sha256 = "6bdb1fabdd1b955483bdfca5e7f963f5f0ba10e199bdbf20d999f40fb207aa05"
+coverage = "Global 0.5 degree, monthly, 1901-01 to 2024-12"
+known_biases = "Built from CRU TS; quality over Africa, where station data may be thin, not checked"
+
+[oni]
+source_url = "https://psl.noaa.gov/data/correlation/oni.data"
+fetch_script = "scripts/fetch_oni.py"
+version = "File as fetched: ERSST v6, stated as of 2026-09-07"
+licence = "Public domain per https://www.weather.gov/disclaimer; no PSL-specific page found"
+fetched = "2026-11-05"
+sha256 = "27af499bc406f8e5f5e9655013d2299a97d6a1cc92f27db30990b04dbc872f60"
+coverage = "Global index, monthly, 1950-01 to 2026-09"
+known_biases = "A 3-month running mean, so use at t-1; revised when the SST product changes"
+
+[natural_earth_countries]
+source_url = "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_0_countries.zip"
+fetch_script = "scripts/fetch_natural_earth.py"
+version = "File dated 2022-05-13"
+licence = "Public domain, https://www.naturalearthdata.com/about/terms-of-use/"
+fetched = "2026-11-05"
+sha256 = "ce1ac7036499a0edd641fbc093cd209a98f96a49d2eca8480aaacad35138a7f6"
+coverage = "55 African countries used for the land mask and country lookup"
+known_biases = "Boundaries are one editorial view and fixed in time"

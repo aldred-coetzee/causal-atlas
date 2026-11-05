@@ -2,16 +2,17 @@
 
 Last updated 2026-11-05.
 
-**Phase 0, setup: at its gate.** Root commit pushed. The Phase 1 plan
-(`docs/plan-phase-1.md`) is audited by next-pattern and revised (decision 0011). The owner
-accepted the 2% margin and the 3-month lead (decision 0012).
+**Phase 1, step 1a: done, at its gate** (`results/1a-data-check.md`). Data is in the ignored
+`data/raw/`, with checksums in `data/manifest.toml`. Rerun with `scripts/fetch_*.py`, from `scripts/`.
+No food price data is held, and there is no fetch script for it (HDX's `robots.txt` disallows it).
 
-**Phase 1 has not started.** No code, no data, no results. Nothing about any data source
-has been checked yet; that is step 1a, estimate 200k fresh tokens, stop at 250k.
+**Waiting for the owner, two answers:** which events count as precise enough (level 1-2 at 75.3%,
+or 1-3 at 85.6%), and what to do about food prices. Then his yes to 1b. Do not begin 1b without that.
+The plan is not yet changed for findings 3 and 4 (the split's end, and ONI at t-1); record these with
+his answers in one new decision, and amend the plan.
 
-**Waiting for the owner:** his yes to step 1a. Do not begin it without that. Later, he can
-refuse the 1b generator subagent at the 1b gate, and reverse the PCMCI and CCM deferral at any
-gate.
+Later he can refuse the 1b generator subagent at the 1b gate, and reverse the PCMCI and CCM deferral
+at any gate.
 
 **Worth knowing.** Git's global email on this box is a personal address. This repo overrides
 it locally (decision 0009), and a fresh clone must set it again before committing.

@@ -1,0 +1,14 @@
+[project]
+name = "causal-atlas"
+version = "0.0.0"
+description = "Do lagged signals from other domains improve forecasts beyond a place's own history?"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+    "duckdb",
+    "pyarrow",
+    "netCDF4",
+    "numpy",
+    "shapely>=2.2.0",
+    "pyshp>=3.1.6",
+]
