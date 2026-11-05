@@ -49,7 +49,51 @@ cutting replicates unasked.
 
 ## Shape statistics
 
-Not yet computed.
+From `scripts/shape_1b.py`, on the 303 training months only. Of 74,836 African events, 64,108 have
+`where_prec` 1 to 3, and of those 1,852 (2.9%) fall in no cell, most plausibly on coasts, and are not
+counted. This loses them for both models alike, and is a limit of the 0.5 degree land mask.
+
+```json
+{
+ "cells": 10228,
+ "train_months": 303,
+ "mean_events_per_cell_month": 0.009703189716703387,
+ "share_zero": 0.9952873171556499,
+ "variance_over_mean": 24.75412242299987,
+ "share_cells_ever_event": 0.2100117324990223,
+ "max_cell_month": 609,
+ "lag1_autocorr": 0.372282093764698,
+ "lag12_autocorr": 0.06061486921204898,
+ "share_events_in_top_1pct_cell_months": 1.0,
+ "share_events_in_top_0.1pct_cell_months": 0.558910578298028,
+ "share_events_in_top_0.01pct_cell_months": 0.21379402081739882,
+ "share_events_in_top_1pct_cells": 0.5500981011605867,
+ "seasonal_amplitude_peak_over_trough": 1.9856777493606137,
+ "morans_i_log_cell_totals": 0.5552260008073991,
+ "regional_blocks_5deg_with_events": 81,
+ "episode_months_median_p90_max": [
+  1.0,
+  4.0,
+  46
+ ],
+ "spei_anom_sd": 0.9361472474946902,
+ "spei_lag1_autocorr": 0.7088933951384633,
+ "spei_lag12_autocorr": 0.041756612122708675,
+ "spei_corr_by_distance_deg": {
+  "0-2": 0.9114188862354697,
+  "2-5": 0.6373585145760436,
+  "5-10": 0.33760215839923186,
+  "10-20": 0.13439311056206057,
+  "20-40": 0.023089710833414143
+ },
+ "oni_sd": 0.8455399105356792,
+ "oni_lag1_autocorr": 0.9718425038320302,
+ "oni_lag12_autocorr": -0.033338325531170734
+}
+```
+
+The plan's "share of events in the top 1% of cell-months" is 1.0 here, because under 1% of cell-months
+hold any event, so it says nothing. The two finer shares are added.
 
 ## Result
 
