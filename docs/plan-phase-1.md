@@ -38,9 +38,8 @@ and next-pattern (decisions 0010 and 0011). These depart from the brief or fill 
    is a deferral, not a drop. They decide nothing in Phase 1, and they are where 1b would
    most likely overrun. The owner can reverse this at any gate.
 
-Open for the owner: the **2% margin** and the **3-month lead**. Reasons are below;
-both are judgement calls and he may prefer others. Recommendation: accept both. If he
-changes them, he should do so now, because they cannot change after 1c.
+The owner accepted the **2% margin** and the **3-month lead** (decision 0012). Reasons are
+below; both are judgement calls.
 
 ## Fixed rule (copied into each results file)
 
