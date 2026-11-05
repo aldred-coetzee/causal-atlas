@@ -394,6 +394,15 @@ A quiet instrument can be quiet because it is deaf, which is why A alone says no
 
 **Estimate.** About 100k fresh tokens, 25% line 125k, all under the 1M of this session's own spend. Machine about 1 hour development, 2 hours A, up to 10 hours B. Cut first if time or tokens run short: planted_2.40 and planted_combo_6, then planted_3.00. Never the nulls or the mark panel.
 
+**next-pattern's check, four edits, all before development (it approved the design subject to these):**
+
+1. **The reference is nested too.** Without this, g could beat B with no input information, by recalibrating over place or level, and that gain would read as skill. So: R = B times g0 (columns: latitude, longitude, log B), and M = R times g1 (the same columns on R, plus the inputs), with skill M against R. Each may have zero trees. Inputs alone in g was the other option, but it could not tell linked cells from others, so an effect in 17% of cells would be diluted.
+2. **Level correction, conditions.** The 24 months end at target minus lead, with an assertion and a test that no later month is read; the predicted side uses B's forecasts for those months as issued at that lead (in-sample inside training, which is a disclosed limit); kept or dropped once, on the spent null seeds; the same rule goes to real data unchanged. next-pattern accepted it: outcomes up to the forecast origin are the cell's own history.
+3. **Tree-count rule, one of g's fixed settings.** At each count from 0 to 100 on the stop block, the Poisson deviance. Take the smallest count within 0.1% of the zero-tree deviance of the lowest score; a tie takes the smaller. Every shuffled refit of g1 redoes this choice by the same rule, so real and shuffled are treated alike. g0 has no inputs, so it is chosen once and shared. Anomaly means use training months only, at each of the two stages.
+4. **Both shuffle schemes are reported, and the rule for choosing between them is unchanged.**
+
+Where a replicate's tree count is zero, M is R, skill is exactly 0 and the interval is recorded as 0, 0. Code: `src/causal_atlas/nested.py`, `scripts/run_1b_third.py`, `tests/test_nested.py`. `marks` runs A, exits if A fails, and only then runs B.
+
 **Token risk.** This session is at about 828k of the 1M, and one wake after more than an hour idle rewrites its whole context, about 120k to 150k fresh (122k at 15:31 on 2026-11-05, which my earlier 760k projection did not allow for). So A runs into B automatically, stopping itself if A fails, and waits stay under an hour, or the work resumes from `STATUS.md` in a fresh context.
 
 ## Result
