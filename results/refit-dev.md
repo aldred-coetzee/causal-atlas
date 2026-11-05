@@ -38,6 +38,10 @@ One complete shuffled pass of g1 over the ten spans is timed on one null and one
 
 A pass here is on 11 spent seeds, 3 of them chosen because they carry the most worth among those tried. The planted seeds are also the ones whose failure prompted this change, so a pass is weak evidence and fresh seeds would still have to confirm it. The 0.02 margin stays as it is; lowering it is the owner's call. The 48-month stop block moves with the refit, so late spans choose trees on months that were scored in earlier spans, which a live forecaster could do but a held-out test must disclose. Refitting across a 48-month held-out block is a question for the plan revision, not settled here.
 
+Stage 1 of each span builds its level correction from that stage's own in-sample forecasts for scored months already passed, while stage 2 uses them as issued, so tree counts are chosen under a slightly different correction than the one scored. It affects R and M alike. The single fit of the third design trained to 194 while its first forecast was issued at 192, two months it could not have known; small, the same for R and M, noted here because this rule corrects it.
+
+Next-pattern checked this rule at 4ebba0c before it ran and asked for these two sentences. Reported beside the verdict: skill by span, g1's tree count by span for nulls and planted, and the projected hours for a full 51-shuffle replicate. If it misses, the miss is reported and work stops; the by-span numbers are not a case for another schedule.
+
 ## Result
 
 Not yet run.
