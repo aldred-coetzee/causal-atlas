@@ -126,6 +126,15 @@ Untested, read from existing rows, and seen after the numbers, so it is a questi
 
 If this holds, some of the 10 that met criterion 1 are inflated, and mark A's quiet counts do not guard against it, since they only show that R did not overshoot badly on most null rows. On nulls R/obs reaches about 1.31. An earlier idea that a few large bursts dominate pooled deviance is also still untested; this suspect is the sharper of the two.
 
+### The doubt, checked on the same rows: mostly not supported
+
+An independent review, requested by the owner, tried to falsify the paragraph above on the existing rows, and this session recomputed its numbers from the jsonl. All post hoc, with the calibration band chosen after seeing the numbers.
+
+- **Skill tracks the baseline's miss only through three rows.** Spearman of skill against |log R/obs| on 16 planted rows is 0.57 (p = 0.02); without 3017 it is 0.48 (p = 0.07); without 3017, 3010 and 3014 it is 0.21 (p = 0.49). On the 120 null rows it is 0.06. On real-input nulls, M's total being closer to observed than R's goes with lower skill (-0.31), the opposite of what repair predicts. So the "some of the 10 are inflated" reading applies to those few rows, not to the instrument as a whole.
+- **The instrument separates planted from null by size, without any shuffle.** With R/obs between 0.9 and 1.1, the 8 planted rows score 0.0075 to 0.0754 (5 meet criterion 1) and the 49 real-input nulls have median -0.0007 and maximum 0.0020; every planted row is above every null (Mann-Whitney p = 6e-10). Over all rows, 12 of 16 planted exceed the largest real-input null, 0.0127. This does not show the gain comes through the inputs, which only shuffles can test.
+- **The noise false alarm has a sharper cause.** In pure_null 3007, span 8, the baseline's second stage took 0 trees, and M took 95 with noise inputs and scored 0.3661 on that span; the real-input twin took 0 and scored 0.0. M got a second go at a correction R declined (the mechanism is the review's reasoning from the code, not tested).
+- **What these rows cannot say.** Only totals are stored, not deviances, so the share of skill from level alone cannot be computed. A burst and a broken baseline cannot be told apart here, and may be one mechanism.
+
 ### Tokens
 
 The step's line was 80k, with 52.9k spent before launch. This session's transcripts rose about 376k between the reading check and this write-up, past that line, though much of it is not this step: the owner's questions, the sweeps, and full context re-cached on waking after idle (the last is my inference). The step's own share was not separated.
