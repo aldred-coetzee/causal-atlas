@@ -9,11 +9,12 @@ Last updated 2026-11-06.
 - **The doubt that questions the design, untested:** skill may reward repairing a broken baseline rather than hearing a link. 3017 scores 0.977 with the baseline's total at 143 times observed, and the guard did not catch it; the largest skills go with the baseline overshooting; the noise false alarm fits. A burst dominating the score, which the owner was told first, remains untested and is now the weaker suspect.
 - **Options put to him:** (a) stop and carry this into the revision, fixing baseline and score, on fresh seeds (recommended); (b) run the 12 required shuffles as a diagnostic, about 10 machine hours, launched by next-pattern; (c) a read-only check on existing rows of whether skill tracks baseline overshoot, before the revision.
 - **If the unit is ever run again:** ask next-pattern; do not start it from a session, since the nightly restart would kill it. Restart skips finished rows.
-- **Cap:** at least about 3.0M of 4M across both sessions, next-pattern's current count not known here. This session's transcripts: 2,538,908 fresh, 38.3M cache reads, at 01:37.
+- **Cap:** raised by the owner on 2026-11-06, "Raise the cap by a few more million", read as 7M (decision 0028; the figure is a working reading, his to change). About 3.64M spent at 01:41 by next-pattern's count: about 2.49M here, about 1.15M there, with about 823k of reading outside it.
+- **Running:** one independent Fable review of what to do next, up to 100k, at the owner's request. No repo edits by it; its report goes to him after a check of its numbers.
 
 The refit's development test: quiet 8 of 8, hears 2 of 3 (1011 at 0.0215, interval 0.008 to 0.034; 1016 at 0.0226, 0.011 to 0.034; 1017 at 0.011, missing). A thin pass on spent seeds, with no shuffle run, so it does not show the gain comes from the inputs. Not detection; nothing here is about real data (`results/refit-dev.md`).
 
-**The cap is 4M for both sessions, and the order is decision 0023's.** About 2.44M was spent at 18:22 (1.84M here, 606k next-pattern). A step at its line stops and says so; every agent's cost is stated before it spawns, checks included.
+**The cap covers both sessions, and the order is decision 0023's.** A step at its line stops and says so; every agent's cost is stated before it spawns, checks included.
 
 **Next steps, in order:**
 1. Marks on fresh seeds: ran, crashed, B missed, as above. Stopped for the owner; the steps below wait for his answer.
