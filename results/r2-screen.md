@@ -48,4 +48,22 @@ Estimate 175k fresh tokens, stop at 220k. Machine time 8 hours, ceiling 10 hours
 
 ## Result
 
-Not yet run.
+Run 2026-11-06, 13:21 to 14:50 CET, from 5d78f64, as a unit started by next-pattern. All 35 worlds screened, no failures. Rows `results/r2-screen-first.jsonl`, log `results/r2-spent.log`. These are spent seeds, so none of this is a clean estimate, and the verdict does not need one.
+
+**The rule's answer: stop. No form is quiet enough to choose, so tier 2 did not run, the early stop's table was never reached and part B does not start.** No fresh seed was used, and no setting has been changed.
+
+| Form | Null worlds naming a lead (at most 2 of 15) | Planted worlds naming a true column among leads (at least 16 of 20) | True column in the top 5, gate ignored: planted, nulls |
+|---|---|---|---|
+| `all` | 9 | 4 | 8 of 20, 2 of 15 |
+| `largest` | 10 | 4 | 9 of 20, 3 of 15 |
+| `pooled` | 11 | 5 | 8 of 20, 1 of 15 |
+
+A planted world names a lead on a decoy more often than on a true input: under `all`, 10 worlds named a lead and 4 of those included a true one. Below, the two failures have different causes.
+
+**False alarms: the gate as designed is wrong. Found after the run, post hoc.** The plan's step 2, followed by the code, scales each column by the mean and SD of its shifts. A shift's own value is in the mean and SD that scale it, which limits how large its Z can be (at most 31/sqrt(32), about 5.5). The unshifted value is not in them, so its Z has no such limit. The two are not comparable, and the unshifted one tends to win when nothing is there. `scripts/r2_gate_null.py` shows this with no world and no seed from this project: independent values, unshifted drawn exactly like the shifts, 320 columns, nominal 3%. The gate as written fires 33% of the time on normal values, 67% on chi-square 5 and 92% on chi-square 1. Scaling all 33 together gives 2% or less. The columns there are independent and real columns are not, so on these worlds the cause is inferred, not measured. The unit tests used normal values and a planted column, and asked nothing about the rate, so they could not see it. This passed review of the plan, the plan audit and this session.
+
+**Not hearing: a fairer gate cannot raise this much, on the evidence here.** Leads come from the top 5, and at least 11 of 20 planted worlds have no true column there. That ranking uses the flawed Z, so a fix may reorder it, which is not measured; 16 of 20 would need it to almost double. The planted link is the strongest fake signal the plan uses, 3.50, over 96 months, among 1,280 columns, of which 80 are true. This matches R1's warning: given the right inputs directly, 9 of 20 planted worlds cleared the same bar on the later window.
+
+**What is unanswered.** Whether the screen hears with fewer columns or more months: the T tables were not saved, so this cannot be read from these rows. Whether a corrected gate is quiet on real columns.
+
+**Tokens.** This session 419,053 fresh since 10:03 UTC, about 267k of it R2, including one rewrite of 102,775 after a compaction, against the 220k stop. So the step went over its stop, about 290k with that compaction's own 20k, before next-pattern's share. Phase 1 about 5.55M of 7M plus that share.
