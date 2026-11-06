@@ -66,3 +66,17 @@ Half is a judgement: a tool that finds half of what can be found, at about one f
 ## Estimates
 
 Tokens, 1M to 2M for the stage. Machine: toy about 30 minutes, step 2 about 2 hours, step 3 about 10 hours, two processes of 3 threads, nice 19. Overruns are reported beside the result.
+
+## Results
+
+**Step 1, toy: passed** (35 worlds, 9.5 minutes). Mark: first lead true in at least 18 of 20, a lead named in at most 2 of 15 nulls. At 1,280 columns:
+
+| Form | First lead true | Any lead true | Lead named on nulls |
+|---|---|---|---|
+| all | 20 of 20 (Wilson 95%: 84% to 100%) | 20 | 1 of 15 (1% to 30%) |
+| largest | 20 of 20 (84% to 100%) | 20 | 1 of 15 (1% to 30%) |
+| pooled | 20 of 20 (84% to 100%) | 20 | 0 of 15 (0% to 20%) |
+
+- Tests of the test: given the exact column, all three forms beat all 32 shifts in 20 of 20 planted worlds and in 0 of 15 nulls, where the column does not enter the outcome. The exact link's median gain is 0.08 of the residual variance.
+- Beside the mark, not marked: `all` and `largest` named the cell input at gap 3, width 1 in all 20, which is its true lag of 6 (gap plus the lead of 3). `pooled` did so in 12 and scattered around it in 8. The global input at lag 8 has no matching gap (5 is not in the grid) and was never the first claim.
+- What this says: the harness and the screen work on smooth numbers with a plain baseline and a link this strong, and nothing more. The link here is 0.08 of the residual variance in every world, which is far easier than the count world's.
