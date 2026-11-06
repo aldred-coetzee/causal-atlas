@@ -43,9 +43,9 @@ def statistic(u, v):
     return q.sum(), np.partition(q, -LARGEST)[-LARGEST:].sum() if q.size > LARGEST else q.sum(), u.sum() ** 2 / total if total > 0 else 0.0
 
 
-def table(series, y, rstar, block, months, shifts=SHIFTS):
-    """T by form, column and shift, the unshifted first. All inputs move together. A global input is a plain vector."""
-    e = (np.minimum(y[:, months], COUNT_CAP) - rstar).astype(np.float32)
+def table(series, y, rstar, block, months, shifts=SHIFTS, cap=COUNT_CAP):
+    """T by form, column and shift, the unshifted first. All inputs move together. A global input is a plain vector. cap=None leaves the counts as they are."""
+    e = ((np.minimum(y[:, months], cap) if cap else y[:, months]) - rstar).astype(np.float32)
     rstar = rstar.astype(np.float32)
     n = block.max() + 1
     by_e = np.stack([np.bincount(block, e[:, j], n) for j in range(e.shape[1])], axis=1)
