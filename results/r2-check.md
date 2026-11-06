@@ -35,4 +35,26 @@ About 1.5 machine hours, about 40k tokens, estimates only (decision 0035). Two p
 
 ## Result
 
-Not yet run.
+Run 2026-11-06, 15:40 to 17:15 UTC, from e325e01, as a unit started by next-pattern. All 35 worlds, no failures. Rows `results/r2-check.jsonl`, log `results/r2-check.log`. Spent seeds, no margin, 15 null worlds, so counts are rough.
+
+**The rule's answer: the gate is now quiet, the screen does not hear at any size, and this screen is closed.** That means this statistic at this signal strength over 96 months, not discovery as a whole.
+
+| Columns | Null worlds naming a lead, of 15 (`all`, `largest`, `pooled`) | Planted worlds naming a true column, of 20; 16 needed |
+|---|---|---|
+| 1,280 | 0, 0, 0 | 1, 1, 1 |
+| 320 | 1, 0, 1 | 2, 2, 2 |
+| 80 | 1, 0, 0 | 4, 4, 5 |
+
+The correction worked as a test of false alarms: 9 to 11 of 15 became 0 or 1. It also cost the few hits part A had, which were partly the flaw firing. At 80 every column is true, so 4 or 5 of 20 means the gate fired at all. So removing decoys does not rescue it, and search size is not the main cause.
+
+**Beside the marks: a post hoc look at the saved tables, on spent seeds, after the verdict; no setting comes from it.** Three plainer readings give the same picture at 80 columns:
+
+- The largest unscaled T beats every shift in 3, 3 and 4 planted worlds of 20 by form, and 1, 0 and 0 null worlds of 15.
+- The mean T of all 80 true columns beats all 32 shifts in 5 of 20 planted worlds and 0 of 15 null worlds.
+- The best true column stands 2.1 times above its own shift mean on planted worlds, against 1.63 on nulls, with `all`.
+
+A planted world differs from a null one, but in most worlds not by enough to tell inside 96 months. The planted signal, named as the strongest in the plan, has never been shown to be easy. R1's 16 of 20 had the right inputs handed over, with 240 months.
+
+**Unanswered:** whether any method could hear these worlds in 96 months, or whether the worlds themselves hold too little in that window. Nothing here measures an upper limit, such as a test given the true link. That gap is a question for the framework.
+
+**Tokens.** Stated at the report beside this file.
