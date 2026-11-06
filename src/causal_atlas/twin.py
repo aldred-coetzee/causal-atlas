@@ -33,9 +33,10 @@ def bounded(rate, cap):
 
 
 def blown(forecast, y, s, e):
-    """A span whose forecast total is over 5 times the observed total of the 24 months before its first forecast."""
+    """A span whose forecast total is over 5 times the larger of what came before it (24 months) and what it observed (decision 0034)."""
     last = s - d.LEAD
-    return bool(forecast[:, s : e + 1].sum() > BLOWN_TIMES * y[:, last - BLOWN_MONTHS + 1 : last + 1].sum())
+    past = y[:, last - BLOWN_MONTHS + 1 : last + 1].sum()
+    return bool(forecast[:, s : e + 1].sum() > BLOWN_TIMES * max(past, y[:, s : e + 1].sum()))
 
 
 def stages(X, y, ref, fit, at, cap, trees=TREES):

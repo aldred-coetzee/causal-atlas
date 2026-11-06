@@ -64,6 +64,17 @@ def test_blown_flags_a_total_over_five_times_the_trailing_months():
     assert not w.blown(f, y, 61, 84)
 
 
+def test_a_forecast_of_a_real_surge_is_not_blown():
+    y = np.zeros((2, 100))
+    y[:, 40:50] = 1
+    y[:, 61:85] = 3  # 144 events, more than 5 times the 20 before
+    f = np.zeros((2, 100))
+    f[:, 61:85] = 3.0
+    assert not w.blown(f, y, 61, 84)
+    f[:, 61:85] = 3.0 * 143
+    assert w.blown(f, y, 61, 84)
+
+
 def test_twins_are_the_same_when_the_inputs_carry_nothing():
     y, lat, lon, _ = world()
     refs = w.references(y, lat, lon, schedule=[(195, 218)], trees=(5, 10))
