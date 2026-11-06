@@ -39,6 +39,22 @@ Between 9 and 15 is reported as mixed, with no verdict. C-uncapped and C-oracle 
 
 About 1 machine hour, about 30k tokens, estimates only. Two processes of 3 threads, nice 19.
 
-## Result
+## Result of the first pass: invalid as a ceiling
+
+Run 2026-11-06 from 0d44051, 35 worlds, no failures. Rows `results/r2-ceiling.jsonl`, log `results/r2-ceiling.log`. Kept, not read by the table above.
+
+Reading B gave 0 of 20, median S -0.24, raw as low as -222. A ceiling cannot be far below the baseline it improves, so the fault is in the construction, and the table's "too little" verdict is not drawn. Looking inside seed 3019: log(with / without) from `lead_rates` reaches 22, on about 10% of unlinked cell-months it is not zero, and M's total is 533 times the events. Six simulated paths can come close to zero in the denominator, and the two variants' paths part once a link differs. C's column z was the same ratio, so C is not valid either. This code passed my review; I named the noise as lowering B "slightly" in the limits above, and it was far worse. A survives, since it scores the rates and not their ratio: S of at least 0.02 in 16 of 20, at least 0.005 in 19 of 20, on a base that knows the hidden episodes.
+
+Seen in that pass, so nothing below is blind to it: C at 7, 7, 4 of 20 with nulls 0, 0, 1; C-uncapped 15, 14, 17 with nulls 0, 0, 1; C-oracle 10, 10, 10 with nulls 1, 1, 0. On seed 3019: R times the exact ratio gave S 0.095; the cap at 20 removes 30% of events, from 0.03% of cell-months.
+
+## Second pass: rule, before any of its numbers
+
+The same worlds, months, bars and table, with one change. **z = log(`rate` / `rate_no_link`)**, the generator's exact link effect in that cell and month, with no simulation. M = R × exp(z). A null world's z is the planted world's of the same seed, in B and C alike, and B on nulls is reported beside.
+
+What it now knows and no method could: the link's form and cells, and inputs through the target month, where methods stop three months earlier. It leaves out the link's knock-on through self-excitation, so it is not a strict upper limit either way. Seed 3019 is seen.
+
+Rows `results/r2-ceiling-exact.jsonl`. R is saved to `data/panel/r2-refs/`, not committed, so a later question needs no refit. About 40 machine minutes.
+
+## Result of the second pass
 
 Not yet run.
