@@ -10,6 +10,8 @@ data (decision 0011).
 **Nothing in this plan about a data source is a fact yet.** Coverage, licences and
 access are what step 1a checks (rules 4 and 5). Sizes are rough arithmetic.
 
+**Revised for discovery on 2026-11-06: `docs/plan-phase-1-revision.md` (decision 0030). Where they disagree, that file wins once audited.**
+
 ## Amendments after step 1a (decision 0013)
 
 Made after the data check and before any outcome was computed by place or period. Where

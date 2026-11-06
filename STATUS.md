@@ -2,7 +2,9 @@
 
 Last updated 2026-11-06.
 
-**Phase 1: STOPPED, waiting for the owner to see the shift diagnostic. It read "margin": all six planted rows lose their gain when inputs are shifted, so on those rows the gain came through the inputs (`results/refit-shifts.md`, Result). But shifted inputs still gave large false gains on two overshooting rows (3007 six of 16 shifts at 0.085 or more, 3010 two), so the baseline's blow-ups still need fixing. Next, on his yes: the plan revision, reshaped around discovery (decision 0029), then next-pattern's plan audit. Nothing starts before he has seen this.**
+**Phase 1: the plan revision is written and with next-pattern for audit (`docs/plan-phase-1-revision.md`, the owner's yes in decision 0030). Nothing runs until it is checked, and each of its steps, R1 to R3 and the real-data outline, then needs its own go-ahead.**
+
+The shift diagnostic read "margin": all six planted rows lose their gain when inputs are shifted, so on those rows the gain came through the inputs (`results/refit-shifts.md`, Result). But shifted inputs still gave large false gains on two overshooting rows (3007 six of 16 shifts at 0.085 or more, 3010 two), so the baseline's blow-ups still need fixing. The revision covers that.
 
 Below, the marks run that led here. It crashed at 01:31 CET and B missed (`results/refit-marks.md`, Result).
 
