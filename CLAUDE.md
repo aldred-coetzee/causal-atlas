@@ -119,6 +119,7 @@ beside them at every gate (decision 0006).
   the results file (decision 0022).
 - `results/`: one file per experiment, rule first, committed before the numbers.
 - `docs/plan-phase-1.md`: the pre-registered Phase 1 design.
+- `docs/framework-proposal.md`: the test framework, built in stages (decision 0037); R3, 1c and 1d pause until a method passes Stage 1 (`results/framework-stage-1.md`).
 - `docs/data-sources.md`: every source checked, its access route, links and licence
   requirements. The owner counts this as part of the project's value: update it in the
   same commit as any source change, with `data/manifest.toml` (decision 0013).
