@@ -26,6 +26,8 @@ things we look at as well". "I don't have the answers as to how we do this yet.
 That's what we're trying to figure out." Phase 1's design, rules and not-now list
 stand until a plan revision and his yes change them.
 
+**Restated by the owner, 2026-11-06** (decision 0027): "We are trying to find a way to discover relationships between many separate data sets to see if behaviour emerges which would allow us to detect future events or if possible provide insight into contributing factors would perhaps accelerate or prevent events".
+
 Update this statement, with the date, when the owner refines it.
 
 ## Who does what
