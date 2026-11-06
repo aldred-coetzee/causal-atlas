@@ -99,3 +99,18 @@ Each cell: first lead true of 20 / a true column in the top 5 of 20 / a lead nam
 - Removing the cap helped, as the ceiling check said it would (pooled at 80: 5 to 12). The width of the search then took most of it back (12 to 6 to 4).
 
 **Diagnostic, stated here before it is computed, not a mark and deciding nothing:** from the saved tables, the rank among 1,280 of the best true column at the unshifted value, on planted worlds and on nulls, where the same two series are present and unlinked. It asks whether the ranking is failing or only the gate.
+
+Diagnostic result, uncapped, 1,280 columns, spent seeds. The top-5 counts had been seen in the table above when it was stated. Each cell: planted of 20 / nulls of 15.
+
+| Form | A true input ranked first | A true input in the top 5 | Median gap to the gate's bar, in z |
+|---|---|---|---|
+| all | 8 / 3 | 13 / 5 | 1.01 |
+| largest | 8 / 3 | 12 / 5 | 1.07 |
+| pooled | 10 / 0 | 15 / 2 | 0.37 |
+
+- `pooled` intervals, Wilson 95%: ranked first 30% to 70% planted, 0% to 20% nulls; top 5, 53% to 89% planted, 4% to 38% nulls. Chance is about 1 in 16 for ranked first if columns were independent, and they are not.
+- Reading: on this rung and these seeds the pooled ranking mostly works and the gate stops it from speaking. The gate has to beat the best of 1,280 columns in all 32 shifts, and pooled's true column falls short of that by a median of 0.37.
+- Almost all of it is the cell input. The global input's best column has a median rank of 77 on `pooled`, so it is close to unheard at this search width.
+- It does not say a ranking alone is usable: on a real panel nothing tells a true first place from a false one, which is what the gate is for. It suggests where to look next and is no result.
+
+**Stopped here for the owner's guidance, as the rule says.** Stage 1 has not passed.
