@@ -2,7 +2,7 @@
 
 Last updated 2026-11-06.
 
-**Phase 1: the plan revision is written and with next-pattern for audit (`docs/plan-phase-1-revision.md`, the owner's yes in decision 0030). Nothing runs until it is checked, and each of its steps, R1 to R3 and the real-data outline, then needs its own go-ahead.**
+**Phase 1: the plan revision is written and passed next-pattern's plan audit, with its eight text conditions made (`docs/plan-phase-1-revision.md`, the owner's yes in decision 0030). Waiting for his go-ahead to R1, in his words. Each step, R1 to R3 and the real-data outline, needs its own. About 4.85M of 7M by next-pattern's count.**
 
 The shift diagnostic read "margin": all six planted rows lose their gain when inputs are shifted, so on those rows the gain came through the inputs (`results/refit-shifts.md`, Result). But shifted inputs still gave large false gains on two overshooting rows (3007 six of 16 shifts at 0.085 or more, 3010 two), so the baseline's blow-ups still need fixing. The revision covers that.
 
