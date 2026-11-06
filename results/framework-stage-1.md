@@ -114,3 +114,16 @@ Diagnostic result, uncapped, 1,280 columns, spent seeds. The top-5 counts had be
 - It does not say a ranking alone is usable: on a real panel nothing tells a true first place from a false one, which is what the gate is for. It suggests where to look next and is no result.
 
 **Stopped here for the owner's guidance, as the rule says.** Stage 1 has not passed.
+
+## Corrections after next-pattern's audit (2026-11-06, of 1c937ed, 850fec9, 89f372e, e255022)
+
+Text above stays as written. Rechecked against the rows here. None of these changes step 1's or step 2's verdict.
+
+- **The toy's global input was never claimed at all.** It is in 0 of the 300 stored claims at 1,280 columns and 0 of 900 across all sizes, not only "never the first claim". The reason given above, that gap 5 is not in the grid, is a guess the rows cannot show and is withdrawn. So the toy tested one of its two links. With K = 5 and scoring on the first lead, a second true input would not be seen anyway: the scorecard cannot yet test several links in one world, which Stage 2 needs.
+- **The harness did less than the rule said.** The toy ran one method, the screen with no cap, where the rule says "for each method and form". A cap has no meaning on smooth numbers, but the rule did not say so. The floor and the ceiling do not exist as plug-ins in the runner: the unit tests check the scorer on their kinds of input, and neither ran on a world. Step 2 used the same scorer, so its counts stand. Both are owed before any method can pass.
+- **Tests of the test, as they stand.** Noise: standing unit test, passes. Exact answer: run on the toy; on the count world it rests on `results/r2-ceiling.md`, on these same seeds, and was not rerun with this harness. Baseline sanity: run on the count world, a plain fit by construction on the toy. Floor and ceiling: as above.
+- **Marked seed 7001 was run first as a smoke test** in the command that pushed the harness, and that row is the one in the toy's count. It was not rerun or discarded. No choice followed from it. Later smoke tests use a seed outside the marks.
+- **The toy's mark could hardly be missed by a working screen:** strengths 5.556 to 5.569 for `all` and `largest` against a maximum of about 5.57, and the found link sits exactly on the grid.
+- **Figures.** "0.08 of the residual variance in every world" is a median; the range is 0.063 to 0.094. The floor's "6.25%, about 1 world in 20" is 1 in 16. The toy's 320-column rows were left out: first lead true 20 of 20 on every form, nulls 1, 0, 2 of 15. At 80 columns: 20 of 20, nulls 1, 0, 0.
+- **Rule gaps closed in the next rule, not here:** how a method is chosen, a least size for E, a seed ledger, and marks that a working method can miss.
+- **Decision 0037 reaches further than he was asked.** The ladder "stands as proposed" and the outline of Stages 2 and 3 are this session's reading. Stage 3's new data sits against the brief's "Not now: more domains". Nothing has been fetched. Both are put to him before any Stage 2 or Stage 3 rule.
