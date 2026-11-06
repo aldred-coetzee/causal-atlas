@@ -80,7 +80,7 @@ The months are split because leads picked and scored on the same months would lo
 
 **The search-wide gate.** Is the best of everything tried better than luck?
 1. Shift **all inputs together** by k whole years, k = 1 to 32, and recompute every column. This keeps each input's calendar, persistence and relation to the others, and breaks only its alignment with the counts. The series is 36 years and 3 months, so the shift wraps inside the first 432 months, a whole-year window, as `circular_shift` already does: a month before the start comes from 432 months later, the calendar month is kept, and the last 3 months of the input are never used as a shifted value. A test asserts that every shifted value keeps its calendar month.
-2. Put each column on one scale: Z = (T − mean of its T over shifts) / (SD of its T over shifts).
+2. Put each column on one scale: Z = (T − mean of its T over all 33 values) / (SD of its T over all 33 values). *Corrected 2026-11-06 (decision 0035): this said over shifts only, which fires on noise (`results/r2-screen.md`, Result).*
 3. Compare the largest Z with no shift against the largest Z in each shift. The world's best column passes only if it beats all 32: search-wide p = 1/33, about 0.03, however many columns were tried. Because the whole search is rerun in each shift, correlation among columns is handled without a formula.
 4. Step down: remove that column and repeat, with the remaining columns. It stops at the first failure or at **K = 5 leads**.
 

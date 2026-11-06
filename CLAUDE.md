@@ -80,8 +80,8 @@ Update this statement, with the date, when the owner refines it.
    on. Stop and ask only when it really needs his guidance: a missed mark, a
    surprise that questions the design, a rule change that could favour a result,
    a choice outside the plan. The end of 1d is always a stop (decision 0014,
-   changing the brief at the owner's word). If a step is heading 25% over its
-   estimate, stop and say so. If the owner says to go broader, quote this rule
+   changing the brief at the owner's word). Step estimates are stated and overruns
+   reported beside the result, not put to him and not a stop (decision 0035). If the owner says to go broader, quote this rule
    back and ask him to confirm.
 7. **Subagents.** None by default. At most three at once, each with a written
    spec, estimated cost stated before spawning. Sonnet for mechanical work,
@@ -104,7 +104,7 @@ Update this statement, with the date, when the owner refines it.
 
 ## Token caps
 
-Phase 0: 300k. Phase 1: 7M (raised from 4M, the figure a working reading of the owner's "a few more million", decision 0028). Both cover this session and next-pattern. A cap
+Phase 0: 300k. Phase 1: 20M (the owner, decision 0035; "on this" read as Phase 1). Both cover this session and next-pattern. A cap
 counts fresh tokens (input + output + cache writes); cache reads are reported
 beside them at every gate (decision 0006).
 

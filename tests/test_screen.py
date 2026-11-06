@@ -68,6 +68,13 @@ def test_gate_names_a_clear_column_steps_down_and_stays_quiet_otherwise():
     assert c.gate(t)[0] == []
 
 
+def test_the_gate_fires_about_one_time_in_33_on_noise_of_any_shape():
+    rng = np.random.default_rng(3)
+    for draw in (lambda s: rng.normal(size=s), lambda s: rng.chisquare(1, s)):
+        fired = sum(bool(c.gate(draw((320, 33)))[0]) for _ in range(300))
+        assert fired <= 300 * 3 / 33
+
+
 def test_a_planted_column_is_found_among_decoys():
     rng = np.random.default_rng(2)
     months = np.arange(195, 291)
