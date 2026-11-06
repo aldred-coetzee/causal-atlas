@@ -57,4 +57,22 @@ Rows `results/r2-ceiling-exact.jsonl`. R is saved to `data/panel/r2-refs/`, not 
 
 ## Result of the second pass
 
-Not yet run.
+Run 2026-11-06, about 17:48 to 18:05 UTC, from 52b78ce. 35 worlds, no failures. Rows `results/r2-ceiling-exact.jsonl`. Spent seeds, with the first pass and seed 3019 seen, so counts are rough. Read against the table fixed above.
+
+**B, the real baseline told the exact link: 11 of 20 clear R2's bar, so mixed by the table, with no verdict.** Median S 0.077. S of at least 0.02 in 16 of 20, and lower end above 0 in 19 of 20. On null worlds given another world's link: 0 of 15 clear, median S -0.002. Of the 9 that miss, 7 have S from 0.03 to 0.15 and fail on raw below 0 or on two spans, in the main because multiplying R overshoots the level; 3003 and 3009 are near nothing in this window. So the worlds are not empty: most hold a large effect here, some hold very little. The fresh reader's reading stands on a fairer base, and my remark to the owner that nothing may be able to pass this test does not. R2's bar of 16 is still not shown reachable, even with the answer in hand.
+
+**C, the screen's statistic given the exact column: 6, 6 and 3 of 20 for `all`, `largest`, `pooled`, nulls 0, 0, 1. At most 8, so by the table the statistic cannot hear even the exact answer, and it should not be carried into the framework as it stands.**
+
+Beside it, pointing at a cause and proving none:
+
+| Variant | Planted, of 20 (`all`, `largest`, `pooled`) | Nulls, of 15 |
+|---|---|---|
+| As built, counts capped at 20 | 6, 6, 3 | 0, 0, 1 |
+| No cap | 14, 12, 19 | 0, 0, 0 |
+| Capped, residual against the generator's rate without the link | 6, 6, 6 | 1, 1, 0 |
+
+**The cap at 20 is the strongest suspect**, and R absorbing the link is not supported, since a residual free of R does no better. On 3019 the cap removed 30% of events from 0.03% of cell-months. The cap was in the plan to keep bursts from ruling the statistic, and it was never tested for what it cost; that gap passed plan review, audit and this session.
+
+**Unanswered.** No-cap hearing the exact column says nothing yet about hearing real candidate columns, which are lagged, partial stand-ins for it, or about false alarms on many columns. A method's own miss in worlds like 3009 is no miss.
+
+**Tokens.** Stated at the report beside this file.
