@@ -1,0 +1,119 @@
+done first pure_null 3001
+done first pure_null 3002
+done first pure_null 3003
+done first pure_null 3004
+done first pure_null 3005
+done first pure_null 3006
+done first pure_null 3007
+done first pure_null 3008
+done first pure_null 3009
+done first pure_null 3010
+done first pure_null 3011
+done first pure_null 3012
+done first pure_null 3013
+done first pure_null 3014
+done first pure_null 3015
+done first pure_null 3016
+done first pure_null 3017
+done first pure_null 3018
+done first pure_null 3019
+done first pure_null 3020
+done first shared_null 3001
+done first shared_null 3002
+done first shared_null 3003
+done first shared_null 3004
+done first shared_null 3005
+done first shared_null 3006
+done first shared_null 3007
+done first shared_null 3008
+done first shared_null 3009
+done first shared_null 3010
+done first shared_null 3011
+done first shared_null 3012
+done first shared_null 3013
+done first shared_null 3014
+done first shared_null 3015
+done first shared_null 3016
+done first shared_null 3017
+done first shared_null 3018
+done first shared_null 3019
+done first shared_null 3020
+done first combo_null 3001
+done first combo_null 3002
+done first combo_null 3003
+done first combo_null 3004
+done first combo_null 3005
+done first combo_null 3006
+done first combo_null 3007
+done first combo_null 3008
+done first combo_null 3009
+done first combo_null 3010
+done first combo_null 3011
+done first combo_null 3012
+done first combo_null 3013
+done first combo_null 3014
+done first combo_null 3015
+done first combo_null 3016
+done first combo_null 3017
+done first combo_null 3018
+done first combo_null 3019
+done first combo_null 3020
+{"quiet": {"pure_null real": 19, "pure_null noise": 18, "shared_null real": 19, "shared_null noise": 18, "combo_null real": 20, "combo_null noise": 20}, "a_done": true, "a_pass": true, "planted_run": 0, "planted_meeting_first": 0, "schemes": {"circular": {"hears": 0, "false": {"pure_null": 0, "shared_null": 0, "combo_null": 0}, "qualifies": false}, "permutation": {"hears": 0, "false": {"pure_null": 0, "shared_null": 0, "combo_null": 0}, "qualifies": false}}, "chosen": null}
+done first planted_3.50 3001
+done first planted_3.50 3002
+done first planted_3.50 3003
+done first planted_3.50 3004
+done first planted_3.50 3005
+done first planted_3.50 3006
+done first planted_3.50 3007
+done first planted_3.50 3008
+done first planted_3.50 3009
+done first planted_3.50 3010
+done first planted_3.50 3011
+done first planted_3.50 3012
+done first planted_3.50 3013
+done first planted_3.50 3014
+Traceback (most recent call last):
+  File "/home/aldred/projects/causal-atlas/scripts/run_refit_marks.py", line 185, in <module>
+    for row in first_pass(args.panel, args.seed):
+               ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/aldred/projects/causal-atlas/scripts/run_refit_marks.py", line 54, in first_pass
+    refs = r.references(y, lat, lon)
+  File "/home/aldred/projects/causal-atlas/src/causal_atlas/refit.py", line 51, in references
+    raw2, b2 = baseline(fit2, s)
+               ~~~~~~~~^^^^^^^^^
+  File "/home/aldred/projects/causal-atlas/src/causal_atlas/refit.py", line 37, in baseline
+    raw = d.fit_predict(base, target.astype(np.float32), rows, everything).astype(float)
+          ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/aldred/projects/causal-atlas/src/causal_atlas/detector.py", line 94, in fit_predict
+    raise FloatingPointError("boosting diverged: predictions far above any training count")
+FloatingPointError: boosting diverged: predictions far above any training count
+done first planted_3.50 3016
+done first planted_3.50 3017
+Traceback (most recent call last):
+  File "/home/aldred/projects/causal-atlas/scripts/run_refit_marks.py", line 181, in <module>
+    marks()
+    ~~~~~^^
+  File "/home/aldred/projects/causal-atlas/scripts/run_refit_marks.py", line 162, in marks
+    list(pool.map(launch, [("first", PLANTED, s) for s in SEEDS]))
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/concurrent/futures/_base.py", line 619, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/usr/lib/python3.13/concurrent/futures/_base.py", line 317, in _result_or_cancel
+    return fut.result(timeout)
+           ~~~~~~~~~~^^^^^^^^^
+  File "/usr/lib/python3.13/concurrent/futures/_base.py", line 456, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "/usr/lib/python3.13/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.13/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/home/aldred/projects/causal-atlas/scripts/run_refit_marks.py", line 147, in launch
+    subprocess.run(["nice", "-n", "19", sys.executable, __file__, mode, panel, str(seed)], check=True, env=env)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['nice', '-n', '19', '/home/aldred/projects/causal-atlas/.venv/bin/python', '/home/aldred/projects/causal-atlas/scripts/run_refit_marks.py', 'first', 'planted_3.50', '3015']' returned non-zero exit status 1.

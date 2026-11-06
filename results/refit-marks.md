@@ -70,4 +70,62 @@ Smoke test before the check, spent seed only (pure_null 2001, one draw per schem
 
 ## Result
 
-Running since 2026-11-05 19:18, as the system unit `causal-atlas-refit-marks`, started by next-pattern after its check with no edits, because the nightly restart would stop a job launched from the session. Same command, same `nice`.
+Run from 2026-11-05 19:18 as the system unit `causal-atlas-refit-marks`, started by next-pattern after its check with no edits, because the nightly restart would stop a job launched from the session. Same command, same `nice`. **It crashed at 2026-11-06 01:31:47 CET and was not restarted. Mark A passed by count. Mark B missed. The run also raises a doubt about what skill measures, below, which questions the design. Nothing here is about real data.**
+
+### Deviations
+
+- **The run is incomplete.** `first planted_3.50 3015` raised `FloatingPointError` in the baseline fit, from the divergence guard in `detector.py` (`src/causal_atlas/refit.py` line 37, called from line 51). `launch` treats one failed replicate as the end of the run. Not memory: peak 6.97 GB. Planted seeds 3018 to 3020 never ran, and **no shuffle ran under either scheme**, so stage 3 did not happen. The rows are the 120 null rows and 16 planted rows.
+- **The guard caught one divergence and missed a sibling.** It fires only when a prediction exceeds 10 times the largest training count. Planted 3017 passed it with R's total at 143 times the observed total.
+- Nothing in the method, marks or seeds was changed, and nothing was rerun.
+
+### Mark A: passed by count, with one large false alarm
+
+Rows within 0.005 of zero, of 20 for each, needing at least 18:
+
+| Null panel | Real inputs | Noise inputs |
+|---|---|---|
+| pure_null | 19 | 18 |
+| shared_null | 19 | 18 |
+| combo_null | 20 | 20 |
+
+The largest real-input null skill is 0.0127 (pure_null 3007, interval 0.0035 to 0.0205). One null row meets criterion 1, pure_null 3007 with noise inputs: **0.1032 (0.0102 to 0.222)**, with nothing planted, nearly all from span 8 (0.3661, at 95 trees). The mark allows it as a miss, and noise rows get no shuffles under this rule. 20 seeds bound a false-positive rate only loosely.
+
+### Mark B: missed
+
+10 of 16 finished planted seeds meet criterion 1. If 3015 and 3018 to 3020 all met it the most would be 14 of 20, below the 16 required, and that counts criterion 1 alone. The full verdict needs the shuffles, so it counts 0 under both schemes because none ran. **Shuffled medians: none exist.** So this run does not answer whether the gain vanishes when the inputs are broken from the outcome, and the median of the 16 skills, 0.044, is not evidence for a link.
+
+R/obs and M/obs are each model's total over the observed total, where those were read for a row; blank means not read for this write-up, and the jsonl holds them all.
+
+| Planted seed | Skill | Criterion 1 | R/obs | M/obs |
+|---|---|---|---|---|
+| 3001 | 0.0012 | miss | | |
+| 3002 | 0.0753 | met | 0.971 | |
+| 3003 | 0.0501 | met | 0.681 | |
+| 3004 | 0.0145 | miss | | |
+| 3005 | 0.0343 | met | | |
+| 3006 | 0.0379 | met | | |
+| 3007 | 0.1449 | met | 1.73 | 1.36 |
+| 3008 | 0.0644 | met | 1.078 | |
+| 3009 | 0.0203 | met | | |
+| 3010 | 0.3003 | met | 1.95 | 1.38 |
+| 3011 | 0.0754 | met | 1.007 | |
+| 3012 | 0.0100 | miss | 1.038 | |
+| 3013 | 0.0075 | miss | 1.016 | |
+| 3014 | 0.2915 | met | 2.58 | 1.60 |
+| 3015 | crashed | | | |
+| 3016 | 0.0087 | miss | 1.02 | |
+| 3017 | 0.977 | miss, lower bound -0.0064 | 143 | 2.5 |
+
+### What the rows suggest: skill may reward repairing the baseline
+
+Untested, read from existing rows, and seen after the numbers, so it is a question for the revision and not a finding.
+
+- Planted 3017 scores 0.977, span 10 at 0.992, because R's total is 143 times what happened. M gets near the truth by being less broken, which says nothing about hearing a link.
+- The largest skills go with R overshooting: 3014, 3010 and 3007 above. Seed 3014 falls from 0.29 to 0.03 on the secondary window. Seeds where R's total is close to observed have ordinary skills or misses.
+- The noise false alarm fits: pure_null 3007 has R/obs 1.263 and noise M/obs 0.78. M may gain by correcting R's level, which needs no information in the inputs.
+
+If this holds, some of the 10 that met criterion 1 are inflated, and mark A's quiet counts do not guard against it, since they only show that R did not overshoot badly on most null rows. On nulls R/obs reaches about 1.31. An earlier idea that a few large bursts dominate pooled deviance is also still untested; this suspect is the sharper of the two.
+
+### Tokens
+
+The step's line was 80k, with 52.9k spent before launch. This session's transcripts rose about 376k between the reading check and this write-up, past that line, though much of it is not this step: the owner's questions, the sweeps, and full context re-cached on waking after idle (the last is my inference). The step's own share was not separated.
