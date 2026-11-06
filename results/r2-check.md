@@ -47,7 +47,7 @@ Run 2026-11-06, 15:40 to 17:15 UTC, from e325e01, as a unit started by next-patt
 
 The correction worked as a test of false alarms: 9 to 11 of 15 became 0 or 1. It also cost the few hits part A had, which were partly the flaw firing. At 80 every column is true, so 4 or 5 of 20 means the gate fired at all. So removing decoys does not rescue it, and search size is not the main cause.
 
-**Beside the marks: a post hoc look at the saved tables, on spent seeds, after the verdict; no setting comes from it.** Three plainer readings give the same picture at 80 columns:
+**Beside the marks: a post hoc look at the saved tables (`scripts/r2_check_look.py`), on spent seeds, after the verdict; no setting comes from it.** Three plainer readings give the same picture at 80 columns:
 
 - The largest unscaled T beats every shift in 3, 3 and 4 planted worlds of 20 by form, and 1, 0 and 0 null worlds of 15.
 - The mean T of all 80 true columns beats all 32 shifts in 5 of 20 planted worlds and 0 of 15 null worlds.
