@@ -54,4 +54,32 @@ Raw skill and interval beside S; S per span; M/obs and R/obs; rows and spans fla
 
 ## Result
 
-Not yet run.
+**The gate passes: "go on", checked against the raw rows. Spent seeds, limits sized on these same failures, so this is permission to test on fresh seeds and shows nothing about real data.** Started 2026-11-06 11:09 CET, ended 12:36, about 1.5 hours against 4 estimated. No row failed: 37 rows, 36 jobs plus the noise row. Read with `scripts/run_r1.py summary`.
+
+**Tree count: 25.** 3011, 3002 and 3008 keep 0.61, 0.55 and 0.61 of their S at 100 trees. Frozen by the rule, and it costs power: median planted S is 0.0234 at 25 trees and 0.0368 at 100.
+
+| Condition | Needed | Result, 25 trees |
+|---|---|---|
+| Every row finishes | all | all |
+| R within 0.5 to 2 times observed | at least 18 of 20 | 20 of 20, range 0.68 to 1.12 |
+| False-gain shifts, S | all 8 under 0.02 | all 8, largest 0.0154 (3007, 32 years); old skill 0.085 to 0.180 |
+| Calibrated rows, S | all above 0 | 3002 0.0190 (0.0039 to 0.0345), 3008 0.0280 (0.0126 to 0.0424), 3011 0.0416 (0.0248 to 0.0543) |
+
+**The faults this was built for, no condition:** 3015 now finishes. 3017's R/obs goes from 143 to 0.99, its old skill 0.977 to S 0.0336 (0.0007 to 0.0535), raw 0.088. Pure_null 3007 with noise inputs goes from 0.1032 to -0.0091 (-0.0161 to -0.0020).
+
+**Over 195 to 434, no condition:** planted, 16 of 20 have S at least 0.005 with the interval's lower end above 0; 3001, 3009 and 3016 show nothing clear, and 3015 has S 0.0148 with the lower end below 0. Real-input nulls, 16 rows: median -0.0014, largest 0.0002, none at 0.005. The cap acts on at most 0.22% of cell-months in a span, the factor clip on at most 12.4%. Span-blocks with few events give at most 2.3% of R's deviance.
+
+### Two things the gate does not check
+
+**1. The `blown` flag is measuring surges, not blow-ups.** It fires on 4 of 20 planted rows and on no null row, and at all three tree counts. Section 8 allows 1 in 20, so as written R3 would be expected to miss its Sound mark. A post hoc look, on the same seeds with nothing changed (`scripts/run_r1_blown.py`, `results/r1-blown.txt`, 25 trees):
+
+| Seed, span | Trailing 24 months | Limit | Observed | R | M |
+|---|---|---|---|---|---|
+| 3010, 387 | 7,272 | 36,360 | 93,210 | 54,358 | 60,456 |
+| 3015, 267 | 8,168 | 40,840 | 98,319 | 52,489 | 59,484 |
+| 3017, 387 | 6,495 | 32,475 | 110,564 | 38,154 | 67,122 |
+| 3018, 219 | 17,756 | 88,780 | 108,756 | 136,038 | 138,008 |
+
+In all four the events themselves exceed the limit, and the forecast is below them in three and 1.25 to 1.27 times them in the fourth. The flag compares the forecast with the past only, so a forecast that sees a real surge coming gets marked as broken. Changing it is a rule change that could favour a result and is the owner's.
+
+**2. R3's window looks short of power.** On 291 to 386, the window of tier 2, 9 of 20 planted rows have S at least 0.005 with the lower end above 0 and raw above 0, against 16 needed (11 of 20 at 50 and at 100 trees). Null rows: 0 of 16, largest S 0.0012. This is not a test of the tier 2 pass: M here has all 8 inputs rather than the screen's leads, and the conditions on spans and shifts are not applied. Fewer noise columns could help; those two conditions can only take rows away. The screen is untested, so this does not say R3 fails. It says expect a miss on "Hears, pipeline" unless the screen changes this.
