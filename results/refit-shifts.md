@@ -41,4 +41,23 @@ Evaluated first to last. `reading` in `scripts/run_refit_shifts.py` applies it, 
 
 ## Result
 
-Not run yet.
+Run by next-pattern as `causal-atlas-refit-shifts` from a16a9a8, 2026-11-06 02:05 to before 03:50 CET, exit 0, all six rows, 16 shifts each, about 2,000 to 2,200 seconds a row. R matched the first pass on every row. The smoke test's number repeated: 3011 at 2 years, -0.014. **The rule's reading: margin. All six rows lose. This is about planted_3.50 on a fake world, on rows chosen after the numbers; nothing here is about real data.**
+
+| Row | R/obs | First-pass skill | Shifted median | Shifted min to max | Above every shift | M/obs, shifted median | State |
+|---|---|---|---|---|---|---|---|
+| 3010 overshooting | 1.953 | 0.3003 | 0.0017 | -0.0048 to 0.1803 | yes | 1.961 | loses |
+| 3014 overshooting | 2.577 | 0.2915 | -0.0015 | -0.0118 to 0.0064 | yes | 2.585 | loses |
+| 3007 overshooting | 1.728 | 0.1449 | -0.0019 | -0.0148 to 0.1348 | yes | 1.731 | loses |
+| 3011 calibrated | 1.007 | 0.0754 | -0.0048 | -0.025 to 0.0027 | yes | 1.02 | loses |
+| 3008 calibrated | 1.078 | 0.0644 | 0.0007 | -0.0029 to 0.0068 | yes | 1.081 | loses |
+| 3002 calibrated | 0.971 | 0.0753 | -0.0048 | -0.0172 to 0.0027 | yes | 0.96 | loses |
+
+Each row's skill is above all 16 of its shifts, p = 1/17 for that row at best.
+
+**What it supports.** On these rows the gain goes away when the inputs cannot carry the link, so it came through the inputs. That includes the overshooting rows: with shifted inputs M's total stays at R's, while with the true inputs it came down (3014: 1.60 against R's 2.58). So the correction of the overshoot itself used the inputs, which goes against the "repair needing no information" suspicion for these rows.
+
+**What the median hides, seen after the numbers.** The overshooting rows are not clean. 3007 has 6 of 16 shifts at 0.085 or more (0.132, 0.085, 0.109, 0.104, 0.093, 0.135), and 3010 has 2 (0.137, 0.180), all with inputs that carry no aligned link. The rule reads medians, so it calls these "loses", correctly by the rule, but gains that large from unlinked inputs mean a broken baseline can still hand out a large false gain. It is the same size and kind as the noise false alarm in `results/refit-marks.md`. No calibrated row shows it (largest shift 0.0068). So "margin" is the reading, and the baseline's blow-ups still need fixing.
+
+**What it does not say.** The planted rows that missed the mark (0.0012 to 0.0145) were not tested, so nothing shows their small gains are real. Mark B stays missed. The rows were picked for high skill, so the limit above applies: fresh seeds are needed before anyone relies on this. Permutation was not run.
+
+Tokens: about 3.9M of 7M across both sessions, my estimate from next-pattern's 3.64M at 01:41 plus the review and this step, not a fresh count.

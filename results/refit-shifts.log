@@ -1,0 +1,7 @@
+done 3010
+done 3014
+done 3007
+done 3011
+done 3008
+done 3002
+FINISHED {"rows": {"3010": "loses", "3014": "loses", "3007": "loses", "3011": "loses", "3008": "loses", "3002": "loses"}, "verdict": "margin"}

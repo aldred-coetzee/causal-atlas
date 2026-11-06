@@ -2,7 +2,9 @@
 
 Last updated 2026-11-06.
 
-**Phase 1: STOPPED, waiting for the owner. The marks run crashed at 2026-11-06 01:31 CET and B missed (`results/refit-marks.md`, Result). Change nothing in the method and do not rerun the unit until he answers. Two questions are open with him: what to do about the marks, and whether to reshape the plan around discovery without hypotheses (rule 6 quoted to him, no yes yet; decision 0027).**
+**Phase 1: STOPPED, waiting for the owner to see the shift diagnostic. It read "margin": all six planted rows lose their gain when inputs are shifted, so on those rows the gain came through the inputs (`results/refit-shifts.md`, Result). But shifted inputs still gave large false gains on two overshooting rows (3007 six of 16 shifts at 0.085 or more, 3010 two), so the baseline's blow-ups still need fixing. Next, on his yes: the plan revision, reshaped around discovery (decision 0029), then next-pattern's plan audit. Nothing starts before he has seen this.**
+
+Below, the marks run that led here. It crashed at 01:31 CET and B missed (`results/refit-marks.md`, Result).
 
 - **A passed by count:** real 19, 19, 20 and noise 18, 18, 20 of 20. One null false alarm with noise inputs, pure_null 3007 at 0.1032 (0.0102 to 0.222).
 - **B missed:** 10 of 16 finished planted seeds meet criterion 1, at most 14 of 20 even if the four missing all met it, against 16 needed. 3015 crashed in the baseline fit, 3018 to 3020 did not run. **No shuffle ran, so whether the gain vanishes with the inputs broken is unanswered.**
