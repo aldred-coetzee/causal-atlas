@@ -60,3 +60,46 @@ All three met: Stage 1 passes for this method, and it goes to him before any Sta
 ## Estimates
 
 About 300k tokens to the end of step 2. Machine: toy under 20 minutes, step 2 about 40 minutes, step 3 about 4 hours, two processes of 3 threads, nice 19. Overruns are reported beside the result.
+
+## Results
+
+### Step 1, toy: mark passed, and it says little
+
+First lead true in 20 of 20 on every form; a lead named in 0, 0 and 1 of 15 nulls (`all`, `largest`, `pooled`). The truth plug-in scored 35 of 35. Oracle shortlist 20 of 20; floor 1 of 20 on each form. The global input was claimed in 20 of 20 per form. The plumbing works.
+
+### Step 2, spent seeds: the line is missed
+
+Chosen form by the rule: `pooled`. First lead true in **2 of 20** (95% interval 3% to 30%) against a line of 8; a lead named in 0 of 15 nulls (0% to 20%). The rule says no fresh seed and stop. Seeds 7101 to 7140 were not run and stay unspent.
+
+| Method, months 195 to 290 split as the rule says | `all` first true | `largest` | `pooled` | Named on 15 nulls |
+|---|---|---|---|---|
+| Shortlist | 1 | 1 | 2 | 2, 2, 0 |
+| Oracle shortlist: handed the 2 true inputs | 3 | 3 | 3 | 0, 1, 0 |
+| Floor: 5 at random | 0 | 0 | 0 | 0, 1, 0 |
+| Exact link on later months, hears (of 20) | 9 | 8 | 16 | 0, 0, 0 |
+
+What the two halves did, `pooled`:
+
+- **The shortlist step works.** It held a true input in 14 of 20 (48% to 85%) against 3 of 15 nulls (7% to 45%). By chance 5 of 32 inputs hold one of the 2 own series about 29% of the time.
+- **The test step is where it fails, and a perfect shortlist does not rescue it.** The oracle reaches 3 of 20 (5% to 36%). That is the limit of this design, so no shortlist could have met the line of 8. The exact link hears in 16 of 20 (58% to 92%) on the same months, so 48 months can carry the link when the statistic is told its exact shape, and the grid's columns chosen on 48 other months do not.
+
+### Looked at after the miss, on spent seeds, deciding nothing
+
+Why the oracle fails, by asking how much of it is the months and how much the choice of column. Each row is both true inputs at one gap and width, unsearched, stepping gate on those 2 columns. Gap 0 and width 6 was picked knowing the generator puts its lag mass at 3 to 9 months, so this flatters it and no method could know it blind. Worlds naming a lead:
+
+| `pooled`, of 20 (nulls of 15) | Whole 96 months | Later 48 | Earlier 48 |
+|---|---|---|---|
+| Gap 0, width 6 | 13 (1) | 7 (0) | 9 (0) |
+| Gap 1, width 6 | 12 (2) | 7 (0) | 8 (2) |
+| Gap 0, width 12 | 7 (1) | 3 (0) | 2 (2) |
+
+Intervals: 13 of 20 is 43% to 82%; 7 of 20 is 18% to 57%. So halving the months costs about a third to a half of what can be heard even with the right input and a good column, and choosing the column on 48 months costs most of the rest: the oracle's earlier-month picks scatter over gaps from 0 to 24 and widths from 1 to 12, with no pair chosen more than 5 times of 40.
+
+Read together with `results/framework-stage-1.md`: with the true inputs handed over, 96 months and a column picked with knowledge of the generator, the statistic reaches 13 of 20. Blind on these worlds at this strength, the share left to any search is small. The likely reading is that one world at this strength and length holds too little to both find and prove a link. That is a reading from small counts on spent seeds, not a measurement; no strength or length other than this one has been run on it.
+
+### Disclosed
+
+- **The floor's draw is shared across null panels.** Its generator is seeded by world seed and form, as the rule says, and the three null panels use seeds 3001 to 3005, so the floor's 15 null rows hold 5 independent draws per form. That is why its shortlist held a true input in 12 of 15 `pooled` nulls, well above chance. The verdict does not rest on it: the floor's first-true count on planted worlds, 0 of 20, is what the line compares with.
+- **The oracle's reach was not computed before the line was set.** The line of 8 was carried over from the last method. Had the oracle's 3 of 20 been known, this method would not have been worth its step. A later rule should run the oracle first, and I would make that a standing order.
+- **The diagnostic above was not pre-registered**, and its best row was chosen with the generator's lag shape in view.
+- Stage 1 stands unpassed. Third method to reach this point after R2's screen and Stage 1's. The proposal's check, "if nothing searching blind can get close to the ceiling on the count world after a few honest methods, I'd say so and stop before Stage 2", is now live and goes to the owner.
