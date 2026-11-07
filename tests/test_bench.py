@@ -73,3 +73,24 @@ def test_toy_null_differs_from_planted_only_by_the_link():
     p, n = toy.generate(lat, lon, 7), toy.generate(lat, lon, 7, linked=False)
     assert np.allclose(p["y"] - n["y"], p["exact"]) and np.array_equal(p["a"], n["a"])
     assert p["exact"][lat < np.median(lat)].std() < p["exact"][lat >= np.median(lat)].std()
+
+
+def test_shortlist_keeps_one_column_per_input():
+    t = np.random.default_rng(4).standard_normal((c.PER_SERIES * 8, 33)) ** 2
+    t[[0, 1, c.PER_SERIES + 3], 0] = [1e6, 1e5, 1e4]
+    held = b.shortlist(t, n=3)
+    assert held[:2] == [0, c.PER_SERIES + 3] and len({x // c.PER_SERIES for x in held}) == 3
+
+
+def test_gate_on_five_noise_columns_names_a_lead_at_about_one_in_33():
+    rng = np.random.default_rng(5)
+    named = sum(bool(c.gate(noise(rng, 5))[0]) for _ in range(2000))
+    assert 30 <= named <= 100
+
+
+def test_claims_on_chosen_columns_map_back():
+    t = np.random.default_rng(6).standard_normal((c.PER_SERIES * 4, 33)) ** 2
+    col = c.PER_SERIES * 3 + 1
+    t[col, 0] = 1e6
+    first = b.claims(t, list("abcd"), chosen=[0, col])[0]
+    assert first["input"] == "d" and first["lead"] and first["width"] == c.WIDTHS[1]

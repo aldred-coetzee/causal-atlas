@@ -66,10 +66,15 @@ def table(series, y, rstar, block, months, shifts=SHIFTS, cap=COUNT_CAP):
     return out
 
 
+def scaled(t):
+    """Each column on its own scale over all 33 values."""
+    sd = t.std(axis=1, ddof=1)
+    return np.divide(t - t.mean(axis=1, keepdims=True), sd[:, None], out=np.zeros_like(t), where=sd[:, None] > 0)
+
+
 def gate(t):
     """The search-wide gate on one form's T, columns by shifts, unshifted first. Returns the leads, stepping down to K, and the top K forced. Each lead's p is 1/33. All 33 values share one scale, or the unshifted one wins on noise (results/r2-screen.md)."""
-    sd = t.std(axis=1, ddof=1)
-    z = np.divide(t - t.mean(axis=1, keepdims=True), sd[:, None], out=np.zeros_like(t), where=sd[:, None] > 0)
+    z = scaled(t)
     order = np.argsort(-z[:, 0], kind="stable")
     leads = []
     left = np.ones(len(z), bool)

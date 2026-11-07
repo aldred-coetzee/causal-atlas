@@ -1,15 +1,30 @@
 """The test framework's scorecard: one way to read any method's claims against a world's truth. See results/framework-stage-1.md."""
 import math
 
+import numpy as np
+
 from causal_atlas import screen as c
 
 
-def claims(t, names, gaps=c.GAPS, widths=c.WIDTHS):
-    """One form's T table as ranked claims: input, gap, width, strength, and whether the gate named it. Named leads come first, as the gate stepped down."""
-    leads, top, z = c.gate(t)
+def shortlist(t, n=5, per=c.PER_SERIES):
+    """The first column of each new input down the ranking of one form's T, until n inputs are held. Columns of one input are close copies, so n columns would often be one claim."""
+    held, seen = [], set()
+    for col in np.argsort(-c.scaled(t)[:, 0], kind="stable"):
+        if int(col) // per not in seen:
+            seen.add(int(col) // per)
+            held.append(int(col))
+            if len(held) == n:
+                break
+    return held
+
+
+def claims(t, names, gaps=c.GAPS, widths=c.WIDTHS, chosen=None):
+    """One form's T table as ranked claims: input, gap, width, strength, and whether the gate named it. Named leads come first, as the gate stepped down. With chosen, the gate sees only those columns."""
+    leads, top, z = c.gate(t if chosen is None else t[chosen])
     per = len(gaps) * len(widths)
     out = []
     for rank, col in enumerate(top):
+        col = col if chosen is None else chosen[col]
         out.append(dict(input=names[col // per], gap=gaps[(col % per) // len(widths)], width=widths[col % len(widths)], strength=z[rank], lead=rank < len(leads)))
     return out
 
