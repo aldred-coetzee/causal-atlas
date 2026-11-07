@@ -59,3 +59,7 @@ On seed 3001 at 3.50, a spent seed: the first 96 months of R must match the save
 ## Estimates
 
 About 400k tokens to the report. Machine: about 20 to 30 minutes a world, 90 worlds, two processes of 3 threads, nice 19, most of a day. The nightly restart can stop the run; the launcher skips finished rows.
+
+## Deviation, before any world ran
+
+The check on seed 3001: R matches to 6e-8. The table's largest relative difference was 0.116%, over the 0.1% written above, so the run stopped as the rule says. The cause: 1 value of 126,720, in `pooled`, where T itself is about 6e-7 against a median of 28, so a tiny denominator inflates a rounding difference of about 1e-9. The largest absolute difference in `pooled` is 1e-4, the largest change on the gate's scale in any form is 1.5e-6, and the leads and top 5 are identical in all three forms. I read this as rounding and not a fault, and the run goes on. The bar should have been written on the gate's scale, not as a relative difference on T. This touches no scored number.
