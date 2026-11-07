@@ -94,3 +94,8 @@ def test_claims_on_chosen_columns_map_back():
     t[col, 0] = 1e6
     first = b.claims(t, list("abcd"), chosen=[0, col])[0]
     assert first["input"] == "d" and first["lead"] and first["width"] == c.WIDTHS[1]
+
+
+def test_link_share():
+    assert b.link_share(np.array([[4.0, 4.0]]), np.array([[2.0, 3.0]])) == 1 - 5 / 8
+    assert b.link_share(np.zeros((1, 2)), np.zeros((1, 2))) == 0.0

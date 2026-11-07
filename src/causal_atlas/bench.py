@@ -35,6 +35,12 @@ def read_world(found, true):
     return dict(named=bool(leads), first_true=bool(leads) and leads[0]["input"] in true, any_true=any(x["input"] in true for x in leads), top_true=any(x["input"] in true for x in found))
 
 
+def link_share(rate, rate_no_link):
+    """The share of events the link accounts for, over the months given. Pure."""
+    total = rate.sum()
+    return float(1 - rate_no_link.sum() / total) if total > 0 else 0.0
+
+
 def wilson(k, n, z=1.96):
     """The 95% Wilson interval of k in n."""
     if n == 0:
