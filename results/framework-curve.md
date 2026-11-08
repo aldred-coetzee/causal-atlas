@@ -63,3 +63,36 @@ About 400k tokens to the report. Machine: about 20 to 30 minutes a world, 90 wor
 ## Deviation, before any world ran
 
 The check on seed 3001: R matches to 6e-8. The table's largest relative difference was 0.116%, over the 0.1% written above, so the run stopped as the rule says. The cause: 1 value of 126,720, in `pooled`, where T itself is about 6e-7 against a median of 28, so a tiny denominator inflates a rounding difference of about 1e-9. The largest absolute difference in `pooled` is 1e-4, the largest change on the gate's scale in any form is 1.5e-6, and the leads and top 5 are identical in all three forms. I read this as rounding and not a fault, and the run goes on. The bar should have been written on the gate's scale, not as a relative difference on T. This touches no scored number.
+
+## Results, read once after all 90 worlds finished
+
+Finished 2026-11-08 about 22:00 UTC. 90 of 90 worlds, none crashed. Truth plug-in scored true on 90 of 90. Read with `run_curve.py summary`; rows in `results/framework-curve.jsonl`. Intervals are 95% Wilson on 15.
+
+**Checks pass.** The exact link hears in 15 of 15 at strength 10 at both lengths (80% to 100%), and on nulls it hears in 0 of 15 at both. The instrument works, so the outcomes are read.
+
+**Headline, `pooled`, first lead true, of 15** (nulls: a lead named, of 15):
+
+| strength | link share of events, 96 / 240 | search 96 | search 240 | true inputs only 96 / 240 | shortlist 96 / 240 | oracle 96 / 240 | exact 96 / 240 |
+|---|---|---|---|---|---|---|---|
+| 1.40 | 0.6% / 0.5% | 0 | 0 | 0 / 0 | 0 / 0 | 2 / 0 | 1 / 5 |
+| 2.00 | 3.3% / 3.9% | 1 | 0 | 2 / 6 | 0 / 0 | 1 / 1 | 14 / 15 |
+| 3.50 | 25% / 33% | 3 | 5 | 5 / 8 | 2 / 5 | 2 / 8 | 14 / 14 |
+| 6.00 | 59% / 63% | 3 | **8** | 8 / 14 | 5 / 10 | 5 / 13 | 14 / 14 |
+| 10.00 | 69% / 73% | 6 | **13** | 10 / 15 | 4 / 12 | 9 / 14 | 15 / 15 |
+| nulls | | 0 | 0 | 1 / 1 | 0 / 0 | 0 / 1 | 0 / 0 |
+
+Search at 240 months: 8 of 15 at 6.00 (30% to 75%), 13 of 15 at 10 (62% to 96%), 5 of 15 at 3.50 (15% to 58%), 0 of 15 at 2.00 (0% to 20%). Nulls 0 of 15 at both lengths (0% to 20%). At 96 months search works at no strength; the best is 6 of 15 at 10 (20% to 64%).
+
+`all` and `largest` are never better than `pooled` in a cell where a cell works, and are within a few worlds of it elsewhere; both are in the summary output. Their nulls name a lead in at most 2 of 15.
+
+**Cells that work:** `pooled` search at 240 months at strengths 6 and 10. None at 96 months. None at 3.50 or below.
+
+**Outcome 2 applies:** search works only at 3.50 or above. Blind search on this design hears only large links. In this generator a link it hears at 240 months accounts for the majority of events in its cells (median share 63% at strength 6). At strength 2, where the link accounts for about 4% of events, the exact link still hears in 15 of 15 at 240 months, but search names it in 0 of 15.
+
+**Seen beside the outcome, not pre-registered and not marks:**
+
+- At 240 months the true inputs alone, 80 columns, work one step lower than search: 8 of 15 at 3.50 against search's 5. The width of 1,280 columns costs about one strength step. Below that, at 2.00, even the true inputs alone reach only 6 of 15 while the exact link reaches 15. Most of the loss there comes from picking among a true input's own 40 columns, not from the decoys.
+- The shortlist never beats plain search on all months, and the oracle shortlist is no better than true inputs alone. Splitting the months costs more than narrowing gains, as on spent seeds.
+- Length matters more than any form: from 96 to 240 months search rises from 3 to 8 at strength 6 and from 6 to 13 at 10. 240 is all this record has after the baseline's first fit.
+
+What this does not say: anything about real data (rule 2). One link shape, independent decoys; real inputs are related, which should make search harder. The size column is a rough bridge from the generator's strength to real effects, not an effect size.
