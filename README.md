@@ -19,7 +19,10 @@ four continents and stayed silent in Europe. A forecast built from that, fitted
 on 1950 to 1999 and scored once on 2000 to 2024, had about a sixth less error
 (17%, between 12% and 22%) than a forecast from each region's own history, on the
 region-months where it made a claim. Each of the four passes by itself, North
-America narrowly (its own interval starts just above zero). An earlier attempt on
+America narrowly (its own interval starts just above zero). A side check
+afterwards, which is not a test, measured El Niño on a fixed base instead of
+NOAA's moving one: the four together still pass, at 13% to 14%, and North America
+by itself does not. An earlier attempt on
 Africa missed and is published as a miss. The result, its limits, an independent
 check and an audit are in `results/real-enso-continents.md`; the independent
 reader's report and code are in `docs/reviews/`.

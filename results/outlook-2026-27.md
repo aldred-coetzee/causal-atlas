@@ -52,6 +52,7 @@ When a release of the drought file covering these months is fetched, model A's t
 - **Most claims are at the shortest lag (four months)**, so most of the outlook reaches only to January 2027. Later months rest on fewer claims at longer lags.
 - **Regions are 10-degree squares.** Nothing here is about a town, a farm or a person.
 - All the limits in `results/real-enso-continents.md`. One was added there on 2026-11-09, after this outlook was published: the held drought file carries an evaporation error its makers have acknowledged, largest in dry regions. The model behind these terms was fitted on that file. Australia, where nearly every region carries a signal, is the driest of the four fields.
+- Added 2026-11-09 after a side check recorded in that file (not a test): with El Niño measured on a fixed base instead of NOAA's moving one, the four fields together still pass and North America by itself does not. North America's 25 signals here rest on the weakest of the four fields.
 - Nothing here is about conflict, or about any link between domains.
 
 ## Estimates

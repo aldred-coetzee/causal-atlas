@@ -214,8 +214,47 @@ On the four entered fields, at the region scale, the forecast step exactly as sc
 - **C, El Niño on a fixed base.** In place of the ONI: NOAA's monthly Niño 3.4 anomaly from the same sea-surface product (`nina34.anom.data` on PSL's list, ERSST v6, anomalies from 1981 to 2010; held since the candidate fetch of `results/real-indices.md`, whose rule set it aside as El Niño by another name), with each calendar month's 1950 to 1999 mean taken off, then a three-month mean centred on each month, as the ONI has. Its zero is set by the fitting years and does not move with time. It keeps the ocean's warming, which the ONI's moving base takes out.
 - **D, both.**
 
-The naming is not re-run: the search read 1950 to 1999 only, and this is about the scoring. Reported for each: pooled S with its interval, S by field, claims, multipliers and the baseline chosen; and for the two indices, their correlation and means in each period. Code: `scripts/explore_bases.py` (written with this rule; only A has been run, to check that it reproduces). Rows: `results/explore-bases.jsonl`.
+The naming is not re-run: the search read 1950 to 1999 only, and this is about the scoring. Reported for each: pooled S with its interval, S by field, claims, multipliers and the baseline chosen; and for the two indices, their correlation and means in each period. Code: `scripts/explore_bases.py` (written with this rule; when the rule was committed only A had been run, to check that it reproduces). Rows: `results/explore-bases.jsonl`.
 
 **Expectation, written first:** B moves the pooled S by less than 0.02. C lowers it, by up to 0.05, because slopes through zero are fed an index that sits higher after 2000 than the one they were fitted on. Nothing hangs on either guess.
 
 **How it will be worded.** If the interval stays above 0 in every variant, the two limits stand as written: stated, and small. If any variant's interval reaches 0, that is said in the summary of this result wherever it is given.
+
+#### What it gave (run 2026-11-09, after the rule above was committed; rows in `results/explore-bases.jsonl`)
+
+Pooled over the four fields, 2000 to 2024, region scale. S is the share of error removed on the claimed region-months; the interval is 95%.
+
+| Variant | Drought scale | El Niño measured on | S | Interval | Claims |
+|---|---|---|---|---|---|
+| A, as tested | makers' | NOAA's moving base | +0.171 | +0.120 to +0.220 | 783 |
+| B | 1950 to 1999 | NOAA's moving base | +0.164 | +0.116 to +0.210 | 784 |
+| C | makers' | fixed, 1950 to 1999 | +0.142 | +0.084 to +0.194 | 720 |
+| D | 1950 to 1999 | fixed, 1950 to 1999 | +0.132 | +0.076 to +0.182 | 721 |
+
+Every variant is beyond all 24 shifted controls and below every baseline alone, pooled. The baseline chosen is the linear one in every field and variant.
+
+By field, S with its interval:
+
+| Field | A | B | C | D |
+|---|---|---|---|---|
+| South America | +0.161 (+0.097 to +0.224) | +0.157 (+0.098 to +0.214) | +0.165 (+0.090 to +0.233) | +0.151 (+0.080 to +0.216) |
+| Australia | +0.129 (+0.068 to +0.183) | +0.118 (+0.060 to +0.173) | +0.174 (+0.114 to +0.223) | +0.170 (+0.112 to +0.217) |
+| South and Southeast Asia | +0.224 (+0.148 to +0.292) | +0.215 (+0.145 to +0.279) | +0.131 (+0.039 to +0.207) | +0.123 (+0.038 to +0.196) |
+| North America | +0.117 (+0.007 to +0.214) | +0.116 (+0.002 to +0.216) | +0.033 (−0.087 to +0.141) | +0.028 (−0.095 to +0.142) |
+
+Claims by field, A, B, C, D: South America 353, 352, 325, 327; Australia 113, 111, 63, 64; South and Southeast Asia 260, 261, 263, 260; North America 57, 60, 69, 70. Multipliers: South America 0.76, 0.76, 0.73, 0.73; Australia 0.47, 0.46, 0.47, 0.47; South and Southeast Asia 0.77, 0.77, 0.76, 0.76; North America 0.68, 0.71, 0.66, 0.69.
+
+The two El Niño series: correlated 0.974 on 1950 to 1999 and 0.988 on 2000 to 2024. On the fitting years both average about zero (+0.03 and 0.00). On the scored years the ONI still averages 0.00 and the fixed-base series +0.26: that is the ocean's warming, which NOAA's moving base removes and a fixed base keeps. The largest gap between them in any month is 0.58 before 2000 and 0.50 after.
+
+**Against the expectation.** B moved the pooled S by 0.007, under the 0.02 guessed. C lowered it by 0.029, inside the 0.05 guessed. Both guesses held.
+
+**What it says, as description.**
+
+- The makers' scaling of the drought index, as far as offset and scale go, hardly matters: 0.007.
+- How El Niño is measured matters more. With a base fixed on the fitting years the pooled score is +0.142, and +0.132 with both changes. The interval stays above 0 in every variant, so the pooled result does not rest on the moving base.
+- **North America's own pass does rest on it.** It was narrow as tested (interval from +0.007). On the fixed base its S is +0.03 with an interval from −0.09 to +0.14: not told apart from nothing. South and Southeast Asia loses about 0.09 and still stands. Australia gains about 0.05 with half the claims.
+- A forecaster working in real time would have had neither series: not NOAA's moving base, which reads up to fifteen years ahead, and not a base frozen at 1999, which leaves all the later warming in. What they would have had lies between. So the honest statement of this result is a pooled gain between about 13% and 17%, on four fields together, with North America not established by itself.
+
+**Wording, by the rule above.** The rule said "the interval" and did not say pooled or by field. Pooled, it stays above 0 in every variant and the two limits stand as written. By field, one reaches 0. The stricter reading is taken: wherever this result is summarised it now says that North America's own pass does not hold when El Niño is measured on a fixed base, and gives the range of the pooled score. None of this is a test, and it rescues and sinks nothing: the registered pass stands as registered, on the series named in its rule.
+
+**What it does not cover.** The fit of the drought index's distribution to the whole record, the evaporation error in the drought file, and the naming step, which was not re-run. The 2026 to 2027 outlook is from the model as tested; North America carries 25 of its 413 signals, and what this changes for them is that they rest on the weakest of the four fields.
