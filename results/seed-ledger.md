@@ -13,3 +13,5 @@ A seed scored for a mark is spent for that purpose. A new method's fresh marks n
 | 9901 | Count | Smoke test for the curve only, never scored |
 | 7901 to 7999 | Toy | Smoke tests only, never in a count |
 | 8001 to 8060 | Toy: decoy pool | Decoys only |
+| 11001 to 11020 | Real field: decoy sets for the discovery marks | Reserved by `results/real-enso-drought.md`. Spent once it runs |
+| 11101 to 11110 | Real field: ruler (planted link and its decoy set) | Reserved by `results/real-enso-drought.md`. A measurement. Spent once it runs |
