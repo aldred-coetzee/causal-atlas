@@ -81,3 +81,41 @@ On the discovery years, a link from one decoy is added to the real field: in the
 ## Estimates
 
 Discovery and ruler: minutes of machine time. Tokens to the discovery report: about 400k including the two readings; estimates here have run low.
+
+## Results (2026-11-09, discovery years only; the confirmation years are untouched)
+
+Rows: `results/real-enso-drought.jsonl` (143). Run as committed, no deviation. Machine time 14 minutes.
+
+**The instrument check missed, by one: 8 of 10 against a mark of 9.** By the rule above the search is then not good enough and D1 to D5 are not counted as passed. Their numbers are given because they are what was measured, not as a pass.
+
+| Mark | Rule | Measured |
+|---|---|---|
+| Instrument check | Link of 40% of variance over 25% of cells found in at least 9 of 10; at least 80% of claims in the planted cells | **8 of 10: missed.** Where found, 96% to 99% of claims were in the planted cells |
+| D1 | El Niño named first in at least 18 of 20 | 19 of 20. In the other set nothing was named: one decoy's shifted value was higher |
+| D2 | A decoy named in at most 2 of 20 | 0 of 20 |
+| D3 | El Niño left out: any lead in at most 2 of 20 | 0 of 20 |
+| D4 | Years shuffled: any lead in at most 2 of 20 | 0 of 20 |
+| D5 | Right sign and beyond all 49 shifts, in southern Africa and East Africa | Southern Africa: average correlation -0.36, beyond all 49. East Africa: +0.37, beyond all 49 |
+
+Beside D5 and marking nothing: the Sahel -0.25, beyond all 49 shifts. Cells with a significant entry in the window: 38% (southern Africa), 36% (East Africa), 5% (Sahel); every one of those entries has the published sign. Over the whole continent, 37% of cells have at least one significant month and lag (25% at lags 4 to 12); the smallest significant correlation is 0.46 in size.
+
+**The ruler: this search hears only very broad, very strong links.**
+
+| Share of variance in the linked cell-months | Over 5% of cells | Over 25% of cells |
+|---|---|---|
+| 2% | 0 of 10 | 0 of 10 |
+| 5% | 0 of 10 | 0 of 10 |
+| 15% | 0 of 10 | 1 of 10 |
+| 40% | 0 of 10 | 8 of 10 |
+
+A link confined to a twentieth of the continent is not heard at any size tried. El Niño was named in all 80 ruler runs. One decoy was named falsely in 1 of the 10 ruler decoy sets (in 2 of its 8 runs).
+
+### What this says
+
+- **El Niño is found blind, on real data, among 31 decoys, with no false alarm in 60 control runs, and its map has the published places, seasons and signs.** That is the first thing in this project found on real data that matches an answer science already holds. It is on the discovery years and against decoys that are unrelated to each other; it is not yet a forecast and has not met rule 2.
+- **But the search is blunt.** It adds up the whole continent and all months and lags, so it hears El Niño because El Niño is everywhere, and it would miss a strong link confined to one region or one season. A search like that is no use for the project's aim, which needs links nobody has drawn a box around.
+- **Why the instrument check is the one that matters:** the five discovery marks only show that a search can find the loudest known signal. The check asks whether it could find something else of that kind. It could not, reliably.
+
+### What happens next
+
+The confirmation is not run: the rule ties it to a discovery that is frozen, and this one is not. The search is sharpened on the discovery years (a statistic that looks region by region and month by month, not at the continent's total), under a new rule file with fresh decoy and ruler seeds, committed before it is run. What the next rule must say plainly: these D1 to D5 numbers are now known to its author, so for the sharpened search they are a check that nothing was lost, and its real tests are the instrument check, the ruler and the sealed confirmation.
