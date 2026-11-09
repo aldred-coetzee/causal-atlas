@@ -52,6 +52,11 @@ def rows():
     return [json.loads(s) for s in open(OUT)] if OUT.exists() else []
 
 
+def have(kind, *keys):
+    """The runs of one kind already in the rows, so a run that was stopped picks up where it left off. Every run draws only on its own seed, so its row is the same whenever it is made."""
+    return {tuple(r[k] for k in keys) for r in rows() if r["kind"] == kind}
+
+
 def name(which):
     """Naming on the discovery years of one field: the real series first, then the decoys."""
     y, _, lat, lon = data(which)
@@ -61,6 +66,8 @@ def name(which):
         order = np.random.default_rng(seed).permutation(DISCOVERY // 12)
         mixed = y.reshape(len(y), -1, 12)[:, order].reshape(len(y), -1)
         for kind, field_y in (("real", y), ("years_mixed", mixed)):
+            if (which, seed) in have(kind, "field", "seed"):
+                continue
             row({"kind": kind, "field": which, "seed": seed, **links.both(field_y, [*x, *d], YEARS, SHIFTS, lat, lon, most=len(x))})
 
 
@@ -72,6 +79,8 @@ def ruler(which):
         d = decoy.make(seed, field.MONTHS, field.oni(), DECOYS)[:, :DISCOVERY]
         for share in SHARES:
             for area in AREAS:
+                if (which, seed, share, area) in have("ruler", "field", "seed", "share", "area"):
+                    continue
                 yp, cells, months = planted(y, lat, lon, d[0], seed, share, area)
                 out = links.both(yp, [*x, *d], YEARS, SHIFTS, lat, lon, most=len(x) + 1)
                 more = {"share": share, "area": area, "found": len(x) in out["leads"], "false": [c for c in out["leads"] if c > len(x)]}
