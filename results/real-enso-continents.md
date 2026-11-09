@@ -124,3 +124,52 @@ Reported, marking nothing:
 - No ruler was run here, so what the search cannot hear on these fields is not measured.
 
 **Entering step 2** (the ONI a lead in at least 18 of 20): South America, Australia, South and Southeast Asia, North America. Europe does not enter and is scored for the record only.
+
+## Results, step 2: the forecast check (2026-11-09, scored once on 2000 to 2024, after step 1 was committed)
+
+Rows: kinds `confirmation` and `pooled` in `results/real-enso-continents.jsonl`. Run as committed, no deviation. The script refuses a second scoring. Machine time about 2 minutes.
+
+**It passed.** On the four fields where the search named El Niño, adding it to the baseline cut the squared error of a drought forecast three or more months ahead by 17% on the region-months it made a claim about, on 25 years and four continents the method had never seen.
+
+| | Rule | Measured |
+|---|---|---|
+| Pooled S on claimed region-months | Interval's lower end above 0 | **S = +0.171, interval +0.120 to +0.220** |
+| Against the 24 year-shifted controls | Larger than all 24 | Larger than all 24 (they run from -0.277 to -0.037: the same claims fed the wrong years make the forecast worse) |
+| Against each baseline alone | Model's squared error below all three | Below all three: 17% under linear (the one chosen), 26% under zero, 27% under level |
+
+By field, region averages. The first four entered the pooled score; each also meets the pass rule on its own, which was not required.
+
+| Field | S | Interval | Shifted controls | Claims (of region-months) | Baseline chosen | k |
+|---|---|---|---|---|---|---|
+| South America | +0.161 | +0.097 to +0.224 | -0.268 to -0.017 | 353 of 1,140 | linear | 0.76 |
+| Australia | +0.129 | +0.068 to +0.183 | -0.107 to +0.051 | 113 of 588 | linear | 0.47 |
+| South and Southeast Asia | +0.224 | +0.148 to +0.292 | -0.389 to -0.078 | 260 of 1,200 | linear | 0.77 |
+| North America | +0.117 | +0.007 to +0.214 | -0.330 to +0.028 | 57 of 1,260 | linear | 0.67 |
+| Europe (did not enter) | none | | | **0 of 768** | zero | 0 |
+
+Reported, marking nothing:
+
+- **Single cells:** pooled S +0.137, interval +0.093 to +0.180, larger than all 24 shifted (-0.217 to -0.031), below every baseline alone. By field +0.131, +0.100, +0.172, +0.089, each with its interval above 0. Europe: no claim in 56,520 cell-months.
+- **By year, pooled regions:** the model had less error than the baseline in 22 of the 25 years. The three where it was worse (2001, 2013, 2014) were worse by 1% to 5%. The gain does not rest on one event: the largest years are 2015 (+0.39), 2011 (+0.35), 2010 and 2022 (+0.32), and no year carries more than 7% of the error being explained.
+- **Lags claimed:** 494 of the 783 claims in the four fields are at lag 4, the shortest allowed.
+- **How good the baseline is by itself:** against guessing zero on all region-months of 2000 to 2024, +0.10 in South America, +0.02 to +0.04 in the other three. At three months ahead a region's own drought history says little; that is the bar El Niño had to clear, and it is a low one in absolute terms.
+- The inner blocks chose k between 0.47 and 0.77 here against 0.39 on Africa: where the link is stronger the slopes need less shrinking, and the rule found that without being told.
+
+### What this says
+
+- **This is the first result in this project that meets rule 2 on real data:** a driver the engine named blind, among 31 decoys, improves an out-of-time forecast beyond the best of three baselines, with a control that fails as it should and a field (Europe) that stays silent as it should.
+- **It is a known link.** The chain works end to end on reality: finder, map, predictor. Nothing new about the world has been discovered.
+- **What it does not say:** nothing about Africa, where the first confirmation missed and still stands as a miss; nothing about links below what the search can hear; nothing about a region-month where no claim was made (on all region-months of the four fields the gain is much smaller, because 81% of them carry no claim).
+- The size, in plain terms: on the places and seasons where it speaks, knowing the state of El Niño four or more months earlier removes about a sixth of the forecast error that own history leaves. The interval says somewhere between an eighth and a fifth.
+
+### Limits, beside this result
+
+Those in "Limits it carries" above, and three that matter for reading the number:
+
+- **The drought index is standardised over its whole record by its makers**, 1901 to the present, so each value's scale carries a little information from later years. That touches the target and the baseline's inputs alike and cannot tell the model which way a given month went, but it is not a strictly out-of-time quantity and is said here.
+- **The gain is measured on the region-months the method chose to speak about** (19% of them in the four fields). On the rest it makes no forecast beyond the baseline.
+- **The link is one whose existence was known to the author before the test**, and the five boxes were drawn with that knowledge (four where a link is published, one where it is not). What was blind: which candidate among 32 the search would name, where, when, how large, and every number on 2000 to 2024.
+
+### What happens next
+
+An outlook for the months ahead from the 2026 El Niño, under its own rule written before it is computed (`results/outlook-2026-27.md`), and an independent check of this result by a fresh reader.
