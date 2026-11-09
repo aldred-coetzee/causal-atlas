@@ -175,7 +175,7 @@ Those in "Limits it carries" above, and three that matter for reading the number
 - **The shifted control adds little once the interval is above 0.** A slope fed the wrong years can only add error, so every shifted value comes out near or below zero. It guards against a score that is positive for a reason unrelated to the driver's timing; it is not a second, independent test.
 - **The script's refusal to score twice is a guard, not a lock.** Git shows the rule and all code in one commit (22:26:10), no change to code after it, and the scoring rows appended once. It cannot show that nothing was run unrecorded.
 
-### Independent check (2026-11-09, one fresh reader, about 114k tokens)
+### Independent check (2026-11-09, one fresh reader, 131k fresh tokens by the counter)
 
 A reviewer with no part in the work was given the rule text, the rows and the code, and asked to break the result. Its verdict: **"holds with these corrections"**, all of which are now made above.
 

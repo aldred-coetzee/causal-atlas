@@ -1,6 +1,6 @@
 # causal-atlas
 
-A spatiotemporal observatory, at the very start. The aim is to bring event and
+A spatiotemporal observatory, at an early stage. The aim is to bring event and
 indicator data from different domains (conflict, climate, food, prices and
 others) onto one grid of place and month, find time-lagged relationships between
 domains, and use them to predict trends.
@@ -12,9 +12,21 @@ still an open question. His words are in
 `docs/decisions/0021-owner-refines-the-aim.md`. The first experiment below tests
 the narrower question.
 
-**Nothing has been found yet.** The repo holds its rules, its decisions, a
-pre-registered design for one experiment, and the data sources it has checked.
-`STATUS.md` says where things stand.
+**Where it stands (2026-11-09).** Nothing new about the world has been found.
+What has been shown is that the chain works end to end on a link that is already
+known. Among 31 decoys, the search named El Niño blind as a driver of drought on
+four continents and stayed silent in Europe. A forecast built from that, fitted
+on 1950 to 1999 and scored once on 2000 to 2024, had about a sixth less error
+(17%, between 12% and 22%) than a forecast from each region's own history, on the
+region-months where it made a claim. An earlier attempt on Africa missed and is
+published as a miss. The result, its limits and an independent check are in
+`results/real-enso-continents.md`.
+
+From that tested model there is a dated outlook for November 2026 to September
+2027, with the rule for scoring it fixed in advance: `results/outlook-2026-27.md`.
+It is a test of the method that can fail in public, not a warning service.
+
+`STATUS.md` says where things stand in more detail.
 
 ## The question
 
@@ -43,7 +55,7 @@ makes no model calls: it is deterministic at runtime.
 - `STATUS.md`: the honest current state.
 - `docs/data-sources.md`: every source checked, how to get it and what its
   licence requires.
-- `docs/plan-phase-1.md`: the design.
+- `docs/plan-phase-1.md`: the first design, on synthetic data.
 - `docs/decisions/`: decision records, immutable once written.
 - `results/`: one file per experiment, its rule committed before its numbers.
 - `data/manifest.toml`: versions and checksums. `scripts/`: fetch scripts.
