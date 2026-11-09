@@ -120,7 +120,7 @@ Reported, marking nothing:
 - The signs and places are the textbook ones, found with no box drawn: dry over northern South America, northern Australia and the maritime continent, wet over the southern United States in late winter. These were not marks, because our reading gave them only from a scanned map.
 - **Europe is the quiet control the design did not have before:** the same engine, the same candidate, a field where El Niño's reach is weak, and it named nothing real in 20 sets.
 - On these fields the sharp gate does most of the naming (in Australia all of it). On Africa it was the broad gate. The two gates are both needed.
-- False alarms, all eleven runs: four from the sharp gate (by 0.004 to 0.014 over its bar in the three where the row holds the bar that applied) and seven from the broad gate. The 3 of 100 with the ONI left out are the same decoy sets as the 3 with it in, as on Africa.
+- False alarms: eleven runs. Counted by run, four came from the sharp gate and seven from the broad gate. One of the four (Australia, seed 12206, years mixed) named two decoys, so counted by naming it is five and seven. The sharp gate's namings were over the bar their row holds by 0.002 to 0.014 (0.689 against 0.675; 0.639 and 0.632 against 0.630; 0.686 against 0.682); the fifth is that last decoy again, in the run with the ONI in, whose row holds the bar from before the ONI was set aside. The 3 of 100 with the ONI left out are the same decoy sets as the 3 with it in, as on Africa. (Reworded 2026-11-09 after the audit below: this first gave only the count by run.)
 - No ruler was run here, so what the search cannot hear on these fields is not measured.
 
 **Entering step 2** (the ONI a lead in at least 18 of 20): South America, Australia, South and Southeast Asia, North America. Europe does not enter and is scored for the record only.
@@ -137,14 +137,14 @@ Rows: kinds `confirmation` and `pooled` in `results/real-enso-continents.jsonl`.
 | Against the 24 year-shifted controls | Larger than all 24 | Larger than all 24 (they run from -0.277 to -0.037: the same claims fed the wrong years make the forecast worse) |
 | Against each baseline alone | Model's squared error below all three | Below all three: 17% under linear (the one chosen), 26% under zero, 27% under level |
 
-By field, region averages. The first four entered the pooled score; each also meets the pass rule on its own, which was not required.
+By field, region averages. The first four entered the pooled score; each also meets the pass rule on its own, which was not required. North America does so narrowly: on 57 claims its interval starts at +0.007. (Its multiplier is 0.675 in the row; this table first printed 0.67, corrected 2026-11-09.)
 
 | Field | S | Interval | Shifted controls | Claims (of region-months) | Baseline chosen | k |
 |---|---|---|---|---|---|---|
 | South America | +0.161 | +0.097 to +0.224 | -0.268 to -0.017 | 353 of 1,140 | linear | 0.76 |
 | Australia | +0.129 | +0.068 to +0.183 | -0.107 to +0.051 | 113 of 588 | linear | 0.47 |
 | South and Southeast Asia | +0.224 | +0.148 to +0.292 | -0.389 to -0.078 | 260 of 1,200 | linear | 0.77 |
-| North America | +0.117 | +0.007 to +0.214 | -0.330 to +0.028 | 57 of 1,260 | linear | 0.67 |
+| North America | +0.117 | +0.007 to +0.214 | -0.330 to +0.028 | 57 of 1,260 | linear | 0.68 |
 | Europe (did not enter) | none | | | **0 of 768** | zero | 0 |
 
 Reported, marking nothing:
@@ -166,7 +166,7 @@ Reported, marking nothing:
 
 Those in "Limits it carries" above, and three that matter for reading the number:
 
-- **The drought index is standardised over its whole record by its makers**, 1901 to the present, so each value's scale carries a little information from later years. That touches the target and the baseline's inputs alike and cannot tell the model which way a given month went, but it is not a strictly out-of-time quantity and is said here.
+- **The drought index is standardised over its whole record by its makers**, 1901 to 2024, so each value's level and scale carry a little information from later years. That touches the target and the baseline's inputs alike and cannot tell the model which way a given month went, but it is not a strictly out-of-time quantity and is said here. How this is known (read 2026-11-09): the held file's own `call` attribute shows the makers' function run on the whole 1901 to 2024 rainfall file with no reference period given; their code calls `SPEI::spei(d, s, na.rm=TRUE, verbose=FALSE)`, again with none (<https://raw.githubusercontent.com/sbegueria/SPEIbase/master/R/functions.R>, the current code, which is later than the build of this file); and that function's documentation says "The default behavior of the functions is using all the values provided in data for parameter fitting" (<https://raw.githubusercontent.com/sbegueria/SPEI/v1.8.1/R/spei.R>).
 - **The gain is measured on the region-months the method chose to speak about** (19% of them in the four fields). On the rest it makes no forecast beyond the baseline.
 - **The link is one whose existence was known to the author before the test**, and the five boxes were drawn with that knowledge (four where a link is published, one where it is not). What was blind: which candidate among 32 the search would name, where, when, how large, and every number on 2000 to 2024.
 
@@ -174,10 +174,12 @@ Those in "Limits it carries" above, and three that matter for reading the number
 - **The forecast step was tuned on Africa's 2000 to 2024**, and those years hold the same El Niño events as the years scored here. The design was shaped by these events, though not by these places. Africa itself scores only +0.033 under it.
 - **The shifted control adds little once the interval is above 0.** A slope fed the wrong years can only add error, so every shifted value comes out near or below zero. It guards against a score that is positive for a reason unrelated to the driver's timing; it is not a second, independent test.
 - **The script's refusal to score twice is a guard, not a lock.** Git shows the rule and all code in one commit (22:26:10), no change to code after it, and the scoring rows appended once. It cannot show that nothing was run unrecorded.
+- **The drought file carries an error its makers have acknowledged** (added 2026-11-09, found while closing the audit below). The held file is SPEIbase 2.11.0. The makers' README, under "Known issue: PET unit conversion (fixed in v2.13.0)" (<https://raw.githubusercontent.com/sbegueria/SPEIbase/master/README.md>, read 2026-11-09), says of versions 2.6 to 2.12.0: "The vector of days per month was recycled along the longitude dimension of the data array instead of along time, so each grid cell's PET was multiplied by a single constant (28, 29, 30 or 31) in every month. All published SPEI datasets from v2.6 to v2.12.0 are affected. The effect is generally small, but it is largest in arid regions where PET dominates the water balance." It says a corrected release "will follow"; the download page listed nothing later than 2.11 when a helper read it that day. PET is the water the air could take up, the evaporation side of the index. **So every drought value in every result of this project comes from an affected file, and what that does to the scores is not measured**, because there is no corrected file to compare with. This session's reading of the quoted description, not the makers' words: each cell's evaporation is off by a factor between 28/31 and 31/28, up to about a tenth, in a pattern that depends on the month and the cell's longitude; it changes the size of evaporation against rain, not the rain. Australia is the driest field here and is where it would matter most. The outlook's scoring rule now says what happens when a corrected file is used (`results/outlook-2026-27.md`).
+- **This is not the plan's step 1d, and passing it does not pass 1d** (added 2026-11-09 for the audit below). The Phase 1 plan (`docs/plan-phase-1.md`, "Verdict") asks three things of a forecast of conflict: skill of at least 0.02 with the lower end of a 97.5% interval above 0; skill above every whole-year circular shift, or above all but one of 99 year permutations; and a median shuffled skill under 0.01 in size. This test has drought as its outcome and its own rule, above: the lower end of a 95% interval above 0, 24 whole-year shifts, three baselines. Set beside the plan's marks: the first is met in size (the lower end is +0.120 at 95% and +0.110 at 97.5%, the second from 20,000 draws of the stored years); the second is met in its circular-shift form (above all 24) and the 99 permutations were not run; the third is not met as written, because the median shifted score is -0.120 and not near zero: fed the wrong years, the claims add error. The plan's question is about conflict and nothing here answers it.
 
 ### Independent check (2026-11-09, one fresh reader, 131k fresh tokens by the counter)
 
-A reviewer with no part in the work was given the rule text, the rows and the code, and asked to break the result. Its verdict: **"holds with these corrections"**, all of which are now made above.
+A reviewer with no part in the work was given the rule text, the rows and the code, and asked to break the result. Its verdict: **"holds with these corrections"**, all of which are now made above. Its report in full, its own implementation and its leak test are in `docs/reviews/2026-11-09-continents-independent-check/` (committed 2026-11-09 for the audit below; until then only this summary was public).
 
 - **Its own implementation from the rule text** (plain loops; from this repo only the data loaders and the region builder) gave the same S, squared errors, claims, lags, multipliers and baseline choice in every field, and pooled S +0.1712 with the same interval and shifted range.
 - **Leaks:** it replaced every drought and index value from 2000-01 onward with noise and refitted, in its code and in the project's. Nothing fitted changed. A forecast for month t reads nothing later than t-3; the index at lag 4 holds months t-5 to t-3, and the drought value at t covers t-2 to t.
@@ -187,4 +189,33 @@ A reviewer with no part in the work was given the rule text, the rows and the co
 
 ### What happens next
 
-An outlook for the months ahead from the 2026 El Niño, under its own rule written before it is computed (`results/outlook-2026-27.md`), and an independent check of this result by a fresh reader.
+An outlook for the months ahead from the 2026 El Niño, under its own rule written before it is computed (`results/outlook-2026-27.md`).
+
+### Audit of this result (2026-11-09), and what was changed for it
+
+The coordinating session audited this result and the outlook at commit 69c0242, as the project's brief requires once, at the Phase 1 result. Its report is held outside this repo. Its reading: **pass with conditions**, and extend the work to a driver whose answer is not known in advance. It recomputed the pooled score from the rows and found the rule, the code and the scoring in the order claimed. Its five conditions are closed in the commit that adds this section:
+
+1. Which of the plan's marks this result meets and which it does not: the last limit above. The stale clause promising an independent check "next" is gone from the line above; the check had been done.
+2. The independent reader's report and code are committed (`docs/reviews/2026-11-09-continents-independent-check/`).
+3. The makers' scaling of the drought index and of the ONI is recorded with its sources in `docs/data-sources.md` and `data/manifest.toml`, and the limits above name them. A re-scoring without that scaling is registered below as exploration.
+4. Four corrections: North America's multiplier (0.68); the outlook's count of regions pushed wetter in South and Southeast Asia (24, not 23); `STATUS.md` now says the reader found no leak from fitting, which is what it tested; the false alarms are given by run and by naming. And the summaries now say that North America's own interval starts at +0.007.
+5. The outlook's scoring rule names the drought file version (`results/outlook-2026-27.md`).
+
+**No claim about conflict, or about any link between domains, follows from this result. The project's own question is still open.** The audit asked for that sentence wherever the result is summarised, and it is right.
+
+### Exploration, registered 2026-11-09 before it is computed: does the makers' scaling move the score
+
+**Exploration on a spent period. It marks nothing, it can neither rescue nor sink the pass above, and no later rule may cite it as a test.** Two limits above say the drought file and the ONI each let later years into the level or scale of earlier values. This measures how far the score moves when that is taken out, as far as it can be here.
+
+On the four entered fields, at the region scale, the forecast step exactly as scored (`forecast.fit` on 1951 to 1999, scored on 2000 to 2024), four ways:
+
+- **A, as tested.** It must reproduce +0.171, and the script stops if it does not.
+- **B, drought re-scaled on the fitting years.** In each cell and calendar month, that cell-month's 1950 to 1999 mean is taken off and the values are divided by its 1950 to 1999 spread, before the clip at plus or minus 3 and the region averages. No year after 1999 then sets a cell's zero or its scale. This cannot undo the makers' fit of a distribution to the whole record, only its offset and scale, and it does nothing about the evaporation error.
+- **C, El Niño on a fixed base.** In place of the ONI: NOAA's monthly Niño 3.4 anomaly from the same sea-surface product (`nina34.anom.data` on PSL's list, ERSST v6, anomalies from 1981 to 2010; held since the candidate fetch of `results/real-indices.md`, whose rule set it aside as El Niño by another name), with each calendar month's 1950 to 1999 mean taken off, then a three-month mean centred on each month, as the ONI has. Its zero is set by the fitting years and does not move with time. It keeps the ocean's warming, which the ONI's moving base takes out.
+- **D, both.**
+
+The naming is not re-run: the search read 1950 to 1999 only, and this is about the scoring. Reported for each: pooled S with its interval, S by field, claims, multipliers and the baseline chosen; and for the two indices, their correlation and means in each period. Code: `scripts/explore_bases.py` (written with this rule; only A has been run, to check that it reproduces). Rows: `results/explore-bases.jsonl`.
+
+**Expectation, written first:** B moves the pooled S by less than 0.02. C lowers it, by up to 0.05, because slopes through zero are fed an index that sits higher after 2000 than the one they were fitted on. Nothing hangs on either guess.
+
+**How it will be worded.** If the interval stays above 0 in every variant, the two limits stand as written: stated, and small. If any variant's interval reaches 0, that is said in the summary of this result wherever it is given.

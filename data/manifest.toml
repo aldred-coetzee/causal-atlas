@@ -19,17 +19,17 @@ licence = "ODbL 1.0, contents DbCL 1.0; results need attribution and an ODbL not
 fetched = "2026-11-05"
 sha256 = "6bdb1fabdd1b955483bdfca5e7f963f5f0ba10e199bdbf20d999f40fb207aa05"
 coverage = "Global 0.5 degree, monthly, 1901-01 to 2024-12"
-known_biases = "Built from CRU TS; quality over Africa, where station data may be thin, not checked"
+known_biases = "Built from CRU TS; quality over Africa, where station data may be thin, not checked. Standardised by its makers on the whole 1901 to 2024 record, not a reference period, so later years set the level and scale of earlier values and every new release changes every value. Affected by the makers' acknowledged PET unit conversion error in versions 2.6 to 2.12.0 (fixed in 2.13.0; effect 'generally small', 'largest in arid regions'); sources in docs/data-sources.md"
 
 [oni]
 source_url = "https://psl.noaa.gov/data/correlation/oni.data"
 fetch_script = "scripts/fetch_oni.py"
 version = "File as fetched: ERSST v6, stated as of 2026-09-07"
-licence = "Public domain per https://www.weather.gov/disclaimer; no PSL-specific page found"
+licence = "Public domain per https://psl.noaa.gov/disclaimer/ (read 2026-11-09); credit NOAA/OAR/PSL"
 fetched = "2026-11-05"
 sha256 = "27af499bc406f8e5f5e9655013d2299a97d6a1cc92f27db30990b04dbc872f60"
 coverage = "Global index, monthly, 1950-01 to 2026-09"
-known_biases = "A 3-month running mean, so use at t-1; revised when the SST product changes"
+known_biases = "A 3-month mean centred on each month, so the value at t uses t+1; revised when the SST product changes. Measured against multiple centred 30-year base periods that move with time, so a value is set against an average that includes later years and the newest values are provisional; source in docs/data-sources.md"
 
 [natural_earth_countries]
 source_url = "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_0_countries.zip"

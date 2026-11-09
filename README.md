@@ -18,9 +18,17 @@ known. Among 31 decoys, the search named El Niño blind as a driver of drought o
 four continents and stayed silent in Europe. A forecast built from that, fitted
 on 1950 to 1999 and scored once on 2000 to 2024, had about a sixth less error
 (17%, between 12% and 22%) than a forecast from each region's own history, on the
-region-months where it made a claim. An earlier attempt on Africa missed and is
-published as a miss. The result, its limits and an independent check are in
-`results/real-enso-continents.md`.
+region-months where it made a claim. Each of the four passes by itself, North
+America narrowly (its own interval starts just above zero). An earlier attempt on
+Africa missed and is published as a miss. The result, its limits, an independent
+check and an audit are in `results/real-enso-continents.md`; the independent
+reader's report and code are in `docs/reviews/`.
+
+This is a climate-to-climate link. No claim about conflict, or about any link
+between domains, follows from it, and the question below is still open. One limit
+touches every number here: the drought file used carries an error its makers have
+acknowledged (small, they say, and largest in dry regions), and a corrected file
+is not yet out.
 
 From that tested model there is a dated outlook for November 2026 to September
 2027, with the rule for scoring it fixed in advance: `results/outlook-2026-27.md`.
@@ -57,6 +65,7 @@ makes no model calls: it is deterministic at runtime.
   licence requires.
 - `docs/plan-phase-1.md`: the first design, on synthetic data.
 - `docs/decisions/`: decision records, immutable once written.
+- `docs/reviews/`: reports of independent checks, as written, with their code.
 - `results/`: one file per experiment, its rule committed before its numbers.
 - `data/manifest.toml`: versions and checksums. `scripts/`: fetch scripts.
 

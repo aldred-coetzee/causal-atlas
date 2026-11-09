@@ -35,6 +35,13 @@ When a release of the drought file covering these months is fetched, model A's t
 - For each part: S as in the confirmation (1 minus the model's squared error over the baseline's, on the claimed region-months with a term), and the share of signals whose outcome fell on the term's side of the baseline.
 - **A hit for part 2: S above 0 and more than half of the signals on the right side.** No interval can be drawn from under three years and one event; it will be reported as one event and not as a test of the method.
 
+*Added 2026-11-09, before any drought value after 2024-12 is held, to close a condition of the audit recorded in `results/real-enso-continents.md`.* **Which drought file, and what a new one changes.** The terms and the saved coefficients were fitted on SPEIbase 2.11.0 (built from CRU TS 4.09, ending 2024-12; checksum in `data/manifest.toml`). That version will never cover these months. A later release differs in two ways. Its makers fit the index to the whole record each time, so with more years every value moves a little, back to 1901. And the makers say releases 2.6 to 2.12.0, ours among them, carry an error in the evaporation side of the index, corrected from 2.13.0: "The effect is generally small, but it is largest in arid regions" (<https://raw.githubusercontent.com/sbegueria/SPEIbase/master/README.md>, read 2026-11-09). So the outcome will be on a slightly different scale from the one the coefficients were fitted on. Fixed now:
+
+- The scoring uses the first SPEIbase release of the three-month index that covers the part being scored, with its version and checksum entered in the manifest when fetched. The makers' corrected series is the better measurement, and it is not passed over for an uncorrected one in order to match.
+- The terms and the saved baseline coefficients are used as committed. Nothing is refitted or rescaled. The earlier months the baseline reads are taken from the same new file.
+- Beside the score, as description: on region averages for 2000-01 to 2024-12, the correlation and the mean absolute difference between the new file and the one held now, by field; and the tested model's S on 2000 to 2024 recomputed on the new file with everything frozen, to set beside +0.171.
+- If that recomputed S is further than 0.03 from +0.171, the outlook's score is reported as made on a changed scale, and a hit is not called a clean one. This can only weaken a claimed hit.
+
 ## Limits
 
 - **One driver.** Everything else that moves drought in these months is absent. The term is a push, not a forecast of the index.
@@ -44,7 +51,8 @@ When a release of the drought file covering these months is fetched, model A's t
 - **One slope per region and calendar month**, averaging El Niño and La Niña, which are not mirror images.
 - **Most claims are at the shortest lag (four months)**, so most of the outlook reaches only to January 2027. Later months rest on fewer claims at longer lags.
 - **Regions are 10-degree squares.** Nothing here is about a town, a farm or a person.
-- All the limits in `results/real-enso-continents.md`.
+- All the limits in `results/real-enso-continents.md`. One was added there on 2026-11-09, after this outlook was published: the held drought file carries an evaporation error its makers have acknowledged, largest in dry regions. The model behind these terms was fitted on that file. Australia, where nearly every region carries a signal, is the driest of the four fields.
+- Nothing here is about conflict, or about any link between domains.
 
 ## Estimates
 
@@ -83,7 +91,7 @@ The larger the term, the more often the outcome went its way, and the terms were
 | Field | Push | Signals (regions) | Months | Median term | Region centres fall in |
 |---|---|---|---|---|---|
 | South and Southeast Asia | Drier | 91 (36) | Nov to Feb | -1.07 | Indonesia and the seas among its islands, Malaysia, the Philippines, Papua New Guinea; a few in India and Bangladesh |
-| South and Southeast Asia | Wetter | 35 (23) | mostly Jan, then Mar to Aug | +0.95 | China, Japan; a few in Malaysia, India, Pakistan |
+| South and Southeast Asia | Wetter | 35 (24) | mostly Jan, then Mar to Aug | +0.95 | China, Japan; a few in Malaysia, India, Pakistan |
 | Australia | Drier | 90 (42 of 49) | Nov to Jan | -0.51 | Australia, nearly all of it |
 | South America | Drier | 113 (33) | Nov to Apr | -0.76 | Brazil north of 19°S, Venezuela, Colombia, Guyana, Suriname, French Guiana, Panama |
 | South America | Wetter | 59 (27) | Nov to Feb | +0.84 | Argentina, southern Brazil, Chile, Uruguay, Paraguay |
@@ -93,6 +101,8 @@ The larger the term, the more often the outcome went its way, and the terms were
 The strongest single terms: about -1.5 for November over New Guinea and Borneo (centres near 3°S 135°E and 4°S 115°E), about +1.4 to +1.5 for December over southern Brazil and Uruguay (near 30°S 53°W), and about -1.4 for January and February over Guyana and eastern Venezuela (near 6°N 58°W).
 
 **Registered for later scoring:** 1,749 terms under the tested model in all: 1,318 for 2025-01 to 2026-10 (148 signals) and the 431 above.
+
+*Corrected 2026-11-09:* the table first gave 23 regions for South and Southeast Asia pushed wetter. The rows hold 24; two of them have centres that print alike.
 
 ### What this says
 

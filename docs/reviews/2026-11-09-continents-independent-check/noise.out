@@ -1,0 +1,5 @@
+south_america linear k=0.764 claims 353 [183, 57, 49, 40, 15, 4, 1, 0, 4] S=-22.9601 model=1807.15 {'zero': 59.48, 'level': 112.38, 'linear': 75.42} corrdiff=5.6e-16
+australia linear k=0.467 claims 113 [70, 37, 3, 0, 1, 1, 0, 1, 0] S=-6.1205 model=320.99 {'zero': 20.46, 'level': 39.73, 'linear': 45.08} corrdiff=6.7e-16
+south_southeast_asia linear k=0.772 claims 260 [205, 22, 13, 6, 0, 2, 1, 3, 8] S=-22.9954 model=1458.60 {'zero': 56.27, 'level': 76.92, 'linear': 60.79} corrdiff=6.7e-16
+north_america linear k=0.675 claims 57 [36, 5, 5, 7, 1, 3, 0, 0, 0] S=-12.4150 model=196.21 {'zero': 11.22, 'level': 18.38, 'linear': 14.63} corrdiff=5.6e-16
+europe zero k=0.000 claims 0 [0, 0, 0, 0, 0, 0, 0, 0, 0] S=nan model=0.00 {'zero': 0.0, 'level': 0.0, 'linear': 0.0} corrdiff=5.0e-16
