@@ -63,3 +63,42 @@ Those of the first rule, and:
 ## Estimates
 
 About 25 minutes of machine time for both steps. Tokens to this report: about 150k.
+
+## Results (2026-11-09, discovery years only; the confirmation years are untouched)
+
+Rows: `results/real-enso-drought-2.jsonl` (140). Run as committed, no deviation. Machine time 15 minutes.
+
+**Every mark passed.**
+
+| Mark | Rule | Measured |
+|---|---|---|
+| Instrument check | Link of 40% of variance over 25% of cells found in at least 9 of 10; at least 80% of claims in the planted cells | **10 of 10.** 91% to 99% of claims in the planted cells |
+| D1 | El Niño a lead in at least 18 of 20 | 20 of 20 (by the broad gate in all 20; by the sharp gate too in 7) |
+| D2 | A decoy a lead in at most 2 of 20 | 1 of 20 |
+| D3 | El Niño left out: any lead in at most 2 of 20 | 1 of 20 |
+| D4 | Years shuffled: any lead in at most 2 of 20 | 0 of 20 |
+| D5 | Carried from the first results file | Passed there |
+
+The one false alarm in D2 and the one in D3 are the same decoy in the same set (seed 11220), named by the sharp gate: its largest correlation with a region's average was 0.681 against a bar of 0.678 from the other candidates' shifts. That is the kind of false alarm two gates buy, at about the rate the rule allowed for. In the 80 ruler runs no decoy was named.
+
+**The ruler: what this search hears in 49 years.**
+
+| Share of variance in the linked cell-months | Over 5% of cells | Over 25% of cells |
+|---|---|---|
+| 2% | 0 of 10 | 0 of 10 |
+| 5% | 0 of 10 | 0 of 10 |
+| 15% | 0 of 10 | 5 of 10 |
+| 40% | 9 of 10 | 10 of 10 |
+
+Against the first search: a strong link confined to a twentieth of the continent went from 0 of 10 to 9 of 10, and a moderate one over a quarter from 1 of 10 to 5 of 10. Nearly all of that is the sharp gate. El Niño was a lead in all 80 ruler runs. Where the planted link was found, 85% to 100% of its claimed cell-month-lags were in the planted cells.
+
+### What this says
+
+- **The engine now names a continental driver and a strong regional one, blind, on the real field, among 31 decoys, with false alarms inside the allowed rate.** D1 to D5 were not blind this time; the instrument check and the ruler were, on seeds never used before.
+- **The limit, to print beside anything it finds later:** a link has to explain something like 40% of the variance of a region about the size of a 10-degree square, in one season, to be heard reliably; 15% is heard half the time if it covers a quarter of the continent; 5% and below are not heard at all. The bar it must clear, a correlation of about 0.7 between a candidate and a region's seasonal average, comes from searching 32 candidates over 137 regions, 13 lags and 12 months with 49 years. More years or fewer candidates lower it; nothing else here does.
+- **Against the reading on real effect sizes** (`docs/reading/real-link-sizes.md`): published climate to conflict effects are far below this limit. Climate to climate links such as this one are not. That says which kind of data set to add next: ones where a physical link of this size is plausible.
+- El Niño itself sits just under the sharp gate's bar (0.688) and is named because it is everywhere. The sharp gate alone named it in 7 of 20 sets, so a driver of El Niño's local strength confined to one region would often be missed.
+
+### What happens next
+
+Discovery is frozen at this commit. The confirmation is run once, as fixed in the first rule: does El Niño improve a forecast of drought at least three months ahead, beyond each cell's own history, season and neighbours, on 2000 to 2024.
