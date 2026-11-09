@@ -120,7 +120,7 @@ Reported, marking nothing:
 - The signs and places are the textbook ones, found with no box drawn: dry over northern South America, northern Australia and the maritime continent, wet over the southern United States in late winter. These were not marks, because our reading gave them only from a scanned map.
 - **Europe is the quiet control the design did not have before:** the same engine, the same candidate, a field where El Niño's reach is weak, and it named nothing real in 20 sets.
 - On these fields the sharp gate does most of the naming (in Australia all of it). On Africa it was the broad gate. The two gates are both needed.
-- False alarms, all eleven runs: five from the sharp gate by a margin of 0.02 or less over its bar, six from the broad gate. The 3 of 100 with the ONI left out are the same decoy sets as the 3 with it in, as on Africa.
-- Africa's one miss carried over: no ruler was run here, so what the search cannot hear on these fields is not measured.
+- False alarms, all eleven runs: four from the sharp gate (by 0.004 to 0.014 over its bar in the three where the row holds the bar that applied) and seven from the broad gate. The 3 of 100 with the ONI left out are the same decoy sets as the 3 with it in, as on Africa.
+- No ruler was run here, so what the search cannot hear on these fields is not measured.
 
 **Entering step 2** (the ONI a lead in at least 18 of 20): South America, Australia, South and Southeast Asia, North America. Europe does not enter and is scored for the record only.
