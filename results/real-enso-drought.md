@@ -140,3 +140,15 @@ What this says, and no more:
 - **The El Niño term carries real information:** with the true years it does much better than with any of the 24 wrong alignments. But as fitted on 1950 to 1999 it adds more error than it removes. Two readings fit that, and this result does not tell them apart: the slopes are too large because each was picked as the best of 9 lags among thousands of cells, or the link itself changed after 2000 (the review this test rests on says it did, in both regions).
 - **The baseline is poor on these years.** Fitted on 1950 to 1999, it does worse on 2000 to 2024 than a flat guess. So "beyond the baseline" was a low bar here and the El Niño term still did not clear it.
 - **The confirmation period is now spent for this driver and this field.** Anything further computed on Africa's 2000 to 2024 drought with El Niño is exploration and is labelled so; it cannot confirm anything.
+
+### After the miss: why (exploration on a spent period; marks nothing, confirms nothing)
+
+`scripts/diagnose_enso.py`, run once after the row above was committed.
+
+- **The link held; its size did not.** In 81% of the claimed cell-months the slope on 2000 to 2024 has the same sign as on 1951 to 1999, but the median new slope is about a third of the old one (0.35). The claims were each the best of 9 lags, kept only if they cleared a high bar, so they were the lucky ones and their slopes were too large. Cut to a half or a quarter, the same claims would have scored S of about +0.02 to +0.03 here. That is a number chosen after the fact and is not a result.
+- **Where it is strongest, it did help as fitted:** southern Africa S = +0.07 on 556 claimed cell-months; East Africa -0.01 on 175; Sahel -0.06 on 55. Regions were not in the rule, so this is a description.
+- **Most claims sit at the shortest lag allowed** (1,400 of 2,256 at lag 4; 188 at lag 12). The signal is strongest close in.
+- **The whole field shifted.** Its average was +0.11 over 1951 to 1999 and -0.39 over 2000 to 2024: Africa was drier on this index in the later years. The baseline, which has no way to follow a shift in level, was only 5% to 6% better than always guessing zero.
+- By year S swings from -1.12 to +0.55; the worst years are not simply the strong El Niño years.
+
+What it changes for the next round, which needs untouched data: slopes must be sized honestly inside the discovery years (with the picking redone in every fold), the baseline must be able to follow a level shift, and the claim should be made at the scale the search hears, the region. The same drought file holds every other continent, never read by this project, so the next confirmation can be on fields nothing here has seen.
