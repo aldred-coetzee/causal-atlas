@@ -68,13 +68,18 @@ def box(name):
     return z["y"], z["lat"], z["lon"]
 
 
-def oni():
-    """The ONI by month on the same clock. The value at month t is a 3-month mean centred on t, so it uses month t + 1."""
+def series(name):
+    """A monthly index in NOAA PSL's layout (a year, then twelve values) on the same clock. Every month must be present."""
     rows = {}
-    for line in open(RAW / "oni.data"):
+    for line in open(RAW / name):
         p = line.split()
         if len(p) == 13 and p[0].isdigit():
             rows[int(p[0])] = [float(v) for v in p[1:]]
     x = np.array([rows[y] for y in range(FIRST_YEAR, LAST_YEAR + 1)]).ravel()
     assert x.size == MONTHS and (x > -90).all()
     return x
+
+
+def oni():
+    """The ONI by month on the same clock. The value at month t is a 3-month mean centred on t, so it uses month t + 1."""
+    return series("oni.data")

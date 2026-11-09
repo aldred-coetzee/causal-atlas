@@ -40,3 +40,241 @@ fetched = "2026-11-05"
 sha256 = "ce1ac7036499a0edd641fbc093cd209a98f96a49d2eca8480aaacad35138a7f6"
 coverage = "55 African countries used for the land mask and country lookup"
 known_biases = "Boundaries are one editorial view and fixed in time"
+
+# Candidate series from NOAA PSL's page of monthly time series, fetched together for results/real-indices.md (decision 0043).
+# All 96 files the page names are fetched to apply the candidate rule (scripts/index_candidates.py); the 25 it lets in have entries here. Each is complete for 1950-01 to 2024-12.
+# Known biases, all: the makers revise them, so a checksum records one fetch; several are patterns or anomalies computed with years after 1999; this project re-centres and re-scales each on its own 1950 to 1999 months.
+
+[candidates_listing]
+source_url = "https://psl.noaa.gov/data/timeseries/month/"
+fetch_script = "scripts/index_candidates.py"
+version = "Page and each series' keyvalues.json as read 2026-11-09: 89 series pages naming 96 files, two of which returned 404"
+licence = "see each entry; PSL disclaimer: https://psl.noaa.gov/disclaimer/"
+fetched = "2026-11-09"
+sha256 = "b047ad9c0b6c8736a6d96fc15303771437440c7fea249ac39fd65b696b06509d"
+coverage = "The list of files, their addresses and PSL's source notes; the checksum is of the listing this project wrote from them"
+
+[candidates."tni.long.data"]
+source_url = "https://psl.noaa.gov/data/timeseries/month/data/tni.long.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; Trans-Niño Index"
+licence = "public domain (PSL disclaimer); computed from HadISST1.1, Crown copyright, Open Government Licence, cite Rayner et al. (2003)"
+fetched = "2026-11-09"
+sha256 = "f9b893390408c022e449f24580cb8d921c3c9e22c73433ba07293745a7237af3"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[candidates."amm.data"]
+source_url = "https://psl.noaa.gov/data/timeseries/month/data/amm.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; Atlantic Meridional Mode, sea-surface temperature"
+licence = "no licence stated by its maker (D. Vimont, U Wisconsin), who asks for the credit in docs/data-sources.md"
+fetched = "2026-11-09"
+sha256 = "07cf2a9f5648acab841a87b84cd3fa385f77c869beb1f0020dfa10871b937524"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[candidates."pmm.data"]
+source_url = "https://psl.noaa.gov/data/timeseries/month/data/pmm.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; Pacific Meridional Mode, sea-surface temperature"
+licence = "no licence stated by its maker (D. Vimont, U Wisconsin), who asks for the credit in docs/data-sources.md"
+fetched = "2026-11-09"
+sha256 = "4c6a705e67d020d8c0ed33d0952a40467eaad77d0de0c8bfbf1d823b2dfa60db"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[candidates."pmmwind.data"]
+source_url = "https://psl.noaa.gov/data/timeseries/month/data/pmmwind.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; Pacific Meridional Mode, wind"
+licence = "no licence stated by its maker (D. Vimont, U Wisconsin), who asks for the credit in docs/data-sources.md"
+fetched = "2026-11-09"
+sha256 = "ca4d95ccff91912b15443812a23b47ef378a7e1633e3ebd2412731188ba70977"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[candidates."dmi.had.long.data"]
+source_url = "https://psl.noaa.gov/data/timeseries/month/data/dmi.had.long.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; Dipole Mode Index (Indian Ocean Dipole)"
+licence = "public domain (PSL disclaimer); computed from HadISST1.1, Crown copyright, Open Government Licence, cite Rayner et al. (2003)"
+fetched = "2026-11-09"
+sha256 = "e243536c69444c7348fa6ea26ec39dec20094bdcac2436284348909826f804c2"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[candidates."dmieast.had.long.data"]
+source_url = "https://psl.noaa.gov/gcos_wgsp/Timeseries/Data/dmieast.had.long.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; Dipole Mode Index, eastern box"
+licence = "public domain (PSL disclaimer); computed from HadISST1.1, Crown copyright, Open Government Licence, cite Rayner et al. (2003)"
+fetched = "2026-11-09"
+sha256 = "d26e4a1b84f64079d02a746d4dde98f3cca075a29226231439ca9d00c16f51a1"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[candidates."npgo.data"]
+source_url = "https://psl.noaa.gov/data/correlation/npgo.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; North Pacific Gyre Oscillation"
+licence = "no licence stated by its maker (E. Di Lorenzo), who asks for a citation of Di Lorenzo et al. (2008)"
+fetched = "2026-11-09"
+sha256 = "29a9b52390aa255c4c29332c05fd203694d4ff1733cec466b5e7a3a34b9f014b"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[candidates."pdo.timeseries.sstens.data"]
+source_url = "https://psl.noaa.gov/data/timeseries/month/data/pdo.timeseries.sstens.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; Pacific Decadal Oscillation, PSL's from three sea-surface-temperature products"
+licence = "public domain (PSL disclaimer); inputs include HadISST1.1 (Open Government Licence)"
+fetched = "2026-11-09"
+sha256 = "bc7e5234357c0ceb269af8c7604881e27eeea17534b4f86f6359171f29cca614"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[candidates."tna.data"]
+source_url = "https://psl.noaa.gov/data/correlation/tna.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; Tropical North Atlantic sea-surface temperature"
+licence = "public domain (PSL disclaimer); computed from HadISST1.1, Crown copyright, Open Government Licence, cite Rayner et al. (2003)"
+fetched = "2026-11-09"
+sha256 = "4eec8e293c601073994970ed06db95573283105b0de0210aefca078f9441b637"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[candidates."tsa.data"]
+source_url = "https://psl.noaa.gov/data/correlation/tsa.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; Tropical South Atlantic sea-surface temperature"
+licence = "public domain (PSL disclaimer); computed from HadISST1.1, Crown copyright, Open Government Licence, cite Rayner et al. (2003)"
+fetched = "2026-11-09"
+sha256 = "b36dab40119486d3214b313dbd50514027c2bcb6aa866733e918181a20f4f4a7"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[candidates."whwp.data"]
+source_url = "https://psl.noaa.gov/data/correlation/whwp.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; Western Hemisphere Warm Pool"
+licence = "public domain (PSL disclaimer)"
+fetched = "2026-11-09"
+sha256 = "bc049d188fb7ff9242c131a4b61b6b1155e42456bbef9ece315eafb10f57b4ec"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[candidates."ao.long.data"]
+source_url = "https://psl.noaa.gov/data/timeseries/month/data/ao.long.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; Arctic Oscillation"
+licence = "public domain (PSL disclaimer); from NOAA CPC"
+fetched = "2026-11-09"
+sha256 = "4ebfd2afd3e35073b6312462d1ffc8be01466ee83f125055948a3cfa24ce532a"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[candidates."ea.data"]
+source_url = "https://psl.noaa.gov/data/correlation/ea.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; East Atlantic pattern"
+licence = "public domain (PSL disclaimer); from NOAA CPC"
+fetched = "2026-11-09"
+sha256 = "584d4048352f24ce59b71e5aeb2dc5369b2a32a6a134216c08419e44dc5cff5c"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[candidates."noi.data"]
+source_url = "https://psl.noaa.gov/data/correlation/noi.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; Northern Oscillation Index"
+licence = "public domain (PSL disclaimer); from NOAA Oceanview"
+fetched = "2026-11-09"
+sha256 = "ec8d515e386367ae1c366df1319a555241d36a677392cf7b60c43871d7379625"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[candidates."np.long.data"]
+source_url = "https://psl.noaa.gov/data/timeseries/month/data/np.long.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; North Pacific index"
+licence = "public domain (PSL disclaimer); NCAR's method and pressure grids, usage restrictions 'None' on NCAR's page; credit Trenberth and Hurrell (1994)"
+fetched = "2026-11-09"
+sha256 = "6b2156553c829a3d52a3c8e6a55da689dd5c69528afb3d4085541ad10c041a96"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[candidates."pna.data"]
+source_url = "https://psl.noaa.gov/data/correlation/pna.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; Pacific/North American pattern"
+licence = "public domain (PSL disclaimer); from NOAA CPC"
+fetched = "2026-11-09"
+sha256 = "aa5d9cf4b2b8398e58013dffaf3cb70dfe8199fc3d7b77df4f7d54b48777ea21"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[candidates."scand.data"]
+source_url = "https://psl.noaa.gov/data/correlation/scand.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; Scandinavia pattern"
+licence = "public domain (PSL disclaimer); from NOAA CPC"
+fetched = "2026-11-09"
+sha256 = "264f73064bd2c1354f4e499bdc4e6aee641e90b2b227d9fb408083fdc54f7bf5"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[candidates."wp.data"]
+source_url = "https://psl.noaa.gov/data/correlation/wp.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; West Pacific pattern"
+licence = "public domain (PSL disclaimer); from NOAA CPC"
+fetched = "2026-11-09"
+sha256 = "caf4446a127dfeaf8d97614d6398ed65d37fc5276b7e3750e2fddcb96477f2bc"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[candidates."gbi.mon.data"]
+source_url = "https://psl.noaa.gov/data/timeseries/month/data/gbi.mon.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; Greenland Blocking Index"
+licence = "no licence stated (U of Lincoln); cite Hanna et al. (2016), doi:10.1002/joc.4673"
+fetched = "2026-11-09"
+sha256 = "69162fa48771d8a21cd2970c82f665016f5a33e12c9c93e1b8d52afc030635a8"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[candidates."qbo.50mb.data"]
+source_url = "https://psl.noaa.gov/data/correlation/qbo.50mb.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; Quasi-Biennial Oscillation, wind at 50 mb"
+licence = "public domain (PSL disclaimer)"
+fetched = "2026-11-09"
+sha256 = "927bfbbcc4f0b0a438dafe862348af6bb6da4291ed8304d63a1c35e36e5d3283"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[candidates."qbo.data"]
+source_url = "https://psl.noaa.gov/data/correlation/qbo.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; Quasi-Biennial Oscillation, wind at 30 mb"
+licence = "public domain (PSL disclaimer)"
+fetched = "2026-11-09"
+sha256 = "2d06ed3d14b28e948d55098ff4ce9bbd894d4eeac1fbb17e5d9895efe9d7afb0"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[candidates."nao_gib.long.data"]
+source_url = "https://psl.noaa.gov/data/timeseries/month/data/nao_gib.long.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; PSL's NAO_GIB: the Gibraltar pressure series of the North Atlantic Oscillation"
+licence = "ODbL (CRU's page), attribute the Climatic Research Unit, University of East Anglia; cite Jones et al. (1997)"
+fetched = "2026-11-09"
+sha256 = "bbca1ac0e4303c310d49325051841370f4d1cb773ed883c89214c9b922e8a50b"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[candidates."nao_ice.long.data"]
+source_url = "https://psl.noaa.gov/data/timeseries/month/data/nao_ice.long.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; PSL's NAO_ICE: the Iceland pressure series of the North Atlantic Oscillation"
+licence = "ODbL (CRU's page), attribute the Climatic Research Unit, University of East Anglia; cite Jones et al. (1997)"
+fetched = "2026-11-09"
+sha256 = "c147c19620f30bb93ab1d53982df769840b863ed36806cf81005443684fcca4a"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[candidates."sunspot.long.data"]
+source_url = "https://psl.noaa.gov/data/timeseries/month/data/sunspot.long.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; Sunspot number, version 1.0"
+licence = "CC BY-NC 4.0 (SILSO, Royal Observatory of Belgium); credit WDC-SILSO; non-commercial use only"
+fetched = "2026-11-09"
+sha256 = "75fdd9ed3da52305e41a406ad81389e813ea39c499b3f677d9c55e4109b064ba"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[candidates."tornado.us.mon.data"]
+source_url = "https://psl.noaa.gov/data/correlation/tornado.us.mon.data"
+fetch_script = "scripts/index_candidates.py"
+version = "File as fetched; United States tornado count"
+licence = "public domain (PSL disclaimer); from NOAA Storm Prediction Center"
+fetched = "2026-11-09"
+sha256 = "3cb2500c0084c75e944b35df5325b4cc94c11d34cdb7a79234b0081c17d1aad0"
+coverage = "One series, monthly, 1950-01 to 2024-12 complete"

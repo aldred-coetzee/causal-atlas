@@ -6,6 +6,10 @@ from causal_atlas.screen import gate
 
 LAGS = tuple(range(13))
 Q = 0.05
+TILE = 10.0
+STEP = 5.0
+MIN_CELLS = 40
+K = 5
 
 
 def unit(a):
@@ -35,12 +39,12 @@ def strengths(ym, x, years, shifts, lags=LAGS):
     return out
 
 
-def search(y, drivers, years, shifts, lags=LAGS):
+def search(y, drivers, years, shifts, lags=LAGS, most=K):
     """T by driver and shift, the sum over lags and months of the mean squared correlation, with the gate's leads and its top five."""
     ym = by_month(y, years)
     f = np.stack([strengths(ym, x, years, shifts, lags) for x in drivers])
     t = f.sum(axis=(2, 3))
-    leads, top, z = gate(t)
+    leads, top, z = gate(t, most)
     return {"leads": leads, "top": top, "z": z, "t": t, "f": f[:, 0]}
 
 
@@ -58,11 +62,6 @@ def significant(r, n, q=Q):
     ok = flat <= q * np.arange(1, flat.size + 1) / flat.size
     return p <= (flat[ok].max() if ok.any() else -1.0)
 
-
-TILE = 10.0
-STEP = 5.0
-MIN_CELLS = 40
-K = 5
 
 
 def tiles(lat, lon, size=TILE, step=STEP, least=MIN_CELLS):
@@ -97,13 +96,13 @@ def step_down(c, most=K):
     return leads, [int(i) for i in order[:most]]
 
 
-def both(y, drivers, years, shifts, lat, lon, lags=LAGS):
+def both(y, drivers, years, shifts, lat, lon, lags=LAGS, most=K):
     """Two gates, a driver named by either. Broad: search(), the continent's total over all lags and months. Sharp: the largest correlation with any one tile's mean series at one lag and month."""
-    broad = search(y, drivers, years, shifts, lags)
+    broad = search(y, drivers, years, shifts, lags, most)
     tm = by_month(tiles(lat, lon) @ y, years)
     found = [sharpest(tm, x, years, shifts, lags) for x in drivers]
     e = np.array([f[0] for f in found])
-    leads, top = step_down(e)
+    leads, top = step_down(e, most)
     return {
         "leads": broad["leads"] + [i for i in leads if i not in broad["leads"]],
         "broad": {"leads": broad["leads"], "top": broad["top"], "z": [round(float(v), 3) for v in broad["z"]]},

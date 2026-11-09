@@ -121,12 +121,27 @@ def score(model, x, years):
     return a, out[0], np.array(out[1:])
 
 
-def skill(base, model, shifted, seed=0):
-    """S = 1 - model / baseline over the years given, its 95% interval from draws of years, and S under each shift."""
+def residual(model, x, years):
+    """What a model leaves of its baseline's residual, on every month: the residual less the sized term where it claims. years are all the years after the first."""
+    e = model["e"].copy()
+    t = model["k"] * term(x, years, model["lag"], model["slope"])
+    e[:, 12:] -= np.where(model["claimed"].T[:, None, :], t, 0).reshape(len(e), -1)
+    return e
+
+
+def after(e, z, split):
+    """A further driver fitted to what an earlier model left: its claims, slopes and multiplier from months before split, in the shape score() takes."""
+    years = np.arange(1, split // 12)
+    lag, claimed, slope = claims(e, e, z, years)
+    return {"e": e, "lag": lag, "claimed": claimed, "slope": slope, "k": multiplier(e, e, z, years)}
+
+
+def skill(base, model, shifted, seed=0, level=0.95, draws=DRAWS):
+    """S = 1 - model / baseline over the years given, its interval at the level given from draws of years, and S under each shift."""
     if not base.sum():
         return {"s": float("nan"), "ci": [float("nan")] * 2, "shifted": [], "beats": 0}
-    draws = np.random.default_rng(seed).integers(len(base), size=(DRAWS, len(base)))
-    boot = 1 - model[draws].sum(axis=1) / base[draws].sum(axis=1)
+    picks = np.random.default_rng(seed).integers(len(base), size=(draws, len(base)))
+    boot = 1 - model[picks].sum(axis=1) / base[picks].sum(axis=1)
     s = 1 - model.sum() / base.sum()
     sh = 1 - shifted.sum(axis=1) / base.sum()
-    return {"s": float(s), "ci": [float(v) for v in np.percentile(boot, [2.5, 97.5])], "shifted": [round(float(v), 4) for v in sh], "beats": int((s > sh).sum())}
+    return {"s": float(s), "ci": [float(v) for v in np.percentile(boot, [50 * (1 - level), 50 * (1 + level)])], "shifted": [round(float(v), 4) for v in sh], "beats": int((s > sh).sum())}

@@ -72,18 +72,18 @@ def scaled(t):
     return np.divide(t - t.mean(axis=1, keepdims=True), sd[:, None], out=np.zeros_like(t), where=sd[:, None] > 0)
 
 
-def gate(t):
+def gate(t, most=K):
     """The search-wide gate on one form's T, columns by shifts, unshifted first. Returns the leads, stepping down to K, and the top K forced. Each lead's p is 1/33. All 33 values share one scale, or the unshifted one wins on noise (results/r2-screen.md)."""
     z = scaled(t)
     order = np.argsort(-z[:, 0], kind="stable")
     leads = []
     left = np.ones(len(z), bool)
-    for c in order[:K]:
+    for c in order[:most]:
         if z[c, 0] <= z[left, 1:].max():
             break
         leads.append(int(c))
         left[c] = False
-    return leads, [int(c) for c in order[:K]], [float(z[c, 0]) for c in order[:K]]
+    return leads, [int(c) for c in order[:most]], [float(z[c, 0]) for c in order[:most]]
 
 
 def lead_columns(series, chosen, months):
