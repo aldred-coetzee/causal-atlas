@@ -96,7 +96,7 @@ Naming: about 40 minutes of machine time. Forecast check: about 10. Tokens to th
 
 ## Results, step 1: naming (2026-11-09, discovery years only; 2000 to 2024 on these fields untouched)
 
-Rows: `results/real-enso-continents.jsonl` (305: 300 runs and one `where` row per field). Run as committed, no deviation. Machine time about 35 minutes.
+Rows: `results/real-enso-continents.jsonl` (305: 300 runs and one `where` row per field). Run as committed, no deviation. Machine time about 15 minutes (corrected after the independent check: this first said 35; the run's log runs from 22:26:52 to 22:41:20 local time, starting 42 seconds after the rule's commit).
 
 **Every naming mark passed.**
 
@@ -150,7 +150,7 @@ By field, region averages. The first four entered the pooled score; each also me
 Reported, marking nothing:
 
 - **Single cells:** pooled S +0.137, interval +0.093 to +0.180, larger than all 24 shifted (-0.217 to -0.031), below every baseline alone. By field +0.131, +0.100, +0.172, +0.089, each with its interval above 0. Europe: no claim in 56,520 cell-months.
-- **By year, pooled regions:** the model had less error than the baseline in 22 of the 25 years. The three where it was worse (2001, 2013, 2014) were worse by 1% to 5%. The gain does not rest on one event: the largest years are 2015 (+0.39), 2011 (+0.35), 2010 and 2022 (+0.32), and no year carries more than 7% of the error being explained.
+- **By year, pooled regions:** the model had less error than the baseline in 22 of the 25 years. The three where it was worse (2001, 2013, 2014) were worse by 1% to 5%. The largest years are 2015 (+0.39), 2011 (+0.35), 2010 and 2022 (+0.32). Of the whole reduction in error, 2015 carries 13%, 2010 11%, 2022 and 2011 8% each. The gain does not rest on one event: without 2015, S is +0.158; without 2015 and 2016, +0.152; without 2010, 2011, 2015 and 2016, +0.130; without those and 2023 and 2024, +0.124. (Corrected after the independent check: this first said no year carried more than 7%, which was each year's share of the baseline's error, not of the gain.)
 - **Lags claimed:** 494 of the 783 claims in the four fields are at lag 4, the shortest allowed.
 - **How good the baseline is by itself:** against guessing zero on all region-months of 2000 to 2024, +0.10 in South America, +0.02 to +0.04 in the other three. At three months ahead a region's own drought history says little; that is the bar El Niño had to clear, and it is a low one in absolute terms.
 - The inner blocks chose k between 0.47 and 0.77 here against 0.39 on Africa: where the link is stronger the slopes need less shrinking, and the rule found that without being told.
@@ -169,6 +169,21 @@ Those in "Limits it carries" above, and three that matter for reading the number
 - **The drought index is standardised over its whole record by its makers**, 1901 to the present, so each value's scale carries a little information from later years. That touches the target and the baseline's inputs alike and cannot tell the model which way a given month went, but it is not a strictly out-of-time quantity and is said here.
 - **The gain is measured on the region-months the method chose to speak about** (19% of them in the four fields). On the rest it makes no forecast beyond the baseline.
 - **The link is one whose existence was known to the author before the test**, and the five boxes were drawn with that knowledge (four where a link is published, one where it is not). What was blind: which candidate among 32 the search would name, where, when, how large, and every number on 2000 to 2024.
+
+- **The El Niño index is not strictly out of time either.** Its maker measures each five-year stretch against a 30-year average centred on it: "There will be multiple centered 30-year base periods that will be used to define the Oceanic Niño index", for example "ONI values during 1950-1955 will be based on the 1936-1965 base period" (NOAA CPC, <https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ONI_change.shtml>, read 2026-11-09). So an index value in the 1990s is measured against an average that includes the 2000s, and the file is the 2026 version of the sea-surface record. Like the drought index's scaling, that cannot tell the model which way a given month went.
+- **The forecast step was tuned on Africa's 2000 to 2024**, and those years hold the same El Niño events as the years scored here. The design was shaped by these events, though not by these places. Africa itself scores only +0.033 under it.
+- **The shifted control adds little once the interval is above 0.** A slope fed the wrong years can only add error, so every shifted value comes out near or below zero. It guards against a score that is positive for a reason unrelated to the driver's timing; it is not a second, independent test.
+- **The script's refusal to score twice is a guard, not a lock.** Git shows the rule and all code in one commit (22:26:10), no change to code after it, and the scoring rows appended once. It cannot show that nothing was run unrecorded.
+
+### Independent check (2026-11-09, one fresh reader, about 114k tokens)
+
+A reviewer with no part in the work was given the rule text, the rows and the code, and asked to break the result. Its verdict: **"holds with these corrections"**, all of which are now made above.
+
+- **Its own implementation from the rule text** (plain loops; from this repo only the data loaders and the region builder) gave the same S, squared errors, claims, lags, multipliers and baseline choice in every field, and pooled S +0.1712 with the same interval and shifted range.
+- **Leaks:** it replaced every drought and index value from 2000-01 onward with noise and refitted, in its code and in the project's. Nothing fitted changed. A forecast for month t reads nothing later than t-3; the index at lag 4 holds months t-5 to t-3, and the drought value at t covers t-2 to t.
+- **Order:** as in the last limit above.
+- **Text against rows:** every number matched except one wrong sentence (the 7%). It also questioned the machine time given for step 1, which was wrong. Both are corrected in place with a note.
+- **Its additions, not recomputed here:** drawing three-year blocks instead of single years gives an interval of +0.112 to +0.219, close to the one reported, so two-year events do not make the interval too narrow.
 
 ### What happens next
 

@@ -49,3 +49,54 @@ When a release of the drought file covering these months is fetched, model A's t
 ## Estimates
 
 Machine time under 5 minutes. Tokens: about 80k.
+
+## Results (2026-11-09)
+
+Rows: `results/outlook-2026-27.jsonl` (kinds `driver`, `model`, `term`, `band`). The script was written after this rule was committed and run once. One addition after seeing the numbers is marked as such.
+
+**The driver.** The index stood at 2.46 for August to October 2026, up from -0.39 in January. The largest value in the fitting years is 2.37 and in the checked years 2.59 (2015 to 2016). So the index is already past anything the model was fitted on, and inside what it was checked on by a small margin.
+
+**The models.** The refit keeps nearly every claim of the tested model and adds more.
+
+| Field | Claims as tested | Claims in the refit | In both | Multiplier as tested | In the refit |
+|---|---|---|---|---|---|
+| South America | 353 | 450 | 338 | 0.76 | 0.82 |
+| Australia | 113 | 219 | 112 | 0.47 | 0.60 |
+| South and Southeast Asia | 260 | 384 | 250 | 0.77 | 0.81 |
+| North America | 57 | 141 | 55 | 0.68 | 0.73 |
+
+**How to read a term: what followed terms of each size in 2000 to 2024** (description; 19,575 claimed region-months).
+
+| Size of term | How many | Outcome on the term's side of the baseline | On the term's side of normal | Mean outcome beyond the baseline, in the term's direction | Mean size of term |
+|---|---|---|---|---|---|
+| under 0.1 | 5,787 | 57% | 58% | 0.14 | 0.05 |
+| 0.1 to 0.25 | 7,473 | 65% | 67% | 0.28 | 0.17 |
+| 0.25 to 0.5 | 4,849 | 73% | 76% | 0.44 | 0.35 |
+| 0.5 and over | 1,466 | 84% | 87% | 0.68 | 0.67 |
+
+The larger the term, the more often the outcome went its way, and the terms were not oversized: what followed was on average as large as the term or larger.
+
+*Added after seeing the outlook's sizes:* terms of 1.0 or more occurred 62 times in the checked years, all in 2015 and 2016, and 60 of them were followed by an outcome on their side. The largest was 1.22. **Of the outlook's 431 terms, 120 are 1.0 or more and 42 are 1.25 or more, larger than any term the check ever scored.** For those the table above is a guide from one earlier event, not a measured rate.
+
+**The outlook, November 2026 to September 2027, model as tested.** 431 terms, 413 of them signals. Of the signals, 385 are also claims in the refit, and all 385 have the same sign there. By target month: November 112, December 124, January 107, February 27, March 20, April 11, May 6, June 2, July 1, August 3, September none. Each month named is the last of the three the drought index covers.
+
+| Field | Push | Signals (regions) | Months | Median term | Region centres fall in |
+|---|---|---|---|---|---|
+| South and Southeast Asia | Drier | 91 (36) | Nov to Feb | -1.07 | Indonesia and the seas among its islands, Malaysia, the Philippines, Papua New Guinea; a few in India and Bangladesh |
+| South and Southeast Asia | Wetter | 35 (23) | mostly Jan, then Mar to Aug | +0.95 | China, Japan; a few in Malaysia, India, Pakistan |
+| Australia | Drier | 90 (42 of 49) | Nov to Jan | -0.51 | Australia, nearly all of it |
+| South America | Drier | 113 (33) | Nov to Apr | -0.76 | Brazil north of 19°S, Venezuela, Colombia, Guyana, Suriname, French Guiana, Panama |
+| South America | Wetter | 59 (27) | Nov to Feb | +0.84 | Argentina, southern Brazil, Chile, Uruguay, Paraguay |
+| North America | Wetter | 21 (15) | Dec to Mar | +0.78 | Mexico, the southern United States and the Gulf coast (centres 19°N to 32°N) |
+| North America | Drier | 4 (3) | Jan, Feb | -0.78 | Canada at 50°N, 100°W to 110°W |
+
+The strongest single terms: about -1.5 for November over New Guinea and Borneo (centres near 3°S 135°E and 4°S 115°E), about +1.4 to +1.5 for December over southern Brazil and Uruguay (near 30°S 53°W), and about -1.4 for January and February over Guyana and eastern Venezuela (near 6°N 58°W).
+
+**Registered for later scoring:** 1,749 terms under the tested model in all: 1,318 for 2025-01 to 2026-10 (148 signals) and the 431 above.
+
+### What this says
+
+- **If this El Niño acts as those in the record did, the three-month periods ending November 2026 to January 2027 are pushed drier across Indonesia and its neighbours, most of Australia and the north of South America, and wetter in south-eastern South America, Mexico and the southern United States.** The signs and places are the textbook ones. The method was not given them: it found them in 1951 to 1999 and they held up in 2000 to 2024.
+- **How much weight a term can bear:** in the checked years a term of 0.5 or more went the right way about five times in six. That is a rate over many events and places. It is not a probability for this event, and the largest terms here are beyond what was checked.
+- **What it does not say:** how dry or wet any place will be. The term is El Niño's push on top of whatever else is happening, and nothing else is in it. It says nothing after about February for most regions, nothing about Africa or Europe, and nothing below the scale of a 10-degree square.
+- **It can fail, in public.** These rows are in the repository's history before the drought data for these months exists, with the scoring rule above.
