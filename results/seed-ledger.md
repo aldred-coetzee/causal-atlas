@@ -18,4 +18,4 @@ A seed scored for a mark is spent for that purpose. A new method's fresh marks n
 | 11201 to 11220 | Real field: decoy sets for the marks of the two-gate search | Spent (`results/real-enso-drought-2.md`, 2026-11-09) |
 | 11301 to 11310 | Real field: ruler of the two-gate search | Spent, a measurement and its instrument check (`results/real-enso-drought-2.md`, 2026-11-09) |
 | 11901 to 11905 | Real field: development of the two-gate search, discovery years only | Development only, never in a count. Spent |
-| 12101 to 12120, 12201 to 12220, 12301 to 12320, 12401 to 12420, 12501 to 12520 | Real fields never read before (South America, Australia, South and Southeast Asia, North America, Europe, in that order): decoy sets for naming | Reserved by `results/real-enso-continents.md`, 2026-11-09. Spent once run |
+| 12101 to 12120, 12201 to 12220, 12301 to 12320, 12401 to 12420, 12501 to 12520 | Real fields never read before (South America, Australia, South and Southeast Asia, North America, Europe, in that order): decoy sets for naming | Spent (`results/real-enso-continents.md`, 2026-11-09) |

@@ -93,3 +93,34 @@ Unchanged: lags 4 to 12, the claim rule, S, the year bootstrap, the 24 shifts, o
 ## Estimates
 
 Naming: about 40 minutes of machine time. Forecast check: about 10. Tokens to the report: about 200k.
+
+## Results, step 1: naming (2026-11-09, discovery years only; 2000 to 2024 on these fields untouched)
+
+Rows: `results/real-enso-continents.jsonl` (305: 300 runs and one `where` row per field). Run as committed, no deviation. Machine time about 35 minutes.
+
+**Every naming mark passed.**
+
+| Mark | Rule | Measured |
+|---|---|---|
+| N1 | The ONI a lead in at least 18 of 20 in each of the three fields with a published entry | South America **20 of 20**, Australia **19 of 20**, South and Southeast Asia **20 of 20** |
+| N2 | A decoy a lead in at most 8 of 100 | 3 of 100 |
+| N3 | The ONI left out: any lead in at most 8 of 100 | 3 of 100 |
+| N4 | Years shuffled: any lead in at most 8 of 100 | 5 of 100 |
+
+Reported, marking nothing:
+
+| Field | ONI a lead | By the broad gate | By the sharp gate | Where the ONI's correlation with a region average is largest (discovery years) |
+|---|---|---|---|---|
+| South America | 20 of 20 | 20 | 20 | -0.80, the Guianas (about 6 N, 58 W), January, ONI two months earlier: drier under El Niño |
+| Australia | 19 of 20 | 0 | 19 | -0.77, the north (about 13 S, 140 E), November, four months earlier: drier |
+| South and Southeast Asia | 20 of 20 | 16 | 20 | -0.83, the southern Philippines and nearby (about 5 N, 125 E), December, one month earlier: drier |
+| North America | 20 of 20 | 19 | 20 | +0.79, Florida and the Gulf coast (about 25 N, 84 W), March, two months earlier: wetter |
+| Europe | **0 of 20** | 0 | 0 | +0.55, Iberia, November; under the bar (0.65 to 0.72), not named |
+
+- The signs and places are the textbook ones, found with no box drawn: dry over northern South America, northern Australia and the maritime continent, wet over the southern United States in late winter. These were not marks, because our reading gave them only from a scanned map.
+- **Europe is the quiet control the design did not have before:** the same engine, the same candidate, a field where El Niño's reach is weak, and it named nothing real in 20 sets.
+- On these fields the sharp gate does most of the naming (in Australia all of it). On Africa it was the broad gate. The two gates are both needed.
+- False alarms, all eleven runs: five from the sharp gate by a margin of 0.02 or less over its bar, six from the broad gate. The 3 of 100 with the ONI left out are the same decoy sets as the 3 with it in, as on Africa.
+- Africa's one miss carried over: no ruler was run here, so what the search cannot hear on these fields is not measured.
+
+**Entering step 2** (the ONI a lead in at least 18 of 20): South America, Australia, South and Southeast Asia, North America. Europe does not enter and is scored for the record only.
