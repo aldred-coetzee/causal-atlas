@@ -37,6 +37,14 @@ From that tested model there is a dated outlook for November 2026 to September
 2027, with the rule for scoring it fixed in advance: `results/outlook-2026-27.md`.
 It is a test of the method that can fail in public, not a warning service.
 
+The step after that did not get as far as a result. The search was handed 25 more
+real climate series at once, chosen by a rule and not by hand. Its own check
+failed first: among that many real candidates it could no longer reliably hear a
+link planted on purpose, and it lost El Niño in one region. By the rule written
+beforehand nothing was scored on the later years, which stay unread for those
+series. The search needs work before it is trusted with many real candidates:
+`results/real-indices.md`.
+
 `STATUS.md` says where things stand in more detail.
 
 ## The question

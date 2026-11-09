@@ -107,3 +107,68 @@ Whatever comes out is about climate series and drought. It says nothing about co
 ## Estimates
 
 Step 1a: about 25 minutes of machine time. Step 1b: about 15. Step 2: about 5. Tokens to the report: about 300k.
+
+## Results of step 1 (run 2026-11-09, 22:32 to 23:23 UTC; rows in `results/real-indices.jsonl`)
+
+Everything above this line was committed before any of these numbers existed. 500 runs, all on 1950 to 1999.
+
+### Step 1a. The instrument check: missed, on all three parts
+
+| Part of the mark | Asked | Got |
+|---|---|---|
+| The link of 40% of variance over 25% of the cells found, pooled | at least 45 of 50 | **42 of 50** |
+| The same, in every field | at least 8 of 10 | South America 9, Australia 10, **South and Southeast Asia 4**, North America 9, Europe 10 |
+| Where found, share of claims in the planted cells | at least 0.80 | 41 runs between 0.85 and 1.00; **one at 0.73** (South America, seed 13608) |
+
+The ruler, found out of 10, by share of variance and share of cells:
+
+| Field | 5% over 5% | 5% over 25% | 15% over 5% | 15% over 25% | 40% over 5% | 40% over 25% |
+|---|---|---|---|---|---|---|
+| South America | 0 | 0 | 0 | 0 | 0 | 9 |
+| Australia | 0 | 0 | 0 | 1 | 4 | 10 |
+| South and Southeast Asia | 0 | 0 | 0 | 0 | 0 | 4 |
+| North America | 0 | 0 | 0 | 0 | 3 | 9 |
+| Europe | 0 | 0 | 0 | 0 | 4 | 10 |
+| All five | 0 of 50 | 0 of 50 | 0 of 50 | 1 of 50 | 11 of 50 | 42 of 50 |
+
+For scale, and not a like-for-like comparison because the field differs: on Africa with 32 candidates, of which one was real, the same search found 40% over 5% in 9 of 10, 40% over 25% in 10 of 10 and 15% over 25% in 5 of 10 (`results/real-enso-drought-2.md`).
+
+A decoy that had no link planted was named in 6 of the 300 runs. All six are one decoy set (Australia, seed 13709) and the same decoy each time.
+
+### Step 1b. Naming: N1 missed, N2 and N3 held
+
+| Mark | Asked | Got |
+|---|---|---|
+| N1: the ONI still a lead where it was before | at least 18 of 20 in each of four fields | South America 20, Australia 20, North America 20, **South and Southeast Asia 0** |
+| N2: a decoy a lead | at most 8 of 100 | 0 |
+| N3: anything a lead with the years mixed | at most 8 of 100 | 2 (North America 13401, the tropical South Atlantic series, by the sharp gate at 0.719 against a bar of 0.695; Europe 13506, a decoy, by the broad gate) |
+
+In South and Southeast Asia the ONI was the third-ranked candidate in the broad gate and the second in the sharp gate, behind real series in both, and the search stops at the first candidate that fails to clear the bar.
+
+### What follows from the rule
+
+**Step 2 is not run. The years after 1999 stay sealed for all 25 series.** The rule said that if the instrument check or N1 missed, this is not the search that was confirmed, and it is not. This is the first of the outcomes written above: with 44 candidates, 26 of them real, the search is too deaf on these fields, and it needs work before real candidates are judged by it.
+
+### What the search named, which by the rule counts for nothing
+
+Recorded because the rows hold it. No claim is made from it, and none of these pairs has been set against any year after 1999. Sets out of 20 in which a series was a lead:
+
+| Field | At 18 or more | Below 18 |
+|---|---|---|
+| South America | ONI 20, tropical South Atlantic (tsa) 19, Northern Oscillation (noi) 19 | |
+| Australia | ONI 20 | Indian Ocean Dipole (dmi) 8 |
+| South and Southeast Asia | Pacific Meridional Mode wind (pmmwind) 20 | ONI 0 |
+| North America | ONI 20, noi 20, eastern Indian Ocean pole (dmieast) 19 | Pacific Decadal Oscillation 16 |
+| Europe | Scandinavian pattern 20, North Atlantic Oscillation (Gibraltar) 20, Arctic Oscillation 19, Greenland Blocking 19 | East Atlantic 12 |
+
+Against the guesses written above before the run: Europe's list is the one guessed. The tropical Atlantic for South America and Pacific patterns for North America were guessed. The Indian Ocean Dipole for Australia fell short, and it was not named for South and Southeast Asia. Sunspots, the stratospheric wind and the tornado count were named for nothing, as guessed. The eastern Indian Ocean pole for North America was not guessed. A search that has just failed its own check cannot tell which of these are real.
+
+### One thing the rows show about why
+
+In every field the sharp gate's bar is the same number in all 20 decoy sets: 0.777 in South America, 0.726 in Australia, 0.854 in South and Southeast Asia, 0.777 in North America, and 0.675 in Europe in 17 sets of 20 (0.689, 0.696 and 0.704 in the other three). Decoys differ from set to set, so a bar that does not move is being set by the shifted copies of a real series, not by a decoy. One bar is shared by every candidate, so one real series whose shifted copies still correlate strongly with a region raises the bar for all the others, the planted link and the ONI included. With one real candidate among 31 decoys that could happen only through the ONI; with 26 it is the rule. Which series set the bar, and what to do about it, is the next piece of work, on the fitting years only.
+
+### Disclosures
+
+- **Order of looking.** The ruler ran first and its rows were looked at while it ran. They showed tsa and noi named on South America before any naming row existed, and South America's line of the ruler table was seen at 110 rows. The rule says the ruler's namings count for nothing; the naming marks are counts fixed in advance and no choice was open between the two.
+- **Machine time:** 51 minutes (ruler 37, naming 14) against 40 estimated, on a box that was busy with other work for the first half.
+- **A code change during the run,** committed separately: the runs skip rows already made, so a stopped run can be picked up. It was not needed; the run finished unbroken, and the change touches no rule, seed or mark.
