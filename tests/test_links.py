@@ -35,3 +35,27 @@ def test_lagged_reads_the_right_months():
     x = np.arange(120.0)
     d = links.lagged(x, np.arange(1, 10))
     assert d[3, 4, 0] == 12 + 4 - 3 and d[0, 11, 8] == 119
+
+
+def test_both_names_a_small_planted_link_and_nothing_without_one():
+    lat, lon = [v.ravel() for v in np.meshgrid(np.arange(-20, 20, 1.0), np.arange(0, 30, 1.0), indexing="ij")]
+    years, shifts = np.arange(1, 40), range(1, 40)
+    named = 0
+    for seed in range(7921, 7931):
+        rng = np.random.default_rng(seed)
+        d = decoy.make(seed, 480, rng.normal(size=480), 8)
+        y = rng.normal(size=(len(lat), 480))
+        named += bool(links.both(y, list(d), years, shifts, lat, lon)["leads"])
+        t = np.arange(12, 480)
+        t = t[t % 12 == 4]
+        small = (lat < -10) & (lon < 10)
+        y[np.ix_(np.where(small)[0], t)] += 0.7 * d[3][t - 2]
+        out = links.both(y, list(d), years, shifts, lat, lon)
+        assert 3 in out["sharp"]["leads"] and out["sharp"]["at"][0][1:] == [2, 4], (seed, out)
+    assert named <= 2
+
+
+def test_step_down_names_only_what_beats_every_shift_left():
+    c = np.array([[9.0, 1, 2], [5.0, 1, 6], [7.0, 3, 1]])
+    assert links.step_down(c) == ([0, 2], [0, 2, 1])
+    assert links.step_down(np.array([[9.0, 1, 2], [5.0, 1, 8], [7.0, 3, 1]])) == ([0], [0, 2, 1])

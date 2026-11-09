@@ -57,3 +57,55 @@ def significant(r, n, q=Q):
     flat = np.sort(p.ravel())
     ok = flat <= q * np.arange(1, flat.size + 1) / flat.size
     return p <= (flat[ok].max() if ok.any() else -1.0)
+
+
+TILE = 10.0
+STEP = 5.0
+MIN_CELLS = 40
+K = 5
+
+
+def tiles(lat, lon, size=TILE, step=STEP, least=MIN_CELLS):
+    """Overlapping square tiles as rows of an averaging matrix, tiles by cells."""
+    rows = []
+    for a in np.arange(np.floor(lat.min() / step) * step, lat.max(), step):
+        for o in np.arange(np.floor(lon.min() / step) * step, lon.max(), step):
+            inside = (lat >= a) & (lat < a + size) & (lon >= o) & (lon < o + size)
+            if inside.sum() >= least:
+                rows.append(inside / inside.sum())
+    return np.array(rows)
+
+
+def sharpest(tm, x, years, shifts, lags=LAGS):
+    """By shift (unshifted first): the largest absolute correlation between x and any tile's mean series, over tiles, lags and calendar months. For the unshifted, also where it is: tile, lag, month."""
+    d = np.stack([unit(lagged(np.roll(x, 12 * s), years, lags)) for s in (0, *shifts)])
+    r = np.stack([np.abs(tm[m] @ d[:, :, m].reshape(-1, len(years)).T).reshape(tm.shape[1], len(d), len(lags)) for m in range(12)])
+    tile, lag, month = [int(v) for v in np.unravel_index(r[:, :, 0].transpose(1, 2, 0).argmax(), (tm.shape[1], len(lags), 12))]
+    return r.max(axis=(0, 1, 3)), [tile, lag, month]
+
+
+def step_down(c, most=K):
+    """c: candidates by shifts, unshifted first, all on one scale. A candidate is named when its unshifted value beats every shifted value of every candidate left."""
+    order = np.argsort(-c[:, 0], kind="stable")
+    left = np.ones(len(c), bool)
+    leads = []
+    for i in order[:most]:
+        if c[i, 0] <= c[left, 1:].max():
+            break
+        leads.append(int(i))
+        left[i] = False
+    return leads, [int(i) for i in order[:most]]
+
+
+def both(y, drivers, years, shifts, lat, lon, lags=LAGS):
+    """Two gates, a driver named by either. Broad: search(), the continent's total over all lags and months. Sharp: the largest correlation with any one tile's mean series at one lag and month."""
+    broad = search(y, drivers, years, shifts, lags)
+    tm = by_month(tiles(lat, lon) @ y, years)
+    found = [sharpest(tm, x, years, shifts, lags) for x in drivers]
+    e = np.array([f[0] for f in found])
+    leads, top = step_down(e)
+    return {
+        "leads": broad["leads"] + [i for i in leads if i not in broad["leads"]],
+        "broad": {"leads": broad["leads"], "top": broad["top"], "z": [round(float(v), 3) for v in broad["z"]]},
+        "sharp": {"leads": leads, "top": top, "r": [round(float(e[i, 0]), 3) for i in top], "at": [found[i][1] for i in top], "bar": round(float(e[:, 1:].max()), 3)},
+    }

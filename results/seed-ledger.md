@@ -15,3 +15,6 @@ A seed scored for a mark is spent for that purpose. A new method's fresh marks n
 | 8001 to 8060 | Toy: decoy pool | Decoys only |
 | 11001 to 11020 | Real field: decoy sets for the discovery marks | Spent (`results/real-enso-drought.md`, 2026-11-09) |
 | 11101 to 11110 | Real field: ruler (planted link and its decoy set) | Spent, a measurement (`results/real-enso-drought.md`, 2026-11-09) |
+| 11201 to 11220 | Real field: decoy sets for the marks of the two-gate search | Reserved by `results/real-enso-drought-2.md`. Spent once it runs |
+| 11301 to 11310 | Real field: ruler of the two-gate search | Reserved by `results/real-enso-drought-2.md`. A measurement, and its instrument check. Spent once it runs |
+| 11901 to 11905 | Real field: development of the two-gate search, discovery years only | Development only, never in a count. Spent |
