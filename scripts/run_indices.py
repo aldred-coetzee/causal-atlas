@@ -167,14 +167,18 @@ def confirmation():
             row({"kind": "line", "scale": scale, "field": which, **check(y, near, left, line(), 0.95)})
 
 
-if __name__ == "__main__":
+def main(argv):
     assert NAMES == index_candidates.kept(), "the frozen names are not what the candidate rule lets in"
-    if sys.argv[1] in ("name", "ruler"):
-        for which in sys.argv[2:] or field.BOXES:
-            {"name": name, "ruler": ruler}[sys.argv[1]](which)
-    elif sys.argv[1] == "marks":
+    if argv[1] in ("name", "ruler"):
+        for which in argv[2:] or field.BOXES:
+            {"name": name, "ruler": ruler}[argv[1]](which)
+    elif argv[1] == "marks":
         print(marks(rows()), instrument(rows()), sep="\n")
-    elif sys.argv[1:] == ["confirm", "once"]:
+    elif argv[1:] == ["confirm", "once"]:
         confirmation()
     else:
-        sys.exit("run_indices.py name [field ...] | ruler [field ...] | marks | confirm once")
+        sys.exit(f"{Path(argv[0]).name} name [field ...] | ruler [field ...] | marks | confirm once")
+
+
+if __name__ == "__main__":
+    main(sys.argv)

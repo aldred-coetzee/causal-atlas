@@ -59,3 +59,9 @@ def test_step_down_names_only_what_beats_every_shift_left():
     c = np.array([[9.0, 1, 2], [5.0, 1, 6], [7.0, 3, 1]])
     assert links.step_down(c) == ([0, 2], [0, 2, 1])
     assert links.step_down(np.array([[9.0, 1, 2], [5.0, 1, 8], [7.0, 3, 1]])) == ([0], [0, 2, 1])
+
+
+def test_a_copy_one_year_off_is_the_series_itself_at_the_far_lag():
+    y, x, years = world(3, share=0.3, lag=0)
+    s = links.strengths(links.by_month(y, years), x[0], years, (1, len(years)))  # one year later, one year earlier
+    assert np.allclose(s[1, 0], s[0, 12]) and np.allclose(s[2, 12], s[0, 0])
