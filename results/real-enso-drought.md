@@ -119,3 +119,24 @@ A link confined to a twentieth of the continent is not heard at any size tried. 
 ### What happens next
 
 The confirmation is not run: the rule ties it to a discovery that is frozen, and this one is not. The search is sharpened on the discovery years (a statistic that looks region by region and month by month, not at the continent's total), under a new rule file with fresh decoy and ruler seeds, committed before it is run. What the next rule must say plainly: these D1 to D5 numbers are now known to its author, so for the sharpened search they are a check that nothing was lost, and its real tests are the instrument check, the ruler and the sealed confirmation.
+
+## Confirmation result (2026-11-09, scored once on 2000 to 2024, after `results/real-enso-drought-2.md` passed its marks and was committed)
+
+Row: the `confirmation` line in `results/real-enso-drought.jsonl`. Run as committed, no deviation. The script refuses a second scoring.
+
+**A miss.** Adding El Niño to the baseline did not improve the forecast of drought three or more months ahead on the years held back.
+
+| | Rule | Measured |
+|---|---|---|
+| S on claimed cell-months | Interval's lower end above 0 | **S = -0.093, interval -0.250 to +0.043. Missed.** The forecast with El Niño had 9% more squared error than the baseline alone |
+| Against the 24 year-shifted controls | Larger than all 24 | Larger than all 24 (they run from -0.152 to -0.382) |
+| S on all cell-months, beside it | Marks nothing | -0.002, interval -0.005 to +0.001 |
+| Claims | | 2,256 cell-months in 1,520 of 9,695 cells |
+| Baseline's own skill on 2000 to 2024, beside it | Marks nothing | R² = -0.10: worse than predicting the period's average |
+
+What this says, and no more:
+
+- **El Niño is found and mapped correctly, and it still did not make the forecast better.** Finding a link and forecasting with it are different things, and rule 2 is about the second.
+- **The El Niño term carries real information:** with the true years it does much better than with any of the 24 wrong alignments. But as fitted on 1950 to 1999 it adds more error than it removes. Two readings fit that, and this result does not tell them apart: the slopes are too large because each was picked as the best of 9 lags among thousands of cells, or the link itself changed after 2000 (the review this test rests on says it did, in both regions).
+- **The baseline is poor on these years.** Fitted on 1950 to 1999, it does worse on 2000 to 2024 than a flat guess. So "beyond the baseline" was a low bar here and the El Niño term still did not clear it.
+- **The confirmation period is now spent for this driver and this field.** Anything further computed on Africa's 2000 to 2024 drought with El Niño is exploration and is labelled so; it cannot confirm anything.
