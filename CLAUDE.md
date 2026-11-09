@@ -81,7 +81,7 @@ Update this statement, with the date, when the owner refines it.
    surprise that questions the design, a rule change that could favour a result,
    a choice outside the plan. The end of 1d is always a stop (decision 0014,
    changing the brief at the owner's word). Step estimates are stated and overruns
-   reported beside the result, not put to him and not a stop (decisions 0035, 0036). If the owner says to go broader or to stop
+   reported beside the result, not put to him and not a stop (decisions 0035, 0036). **Since 2026-11-09 (decision 0040): direction is delegated to this session, "iterate as you see fit use your own judgement", "Do not ask me and ignore caps". Gates and outcomes are reported and work carries on; pre-registration, quiet nulls, a one-time confirmation on untouched data and rule 2 are what keep a result honest and are not relaxed.** If the owner says to go broader or to stop
    pausing, quote this rule back and ask him to confirm.
 7. **Subagents.** None by default. At most three at once, each with a written
    spec, estimated cost stated before spawning. Sonnet for mechanical work,
@@ -104,7 +104,7 @@ Update this statement, with the date, when the owner refines it.
 
 ## Token caps
 
-Phase 0: 300k. Phase 1: 20M (the owner, decisions 0035 and 0036; "on this" read as Phase 1). Both cover this session and next-pattern. A cap
+Phase 0: 300k. Phase 1: 20M (the owner, decisions 0035 and 0036; "on this" read as Phase 1). **Not a stop since 2026-11-09 ("ignore caps", decision 0040); still counted and reported.** Both cover this session and next-pattern. A cap
 counts fresh tokens (input + output + cache writes); cache reads are reported
 beside them at every gate (decision 0006).
 
