@@ -1,0 +1,95 @@
+# Real test on fields never read: the frozen search, then a forecast check with honest slope sizes, on five continental boxes
+
+Rule first, committed before any number that joins the ONI or a decoy to these fields (rule 9). Authority to run: decision 0040. Why the forecast step changed after a miss, and why that is not rescored on Africa: decision 0041. Code: `src/causal_atlas/forecast.py`, `src/causal_atlas/links.py` (`both`, unchanged), `scripts/run_continents.py`. Seeds: `results/seed-ledger.md`.
+
+## Why
+
+The two-gate search passed every mark on Africa (`results/real-enso-drought-2.md`). Its one-time confirmation then missed (`results/real-enso-drought.md`, "Confirmation result"): El Niño was named and mapped correctly, but adding it to the baseline did not improve the forecast on 2000 to 2024. The diagnosis, made on that spent period, pointed at the forecast step and not at the link: slopes about three times too large because each was the best of nine lags and then selected, and a baseline that could not follow a shift in the field's level. Fixing a method on the period that failed it and scoring it there again would prove nothing. The same drought file holds every other continent, and this project had never read them. So the fix is frozen here and confirmed there.
+
+## Seen before this rule
+
+- **All of Africa, including its 2000 to 2024, which is spent.** Every number in the two earlier results files, the diagnosis, and the development of the forecast step below. Africa is in no mark here.
+- **Development on Africa** (scratch scripts, not kept; the numbers that chose the design):
+  - One multiplier for every slope, chosen inside the discovery years by five blocks of years with the claims picked again in each: 0.35 to 0.48 across baselines and scales. The multiplier that would have been best on 2000 to 2024, seen afterwards: 0.30 to 0.56. So the inner choice lands where it should.
+  - Baselines against guessing zero on 2000 to 2024, region averages: each region's own last 60 months +0.35; a linear fit on own lags, the field mean and own trailing means +0.31; gradient boosting without latitude and longitude +0.18; the first rule's gradient boosting +0.06. The first rule's baseline is the weakest because it learns each place's 1951 to 1999 level and that level moved.
+  - Picking claims on the field or on the baseline's residual made little difference; the field is kept, as in the first rule.
+  - Region averages and single cells gave similar skill.
+  - **The code below, as committed, on Africa:** the inner blocks chose the linear baseline at both scales; multiplier 0.39 (regions) and 0.36 (cells); S on 2000 to 2024 +0.033 at both scales, interval -0.030 to +0.097 (regions) and -0.022 to +0.088 (cells); larger than all 24 shifted values; below every baseline alone. **By the pass rule below that is not a pass on Africa**, and it was reached after seeing those years. Africa stays where the first results file left it: a miss.
+- **The five new fields: their shapes only.** Cells with a complete record and regions of at least 40 cells: South America 6,225 and 95; Australia 2,850 and 49; South and Southeast Asia 5,385 and 100; North America 7,611 and 105; Europe 4,710 and 64. The largest absolute value in each (up to 9.9), which is why the same clip is used. No correlation, no average over time, no map.
+- The author knows from general reading that El Niño affects rainfall in South America, Australia and Southeast Asia, and that its reach into Europe is weak. The boxes are plain continental rectangles, not drawn around any published region.
+
+## Data and split
+
+- **Field:** SPEI-3 from the file already held (`data/manifest.toml`), cells with no missing month from 1950-01 to 2024-12, clipped at plus or minus 3, in five boxes (south, north, west, east, degrees):
+  - South America: -56, 13, -82, -34
+  - Australia: -44, -10.25, 112, 154
+  - South and Southeast Asia: -10, 35, 65, 155
+  - North America: 15, 60, -130, -60
+  - Europe: 35, 70, -10, 40
+- **Driver and decoys:** the ONI and 31 decoys per set, 20 sets per field, as before, with fresh seeds, a different range for each field: 12101 to 12120, 12201 to 12220, 12301 to 12320, 12401 to 12420, 12501 to 12520, in the order above.
+- **Discovery: 1950-01 to 1999-12** (targets 1951 to 1999). **Confirmation: 2000-01 to 2024-12**, sealed for these fields until the step below is run, once.
+
+## Step 1, naming: the two-gate search exactly as it passed
+
+`links.both`, no change: broad gate and sharp gate on 10-degree regions stepped by 5 degrees with at least 40 cells, lags 0 to 12, 49 whole-year shifts, a candidate named by either gate. Three kinds of run per set: the ONI among the decoys; the ONI left out; the field's years in a seeded random order.
+
+Marks, fixed now:
+
+- **N1:** the ONI is a lead in at least 18 of 20 sets in **each** of South America, Australia, and South and Southeast Asia. These are the three with an entry in our reading (`docs/reading/enso-africa-known-answer.md`, section 4; months there were read from a scanned map and strengths were not checked, so only "El Niño matters here" is taken from it).
+- **N2:** a decoy is a lead in at most **8 of the 100** runs with the ONI in, the five fields pooled.
+- **N3:** with the ONI left out, any lead in at most 8 of 100.
+- **N4:** with the years shuffled, any lead in at most 8 of 100.
+- **Reported, marking nothing:** how often the ONI is a lead in North America and in Europe; which gate named what; for each field, the region, calendar month and lag where the ONI's correlation with a region average is largest, with its sign.
+
+Why pooled: Africa allowed 2 of 20 for each kind and measured 1, 1 and 0 of 20 and 0 of 80 in the ruler. At a few per cent per run, fifteen separate marks of 2 in 20 would likely see one fail by chance; 8 in 100 is a tighter rate (8% against 10%) on five times the runs.
+
+No ruler is run on these fields. What the search can hear was measured on Africa only and may differ elsewhere.
+
+## Step 2, the forecast check, run once
+
+It runs only if N2, N3 and N4 pass. **A field enters the pooled score only if the ONI was a lead there in at least 18 of its 20 sets**: the predictor is given what the finder named, nothing else. If no field enters, the confirmation years stay sealed. All five fields are scored and reported; only those that entered count.
+
+Units are the 10-degree region averages (the scale the search hears). For each field, everything is fitted on its discovery years:
+
+- **Baseline (rule 2), chosen per field among three by squared error on five blocks of discovery years, each block predicted from a fit on the others:** zero (the index's long-run average); level (the unit's own mean over the 60 months ending at t-3); linear (one least-squares fit on the unit's own values at t-3, t-4, t-5, t-6 and t-12, the mean of all units at t-3, and the unit's own means over the 12 and 60 months ending at t-3). SPEI is already standardised by calendar month, so the season's average is in the index itself. Nothing later than t-3 is used.
+- **Claims:** as in the first rule. For each unit and calendar month, the lag from 4 to 12 with the largest absolute correlation between the ONI and the field, kept if significant by Benjamini-Hochberg at 5% over all units, months and lags 4 to 12.
+- **Model:** baseline plus, on claimed unit-months, k times slope times the ONI at its lag. The slope is fitted through the origin on the baseline's discovery residuals. **k is one number per field, from 0 to 1,** the value with least squared error on five blocks of discovery years, with the claims picked and the slopes fitted on the other four each time. The baseline is not refitted inside those blocks; it has nine coefficients.
+- **Metric:** S = 1 - (model's squared error) / (baseline's squared error) on the claimed unit-months of 2000 to 2024, **summed over the fields that entered**. Interval: 2,000 draws of the 25 years, the same years drawn for every field, 95%.
+- **Control:** the same claims, slopes and k with the ONI shifted by each of 24 whole years within 2000 to 2024.
+- **Passes when all three hold for the pooled score:** the interval's lower end is above 0; S is larger than all 24 shifted values; and the model's squared error on those unit-months is below that of **each** of the three baselines alone, so a field whose inner blocks chose the wrong baseline cannot make the driver look good.
+- **Reported, marking nothing:** each field on its own; the same at the scale of single cells (neighbours there are the up to 8 cells around, as in the first rule); the chosen baseline, k, the number of claims and their lags; each baseline's skill against zero on all unit-months.
+
+The script refuses a second scoring.
+
+## What changed from the first confirmation rule, all of it after seeing that miss
+
+| | First rule | Here |
+|---|---|---|
+| Slope size | Each slope shrunk by its own t statistic | One multiplier per field, chosen on held-out blocks inside discovery |
+| Baseline | Gradient boosting with latitude and longitude | The best of zero, level and linear on held-out blocks inside discovery |
+| Units | Cells | Region averages; cells reported |
+| Score | One field | Pooled over the fields where the search named the ONI |
+| Pass | Lower end above 0, above all 24 shifts | The same, and below every baseline alone |
+
+Unchanged: lags 4 to 12, the claim rule, S, the year bootstrap, the 24 shifts, one scoring.
+
+## What a pass and a miss would each mean
+
+- **Pass:** on 25 years and on continents the method never saw while it was built, a driver the engine named blind improves a forecast of drought three or more months ahead beyond the best simple baseline. That would be the first result here that meets rule 2 on real data. The link is a known one, so it shows the whole chain works on reality, finder to predictor; it discovers nothing new.
+- **Miss:** published as a miss, and these years are then spent for this driver and these fields. With the best-known climate link there is, that would say the forecast step adds nothing measurable at this lead even when the finder is right.
+- If a pass: a regional outlook from the 2026 El Niño follows under its own rule, written before it is computed. If a miss: none.
+
+## Limits it carries
+
+- The five fields share the same 25 years and the same handful of El Niño and La Niña events. They are new places, not new years; the interval draws years for that reason and is wide for that reason.
+- One source: the fields come from the same station-based product as Africa's, with the same filling where stations are thin.
+- Regions overlap, so a cell counts in up to four units.
+- The design choices were made on Africa after its confirmation years were seen. Nothing was chosen on the new fields, but the author's general knowledge of where El Niño acts is not blind.
+- The naming marks vary only the decoys; there is one real world per field.
+- El Niño and La Niña are not mirror images and the link changes by decade; one slope per unit and month averages over both.
+- The shift control assumes years are exchangeable; trends weaken that.
+- Decoys are independent of each other; real candidate series are not.
+
+## Estimates
+
+Naming: about 40 minutes of machine time. Forecast check: about 10. Tokens to the report: about 200k.

@@ -38,6 +38,36 @@ def spei():
     return y, kept
 
 
+# Other fields from the same file, as plain boxes: south, north, west, east, in degrees. Fixed in results/real-enso-continents.md before any number on them.
+BOXES = {
+    "south_america": (-56, 13, -82, -34),
+    "australia": (-44, -10.25, 112, 154),
+    "south_southeast_asia": (-10, 35, 65, 155),
+    "north_america": (15, 60, -130, -60),
+    "europe": (35, 70, -10, 40),
+}
+
+
+def box(name):
+    """Cells by months for one box of BOXES, with each cell's latitude and longitude. A cell with any missing month is dropped."""
+    cache = PANEL / "real" / f"spei_{name}.npz"
+    if not cache.exists():
+        south, north, west, east = BOXES[name]
+        nc = netCDF4.Dataset(RAW / "spei03.nc")
+        time = nc["time"]
+        dates = netCDF4.num2date(time[:], time.units, getattr(time, "calendar", "standard"))
+        first = next(i for i, d in enumerate(dates) if d.year == FIRST_YEAR and d.month == 1)
+        assert dates[first + MONTHS - 1].year == LAST_YEAR and dates[first + MONTHS - 1].month == 12
+        lat, lon = np.asarray(nc["lat"][:]), np.asarray(nc["lon"][:])
+        a, o = np.flatnonzero((lat >= south) & (lat <= north)), np.flatnonzero((lon >= west) & (lon <= east))
+        cube = np.ma.filled(nc["spei"][first : first + MONTHS, a[0] : a[-1] + 1, o[0] : o[-1] + 1], np.nan)
+        y = cube.reshape(MONTHS, -1).T.astype(np.float32)
+        kept = np.isfinite(y).all(axis=1)
+        np.savez(cache, y=y[kept], lat=np.repeat(lat[a], len(o))[kept], lon=np.tile(lon[o], len(a))[kept], of=kept.size)
+    z = np.load(cache)
+    return z["y"], z["lat"], z["lon"]
+
+
 def oni():
     """The ONI by month on the same clock. The value at month t is a 3-month mean centred on t, so it uses month t + 1."""
     rows = {}
