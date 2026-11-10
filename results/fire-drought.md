@@ -282,3 +282,31 @@ S is the share of squared forecast error the drought term takes off the chosen b
 **What this means.** Each place's own drought four to twelve months earlier does not improve the forecast of its burned area in this product beyond the place's own history, on years never read. What the silence can rule out is a link of the kind planted in the made-up panels, **if** the real fields behave as those panels do, and the point above says they do not fully. Burned area's 2004 to 2018 are spent for this driver.
 
 **Limits.** Those above and in the amendment. One product (FireCCILT11), one drought index (SPEI-3, with the evaporation error its makers have acknowledged), leads of four to twelve months only: the same season's drought, which is what fire weather is mostly about, is outside the test by design. Nothing here says drought does not matter to fire.
+
+## After the scoring: what the silence can rule out (rule written 2026-11-10, 04:25 UTC, before it is run; marks nothing)
+
+**Why.** The scoring found that the record after 2003 does not behave as the made-up panels do: the baseline chosen on the fitting years went stale. So the made-up panels' hearing (a link at 20% of variance read 9 times in 10) is not a measure of what this scoring could have heard on the real fields. This measures it directly: a link of known size is added to the real burned area and the whole thing is fitted and scored exactly as the real fields were.
+
+**This is an exploration on spent years.** It reads burned area for 2004 to 2018 against drought again, with a planted term added; the real record's own relation to drought, which read as nothing, is inside every replicate. It marks nothing, changes no reading above, and no later test of burned area can count these years as unread.
+
+**What is planted** (`scripts/explore_planted.py`, rows in `results/explore-planted.jsonl`).
+- In each of the six fields, five-degree squares set half a square off the detector's own blocks, taken in random order until they hold a fifth of the field's cells. Each square gets one sign and one lead, four to twelve months, the same all year.
+- In those cells, on the months in use from 1983 on, the standardised outcome y becomes sqrt(1 - share) of y plus sqrt(share) times the cell's SPEI-3 that many months earlier, standardised on 1982 to 2003 and scaled to y's own spread in that cell on those years; then clipped at 3 as before. The term is the drought value itself, not the departure the detector reads, as in the made-up panels.
+- Sizes: 20%, 10%, 5% and 2% of the outcome's variance in the planted cells. Four replicates each, seeds 21001 to 21004, 21101 to 21104, 21201 to 21204, 21301 to 21304, one generator per seed and field.
+- The share observed is not touched, so only burned area and adjusted burned area are fitted and scored, each field by `run_local.scored`, the six pooled by `run_local.pooled`, read by `run_local.verdict`.
+
+**What is reported, per size and outcome.** Pooled S and its interval, how many shifted drivers it beats, S with every term less its line, S under the shifted drivers; whether it passes the amended verdict; and whether it passes **without** the condition "below each baseline alone", which the stale baseline may make unreachable. Also the share of claimed cell-months that fall in planted cells.
+
+**How it will be read, fixed now.**
+- A size is "heard" when, in at least 3 of its 4 replicates, both outcomes pass without the baseline condition. The smallest size heard is what the silence rules out, for a link of this shape.
+- If 20% is not heard, the scoring could not hear on these fields and the null above says little.
+- The count under the full amended verdict is given beside it. If a size is heard without the baseline condition and not with it, then the registered rule could not have read a link of that size as a link on these fields, whatever the data held, and that is said.
+- The median pooled S at each size is set beside the real fields' interval (upper end +0.03% on burned area), so the null is stated as a size.
+
+**Limits, known before it runs.**
+- **The planted link is an easy shape.** It is added to every month in use, including cell-months where nothing burned, and it is straight-line in the standardised outcome. A real link acts only where and when something burns. At the same nominal share it is also stronger than the made-up panels' link, whose share is of the hidden strength behind the burning and not of what is recorded. So "heard" here is a ceiling: a size not heard here would not be heard in a real shape either; a size heard here might still be missed in a real shape. The made-up panels cover the real shape on a well-behaved record; this covers the real record with an easy shape.
+- Four replicates a size: counts of 0 to 4, coarse.
+- One lead per square, the same all year, a fifth of the cells: one pattern among many a real link could take.
+- Before this was written the planting was checked on one field's fitting years with a throwaway generator (Europe, 1983 to 2003: a fifth of cells planted, nothing changed outside them or off the months in use, the outcome's spread unchanged). Nothing was fitted or scored.
+
+**Guesses.** Heard without the baseline condition, of 4: 20%, 4; 10%, 4; 5%, 3; 2%, 1. Under the full amended verdict: 20%, 1; the rest, 0. So the guess is that 5% is the smallest size heard and that the registered rule could not have read it.
