@@ -86,12 +86,8 @@ def box(name):
     return z["y"], z["lat"], z["lon"], z["used"]
 
 
-def sight(name):
-    """What the satellite saw, for the cells of box(name): the share of burnable land observed, less the cell's mean for that calendar month and over its spread on the fitting years, clipped; months with no data zero. A check on the instrument, not an outcome."""
-    box(name)
-    at = np.load(PANEL / "real" / f"fire_{name}.npz")["at"]
-    i, j, _, _ = where(name)
-    o = grid()[1][:, i[at], j[at]].T.astype(np.float64).reshape(len(at), -1, 12)
+def share(o):
+    """The share of burnable land observed (cells by years by 12, NaN where there is no data), less the cell's mean for that calendar month and over its spread on the fitting years, clipped; months with no data zero. Cells by months."""
     known = np.isfinite(o)
     o = np.nan_to_num(o)
     early = known[:, : FIT // 12]
@@ -99,7 +95,15 @@ def sight(name):
     mean = (o[:, : FIT // 12] * early).sum(axis=1) / n
     spread = np.sqrt((((o[:, : FIT // 12] - mean[:, None]) ** 2) * early).sum(axis=1) / n)
     y = np.where(known, np.divide(o - mean[:, None], spread[:, None], out=np.zeros_like(o), where=spread[:, None] > 0), 0)
-    return np.clip(y, -CLIP, CLIP).reshape(len(at), -1).astype(np.float32)
+    return np.clip(y, -CLIP, CLIP).reshape(len(o), -1).astype(np.float32)
+
+
+def sight(name):
+    """What the satellite saw, for the cells of box(name): share() of the observed share. A check on the instrument, not an outcome."""
+    box(name)
+    at = np.load(PANEL / "real" / f"fire_{name}.npz")["at"]
+    i, j, _, _ = where(name)
+    return share(grid()[1][:, i[at], j[at]].T.astype(np.float64).reshape(len(at), -1, 12))
 
 
 def oni():

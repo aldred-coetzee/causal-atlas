@@ -64,6 +64,11 @@ not have been there to find. One thing about the data came out of it: in this
 product El Niño shows more clearly in how much land the satellite could see than
 in what it reports as burned.
 
+A different test on the same record is registered and not yet run
+(`results/fire-drought.md`): each place's own drought, four or more months
+earlier, against its burned area, with a check that a link is not only what the
+satellite could see.
+
 `STATUS.md` says where things stand in more detail.
 
 ## The question
