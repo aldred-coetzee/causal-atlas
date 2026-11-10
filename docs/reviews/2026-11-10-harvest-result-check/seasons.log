@@ -1,0 +1,7 @@
+harvest year only (Mar, Jun, Sep, Dec)     S 1.31% [0.63, 2.02] shift mean -0.05% beaten 62/62 flat S 2.12%
+year before only (Sep-1, Dec-1)            S 0.15% [-0.09, 0.39] shift mean -0.04% beaten 62/62 flat S 0.16%
+Sep-1, Dec-1, Mar, Jun (= mid-year)        S 1.11% [0.48, 1.79] shift mean -0.05% beaten 62/62 flat S 1.48%
+Mar, Jun only                              S 0.85% [0.14, 1.59] shift mean -0.05% beaten 62/62 flat S 1.46%
+Sep-1 pooled corr with this year's error -0.004, with last year's error +0.062
+Dec-1 pooled corr with this year's error +0.037, with last year's error +0.029
+this year's error vs last year's error, pooled corr +0.186

@@ -1,0 +1,10 @@
+year_end same choice as stored: True kept 136 countries 76
+  later-half S: kept 5.32%, other ranked -0.21%, unranked 2.31%, whole panel 1.56%
+  kept later-half S, interval resampling countries: [np.float64(3.79), np.float64(6.86)]
+  share of kept later gain from its top 10 countries: 61%
+  rank correlation of a record's early gain with its later gain: 0.27
+mid_year same choice as stored: True kept 136 countries 73
+  later-half S: kept 3.88%, other ranked -0.21%, unranked 1.74%, whole panel 1.09%
+  kept later-half S, interval resampling countries: [np.float64(2.21), np.float64(5.38)]
+  share of kept later gain from its top 10 countries: 79%
+  rank correlation of a record's early gain with its later gain: 0.22

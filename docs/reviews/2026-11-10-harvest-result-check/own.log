@@ -1,0 +1,18 @@
+mean3 scored 16751 {'A': 0.53, 'B': 0.47, 'C': -10.01, 'D': 1.21}
+   A interval over years [-0.19, 1.21]
+   B interval over years [-0.28, 1.21]
+   C interval over years [-12.1, -7.91]
+   D interval over years [0.62, 1.78]
+   A S 0.53% shifts mean -0.46% max 0.20% beaten 62 of 62
+   B S 0.47% shifts mean -1.15% max -0.45% beaten 62 of 62
+   C S -10.01% shifts mean -14.86% max -12.46% beaten 62 of 62
+   D S 1.21% shifts mean -0.01% max 0.29% beaten 62 of 62
+trend10 scored 16768 {'A': 0.84, 'B': 0.58, 'C': -10.89, 'D': 1.12}
+   A interval over years [0.02, 1.61]
+   B interval over years [-0.33, 1.39]
+   C interval over years [-13.18, -8.71]
+   D interval over years [0.38, 1.78]
+   A S 0.84% shifts mean -0.50% max -0.15% beaten 62 of 62
+   B S 0.58% shifts mean -1.19% max -0.71% beaten 62 of 62
+   C S -10.89% shifts mean -15.31% max -13.13% beaten 62 of 62
+   D S 1.12% shifts mean -0.03% max 0.02% beaten 62 of 62

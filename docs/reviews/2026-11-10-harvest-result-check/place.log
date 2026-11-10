@@ -1,0 +1,13 @@
+ draw 0 median distance 8508 km
+distant draw 0 upto 6 | project: S -0.04% [-0.13, 0.03], shifts mean -0.03% max 0.05% beaten 18/62; flat S -0.04% beaten 10/62 | own D: S 0.12%
+ draw 1 median distance 8752 km
+distant draw 1 upto 6 | project: S 0.01% [-0.07, 0.08], shifts mean -0.02% max 0.03% beaten 59/62; flat S -0.01% beaten 28/62 | own D: S 0.22%
+ draw 2 median distance 9135 km
+distant draw 2 upto 6 | project: S -0.02% [-0.08, 0.02], shifts mean -0.04% max 0.07% beaten 38/62; flat S -0.03% beaten 22/62 | own D: S -0.02%
+ draw 3 median distance 9084 km
+distant draw 3 upto 6 | project: S -0.13% [-0.3, 0.02], shifts mean -0.03% max 0.05% beaten 0/62; flat S -0.13% beaten 0/62 | own D: S 0.05%
+ draw 4 median distance 8721 km
+distant draw 4 upto 6 | project: S -0.04% [-0.08, 0.0], shifts mean -0.04% max 0.01% beaten 29/62; flat S -0.02% beaten 40/62 | own D: S -0.05%
+cross-country monthly mean removed upto 6 | project: S 2.11% [1.33, 2.96], shifts mean -0.05% max 0.00% beaten 62/62; flat S 2.19% beaten 62/62 | own D: S 1.84%
+cross-country monthly mean removed upto 4 | project: S 1.31% [0.67, 1.96], shifts mean -0.05% max 0.02% beaten 62/62; flat S 1.47% beaten 62/62 | own D: S 1.84%
+world mean only upto 6 | project: S 0.06% [-0.11, 0.21], shifts mean -0.07% max 0.37% beaten 51/62; flat S 0.06% beaten 60/62 | own D: S 1.09%

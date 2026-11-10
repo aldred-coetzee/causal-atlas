@@ -1,0 +1,49 @@
+slopes (error in scale units per sd of SPEI), cereal x band; + means wetter -> higher yield than baseline
+ Wheat        south    n=  7 -0.100 +0.098 -0.045 -0.005 +0.078 +0.091
+ Wheat        tropics  n= 25 -0.046 -0.021 +0.050 +0.021 +0.036 -0.061
+ Wheat        north    n= 67 -0.103 +0.032 +0.079 +0.072 -0.050 +0.007
+ Maize (corn) south    n=  8 +0.012 +0.093 +0.234 +0.026 -0.067 -0.024
+ Maize (corn) tropics  n= 57 -0.002 -0.025 +0.070 -0.034 +0.082 +0.041
+ Maize (corn) north    n= 52 -0.097 +0.029 +0.031 +0.012 +0.064 -0.015
+ Rice         south    n=  4 -0.046 -0.150 -0.037 +0.130 -0.065 +0.017
+ Rice         tropics  n= 58 -0.032 -0.030 +0.009 +0.010 +0.062 -0.022
+ Rice         north    n= 32 -0.022 +0.027 +0.019 -0.063 -0.096 -0.018
+ Barley       south    n=  6 -0.057 +0.075 -0.038 +0.057 +0.081 +0.014
+ Barley       tropics  n=  9 +0.045 +0.018 +0.076 -0.063 -0.008 +0.042
+ Barley       north    n= 64 -0.081 +0.032 +0.046 +0.101 -0.035 -0.019
+ Sorghum      south    n=  5 +0.008 +0.150 +0.281 -0.015 -0.078 +0.027
+ Sorghum      tropics  n= 38 -0.041 -0.035 +0.054 +0.020 +0.083 +0.027
+ Sorghum      north    n= 26 -0.064 +0.038 +0.046 +0.046 +0.005 -0.032
+ Millet       south    n=  2 +0.038 +0.105 +0.137 -0.061 +0.127 -0.045
+ Millet       tropics  n= 23 -0.073 -0.010 +0.056 +0.016 +0.121 +0.028
+ Millet       north    n= 20 -0.017 -0.001 -0.007 +0.063 +0.011 -0.054
+
+largest project gains, correlation of own error with each value (1981-2024):
+ 036  Wheat         gain +0.28   -0.15 -0.22 +0.01 +0.42 +0.52 +0.59  strongest: Dec
+ 036  Barley        gain +0.24   -0.17 -0.25 -0.02 +0.44 +0.49 +0.57  strongest: Dec
+ 348  Millet        gain +0.24   -0.16 -0.24 +0.06 +0.52 +0.65 +0.05  strongest: Sep
+ 807  Maize (corn)  gain +0.22   -0.01 +0.26 +0.35 +0.09 +0.46 -0.29  strongest: Sep
+ 032  Maize (corn)  gain +0.22   +0.19 +0.68 +0.57 +0.44 +0.05 +0.01  strongest: Dec-1
+ 032  Sorghum       gain +0.21   +0.22 +0.58 +0.61 +0.51 +0.02 +0.04  strongest: Mar
+ 705  Maize (corn)  gain +0.20   -0.08 -0.06 +0.08 +0.41 +0.57 -0.02  strongest: Sep
+ 417  Maize (corn)  gain +0.19   -0.38 +0.22 -0.06 +0.41 +0.51 +0.05  strongest: Sep
+ 410  Rice          gain +0.19   -0.00 -0.23 -0.28 -0.11 -0.60 +0.16  strongest: Sep
+ 716  Maize (corn)  gain +0.19   +0.13 +0.26 +0.67 +0.32 +0.14 +0.12  strongest: Mar
+ 686  Millet        gain +0.17   +0.03 -0.07 -0.16 +0.07 +0.53 +0.32  strongest: Sep
+ 762  Wheat         gain +0.17   +0.08 +0.40 +0.18 +0.70 +0.42 -0.00  strongest: Jun
+ 760  Wheat         gain +0.16   +0.09 +0.17 +0.43 +0.60 -0.03 +0.01  strongest: Jun
+ 100  Maize (corn)  gain +0.16   +0.05 +0.22 +0.24 +0.16 +0.63 +0.25  strongest: Sep
+ 716  Millet        gain +0.16   +0.12 +0.21 +0.72 +0.41 +0.14 +0.04  strongest: Mar
+ 854  Millet        gain +0.16   -0.43 +0.10 +0.07 +0.19 +0.25 +0.35  strongest: Sep-1
+ 191  Maize (corn)  gain +0.15   -0.20 +0.09 +0.48 +0.65 +0.46 -0.03  strongest: Jun
+ 760  Barley        gain +0.15   +0.04 +0.29 +0.45 +0.47 -0.08 +0.09  strongest: Jun
+ 818  Wheat         gain +0.15   -0.09 +0.55 +0.43 +0.29 +0.02 +0.51  strongest: Dec-1
+ 300  Barley        gain +0.15   -0.34 +0.12 +0.20 +0.18 -0.01 -0.17  strongest: Sep-1
+ 417  Barley        gain +0.15   -0.37 +0.31 +0.03 +0.67 +0.66 +0.20  strongest: Jun
+ 268  Maize (corn)  gain +0.15   -0.53 +0.02 -0.01 -0.21 +0.54 -0.03  strongest: Sep
+ 498  Barley        gain +0.14   -0.25 +0.39 +0.01 +0.65 +0.23 -0.29  strongest: Jun
+ 498  Wheat         gain +0.14   -0.07 +0.67 +0.12 +0.59 +0.31 -0.27  strongest: Dec-1
+ 300  Wheat         gain +0.14   -0.36 +0.18 +0.21 +0.06 -0.02 -0.24  strongest: Sep-1
+strongest correlation positive (wet->more) in 21 of 25
+all records with 20+ years: 491 strongest correlation positive in 324, negative in 167; |r|>0.3: positive 189, negative 80
+mean correlation by month over all records: Sep-1 -0.018 Dec-1 +0.031 Mar +0.071 Jun +0.087 Sep +0.069 Dec +0.021

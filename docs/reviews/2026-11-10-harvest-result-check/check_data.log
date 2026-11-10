@@ -1,0 +1,24 @@
+Rwanda Maize  2010 2341.600000 kg/ha A panel 2341.6 True OK
+Azerbaijan Wheat 2003 2559.900000 kg/ha A panel 2559.9 True OK
+Slovenia Wheat 2011 5177.000000 kg/ha A panel 5177.0 True OK
+Lebanon Wheat 1975 1250.000000 kg/ha X panel 1250.0 False OK
+Finland Wheat 2013 3821.500000 kg/ha A panel 3821.5 True OK
+Mexico Sorghu 1963 2035.700000 kg/ha A panel 2035.7 True OK
+Lesotho Sorghu 2011 509.200000 kg/ha A panel 509.2 True OK
+Kazakhstan Millet 1996 268.100000 kg/ha A panel 268.1 True OK
+Pakistan Barley 2000 950.600000 kg/ha A panel 950.6 True OK
+Saudi Arabia Sorghu 2017 2618.300000 kg/ha A panel 2618.3 True OK
+United Kingdom of Gr Wheat 1982 6205.700000 kg/ha A panel 6205.7 True OK
+India Barley 2004 1975.000000 kg/ha A panel 1975.0 True OK
+Australia Rice 2010 10389.500000 kg/ha A panel 10389.5 True OK
+Argentina Millet 2002 1905.600000 kg/ha A panel 1905.6 True OK
+Panama Rice 1991 2094.000000 kg/ha A panel 2094.0 True OK
+Venezuela (Bolivaria Sorghu 1967 2310.700000 kg/ha A panel 2310.7 True OK
+Benin Sorghu 2010 1499.400000 kg/ha A panel 1499.4 True OK
+Uruguay Wheat 2000 2534.400000 kg/ha A panel 2534.4 True OK
+Pakistan Barley 2017 953.100000 kg/ha A panel 953.1 True OK
+Canada Maize  1994 7374.800000 kg/ha A panel 7374.8 True OK
+yield mismatches 0 of 20
+AUS cells mine 2653 panel 2653 corr 1.0 max abs diff 0.0
+HUN cells mine 45 panel 45 corr 1.0 max abs diff 0.0
+ZWE cells mine 135 panel 135 corr 1.0 max abs diff 0.0

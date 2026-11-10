@@ -1,0 +1,9 @@
+1995 yields {'model_as_fell': 0.0, 'model_shifts': 0.0, 'flat': 0.0, 'base': 0.0, 'weights': 0.0, 'pick': 0, 'chosen': 0, 'baselines<=cut': 0.0, 'scale<=cut': 0.0}
+1995 drought {'model_as_fell': 0.0, 'model_shifts': 0.8650151707082223, 'flat': 5.566861957294805, 'base': 0.0, 'weights': 0.0, 'pick': 0, 'chosen': 0}
+1995 both {'model_as_fell': 0.0, 'model_shifts': 0.9150369003642602, 'flat': 5.533590042183221, 'base': 0.0, 'weights': 0.0, 'pick': 0, 'chosen': 0, 'baselines<=cut': 0.0, 'scale<=cut': 0.0}
+2005 yields {'model_as_fell': 0.0, 'model_shifts': 0.0, 'flat': 0.0, 'base': 0.0, 'weights': 0.0, 'pick': 0, 'chosen': 0, 'baselines<=cut': 0.0, 'scale<=cut': 0.0}
+2005 drought {'model_as_fell': 0.0, 'model_shifts': 0.6530896455462134, 'flat': 6.29876484713526, 'base': 0.0, 'weights': 0.0, 'pick': 0, 'chosen': 0}
+2005 both {'model_as_fell': 0.0, 'model_shifts': 1.29872463835697, 'flat': 6.169482024683305, 'base': 0.0, 'weights': 0.0, 'pick': 0, 'chosen': 0, 'baselines<=cut': 0.0, 'scale<=cut': 0.0}
+2015 yields {'model_as_fell': 0.0, 'model_shifts': 0.0, 'flat': 0.0, 'base': 0.0, 'weights': 0.0, 'pick': 0, 'chosen': 0, 'baselines<=cut': 0.0, 'scale<=cut': 0.0}
+2015 drought {'model_as_fell': 0.0, 'model_shifts': 0.6620508011539457, 'flat': 3.689234823675406, 'base': 0.0, 'weights': 0.0, 'pick': 0, 'chosen': 0}
+2015 both {'model_as_fell': 0.0, 'model_shifts': 0.4915946446597612, 'flat': 5.182972963175246, 'base': 0.0, 'weights': 0.0, 'pick': 0, 'chosen': 0, 'baselines<=cut': 0.0, 'scale<=cut': 0.0}
