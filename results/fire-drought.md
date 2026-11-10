@@ -204,3 +204,30 @@ The reader's report is `docs/reviews/2026-11-10-fire-drought-rule-check/report.m
 **Corrections of wording, from the reader.** The outcome's mean and spread, and which months are in use, come from 1982 to 2003; "the fitting years" for targets are 1983 to 2003 without 1994. The planted patches cover 0.18 to 0.22 of kept cells by seed (mean 0.198). A pass carries no floor on size: one drift seed passed on burned area with S of 0.01%.
 
 **Limits added.** The instrument check is tested against a same-month effect and a month-before effect of one sign; other forms are not excluded. The panels have one satellite step, the real record several. A link that is itself a steady rise or fall over the scoring years cannot pass.
+
+## Result, step 1 again under the amended verdict (2026-11-10, 02:36 to 02:56 UTC)
+
+184 seeds, 552 rows of kind `made_up_2` in `results/fire-drought.jsonl`. **Every mark held.**
+
+| Panel | Mark | Read as a link | Burned area alone | Adjusted alone | Share observed |
+|---|---|---|---|---|---|
+| Link, 20% | at least 7 of 10 | **9 of 10** | 9 | 9 | 0 |
+| Link, 20%, with an instrument effect | at least 7 of 10 | **9 of 10** | 10 | 9 | 10 |
+| Link, 10% | measured | 6 of 10 | 6 | 6 | 0 |
+| Link, 5% | measured | 1 of 10 | 1 | 1 | 0 |
+| Nothing | at most 4 of 60 | **1 of 60** | 1 | 1 | 0 |
+| Drift only | at most 2 of 24 | **0 of 24** | 0 | 0 | 0 |
+| Instrument only, same month | at most 2 of 24; share observed at least 22 | **0 of 24** | 23 | 0 | 24 |
+| Instrument only, month before (new) | at most 2 of 24 | **0 of 24** | 0 | 0 | 24 |
+| Quickening drift (new) | measured | 0 of 12 | 0 | 0 | 0 |
+| Empty panels six at a time | at most 1 of 22 | **0 of 22** | | | |
+
+- **The first run is reproduced.** On the seven panels of the first run, all 444 rows give the same S and the same reading as first registered. No seed's reading as a link changed under the amended verdict.
+- **What the added condition did.** Eight outcome rows that passed as first registered no longer pass. Four are on the quickening drift: seeds 20203 and 20212 would have been read as a link under the first rule (2 of 12), and are not now. The other four were single outcomes on panels with no link or a weak one (instrument 19516, month-before 20119, drift 19718, link 10% 19208); none was a reading as a link.
+- **The quickening drift shows why S under the shifts is quoted.** Median S there is 0.99%, and median S under the shifted drivers is 0.96%: nearly all of it is there whichever years are paired. With terms less their line the median is −0.03%.
+- **A planted link is barely touched.** Link 20%: median S 1.67% on burned area, 1.67% with terms less their line; S under the shifted drivers is below zero in every seed (median −1.0%).
+- **The month-before panel, pooled over all 24 seeds:** burned area −0.01% (−0.02% to +0.00%), adjusted −0.00% (−0.01% to +0.01%), share observed +19.3%. At the setting above every real field, this effect does not reach the readings.
+- Guesses: every mark holds (80%): held. Quickening drift read as a link at most 1 of 12: 0.
+- Machine time about 20 minutes over three processes.
+
+Not yet done: any real field. `run_local.py fit` is next, on the fitting years only.

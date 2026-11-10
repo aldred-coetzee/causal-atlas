@@ -69,8 +69,8 @@ each place's own drought, four or more months earlier, against its burned area,
 with a check that a link is not only what the satellite could see. It has passed
 its checks on made-up data, where the answer is known. An independent check of
 the rule and code then found two ways it could read a link that is not there.
-The rule is tightened for both, and the made-up checks are run again under the
-tighter rule before any real field is read.
+The rule was tightened for both, and the made-up checks, run again under the
+tighter rule, all held. No real field has been read yet.
 
 `STATUS.md` says where things stand in more detail.
 
