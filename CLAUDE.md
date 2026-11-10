@@ -28,6 +28,8 @@ stand until a plan revision and his yes change them.
 
 **Restated by the owner, 2026-11-06** (decision 0027): "We are trying to find a way to discover relationships between many separate data sets to see if behaviour emerges which would allow us to detect future events or if possible provide insight into contributing factors would perhaps accelerate or prevent events".
 
+**And on what the real work is, 2026-11-10** (decision 0055): "the whole point of this is to have many, many data sets across which we find unexpected correlations for prediction. So a big part of this is ensuring we have the right maths and things in place to find those connections. That's going to be the real work. That and collecting the data and making it consumable and comparable." Read by this session as: tests of one driver against one outcome are a means; the work is the search across many series and the data in one comparable shape; more data sets and that shape are no longer "not now" as far as an iteration needs them. His to correct.
+
 Update this statement, with the date, when the owner refines it.
 
 ## Who does what
@@ -146,3 +148,6 @@ beside them at every gate (decision 0006).
 Web UI, maps, API, more domains, global coverage, a generic adapter framework,
 a dataset catalogue, a literature survey, causal-finance. Each needs a Phase 1
 result and the owner's yes.
+
+Since decision 0055 (2026-11-10), this session's reading of the owner's words: more
+data sets, and one shape to hold them, are in as far as an iteration needs them.
