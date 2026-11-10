@@ -84,6 +84,17 @@ all, because one of its conditions leans on a baseline that had gone stale.
 The null stands on the measured size, which is zero within a narrow interval;
 the faults are listed in the results file for whatever is built next.
 
+Local food prices came next: the World Bank's file of staple prices as collected at
+markets, monthly from 2007. The test was rebuilt for them and tried on made-up
+price records only. A drought link of the size others have published could not
+be told from no link three months ahead, because a market's own price three
+months back already carries most of what a dry season will do to it. A month
+ahead it could be heard, at a fraction of one percent of the forecast error,
+which is no use to anyone. So **no real price was set against drought**, and the
+prices are still unread (`docs/decisions/0050-the-price-test-is-set-aside-before-any-real-fit.md`).
+What is looked at next is national harvests, where a record's own past says
+little about next year's weather.
+
 `STATUS.md` says where things stand in more detail.
 
 ## The question
