@@ -230,4 +230,24 @@ The reader's report is `docs/reviews/2026-11-10-fire-drought-rule-check/report.m
 - Guesses: every mark holds (80%): held. Quickening drift read as a link at most 1 of 12: 0.
 - Machine time about 20 minutes over three processes.
 
-Not yet done: any real field. `run_local.py fit` is next, on the fitting years only.
+## Result, step 2: the real fields on the fitting years only (2026-11-10, 04:15 UTC)
+
+`run_local.py fit`, 18 rows of kind `fit`. Nothing after 2003 was in memory. k is how much of the fitted slopes the fitting years themselves support when one part is held back: 1 is all of it, 0 is none.
+
+| Field | Burned area | Adjusted burned area | Share observed |
+|---|---|---|---|
+| Africa | k 0.127, by month, 619 block-months, 5584 of 5872 cells, wetter-then-more 58% | k 0.14, by month, 619 block-months, 5584 of 5872 cells, wetter-then-more 59% | k 0.052 |
+| South America | k 1, by season, 25 block-months, 205 of 5861 cells, wetter-then-more 57% | k 0.286, by season, 280 block-months, 2914 of 5861 cells, wetter-then-more 33% | k 0.041 |
+| Australia | k 0.2, by season, 267 block-months, 2533 of 2624 cells, wetter-then-more 73% | k 0.766, by month, 39 block-months, 1388 of 2624 cells, wetter-then-more 69% | k 0.428 |
+| South and Southeast Asia | nothing claimed | k 0.02, by month, 122 block-months, 2824 of 4299 cells, wetter-then-more 49% | k 0.27 |
+| North America | k 0.005, by month, 385 block-months, 5176 of 5407 cells, wetter-then-more 47% | k 0.032, by month, 385 block-months, 5176 of 5407 cells, wetter-then-more 47% | k 0.275 |
+| Europe | k 0.289, by month, 60 block-months, 1567 of 2659 cells, wetter-then-more 35% | k 0.044, by month, 179 block-months, 2361 of 2659 cells, wetter-then-more 39% | k 0.052 |
+
+- **The baseline chosen is the same in every field** for burned area and adjusted burned area (`linear`).
+- **Support inside the fitting years is thin.** Only South America's burned-area model keeps its slopes at full size, on a small patch: 205 of 5,861 cells, 25 block-months, all at a lead of seven months. Australia's adjusted model keeps three quarters, on about half its cells. Africa keeps about an eighth over nearly all its cells. North America keeps almost nothing, and South and Southeast Asia nothing at all on burned area.
+- **Sign.** "Wetter-then-more" is the share of claimed cell-months where a wetter spell earlier goes with more burned area later. It runs from a third (Europe, South America adjusted) to nearly three quarters (Australia): both directions are present, as fuel growth and dryness would each give.
+- **The share observed is itself claimed in every field** (k 0.04 to 0.43). What the satellite could see has some tie to earlier drought within the fitting years, which is why the adjusted outcome and the name "not separable" are there.
+- Burned area and adjusted burned area each have k above zero in some field, so the rule allows step 3. Nothing here changes the rule or the guesses.
+- Machine time about a minute and a half.
+
+Not yet done: step 3, 2004 to 2018, once.
