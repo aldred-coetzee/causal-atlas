@@ -1,0 +1,1 @@
+drift_u_x1 23020 no S -0.0003 ci -0.0018 beats 8 ex_ci -0.0020 ok False | flat S -0.0005 ci -0.0020 beats 6 ok False | below False wb -0.0006

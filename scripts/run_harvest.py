@@ -41,7 +41,7 @@ def rows():
 def read(r):
     """What is kept of one run: the verdict, the units followed into the later years, and the sums by year."""
     v, k = harvest.reading(r), harvest.kept(r)
-    out = {"scored": r["scored"], "passes": v["passes"], "s": v["model"]["s"], "ci": v["model"]["ci"], "model": v["model"], "flat": v["flat"], "below": v["below"], "without_best": v["without_best"],
+    out = {"scored": r["scored"], "passes": v["passes"], "size": v["size"], "s": v["model"]["s"], "ci": v["model"]["ci"], "model": v["model"], "flat": v["flat"], "below": v["below"], "without_best": v["without_best"],
            "kept": {a: b for a, b in k.items() if a != "units"}, "kept_units": k["units"],
            "by_cereal": {c: 1 - m / b for c, (b, m) in r["by_cereal"].items()}, "weights": np.round(r["weights"], 4).tolist(), "chosen": sorted(set(r["chosen"])),
            "by_year": {"years": r["years"].tolist(), "base": r["base"].tolist(), "model": r["model"][:, 0].tolist(), "shift_mean": r["model"][:, 1:].mean(axis=1).tolist(), "flat": r["flat"][:, 0].tolist()}}
@@ -83,7 +83,7 @@ def marks(done):
 
 
 def real():
-    """Once: the real record, year-end and then mid-year."""
+    """Once: the real record, year-end and then mid-year. Both are read before either is written, so a run that stops part-way leaves nothing behind."""
     done = rows()
     if any(r["kind"] == "real" for r in done):
         sys.exit("Already scored. The harvest record is spent for this driver.")
@@ -93,13 +93,16 @@ def real():
     p = yields.panel()
     country = np.searchsorted(p["codes"], p["code"])
     cereal = np.array([yields.CEREALS.index(i) for i in p["item"]])
+    both = []
     for variant, upto in VARIANTS.items():
         r = harvest.run(p["logy"], p["official"], country, cereal, p["x"], p["lat"], p["lon"], FIRST, upto)
         out, k = read(r)
         gain = 1 - r["unit_model"][:, :, 0].sum(axis=1) / np.maximum(r["unit_base"].sum(axis=1), 1e-12)
-        row({"kind": "real", "variant": variant, "units": len(country), "countries": len(p["codes"]), "marks_held": all(v for (a, _), v in held.items() if a == variant), **out,
+        both.append({"kind": "real", "variant": variant, "units": len(country), "countries": len(p["codes"]), "marks_held": all(v for (a, _), v in held.items() if a == variant), **out,
              "by_unit": [[str(p["code"][u]), str(p["item"][u]), int(r["pick"][u].sum()), round(float(gain[u]), 4)] for u in range(len(country))],
              "kept_named": [[str(p["code"][u]), str(p["item"][u])] for u in k["units"]]})
+    for r in both:
+        row(r)
 
 
 if __name__ == "__main__":

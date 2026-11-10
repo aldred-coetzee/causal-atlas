@@ -1,0 +1,8 @@
+units 503 countries 141 years 64 first official year index min 0
+official figures equal to the year before exactly: 247 of 26634 (0.93%); in scored years 1986-2024: 165 of 17492
+records with 3 or more such repeats: 29 most: 15
+official figures by year (1961, 1981, 1986, 2000, 2020, 2024): [325, 386, 405, 479, 441, 320]
+by cereal: {np.str_('Barley'): 79, np.str_('Maize (corn)'): 117, np.str_('Millet'): 45, np.str_('Rice'): 94, np.str_('Sorghum'): 69, np.str_('Wheat'): 99}
+lag-1 correlation of year-on-year changes, pooled: -0.41
+rms-like spread of official year-on-year changes, quantiles 5/25/50/75/95: [0.063 0.122 0.18  0.267 0.484]
+records with spread below 0.03: 0

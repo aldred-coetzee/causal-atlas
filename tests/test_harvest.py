@@ -75,6 +75,7 @@ def test_a_planted_link_is_read_and_nothing_is_not():
     shifts = list(range(2, 50, 4))
     v = harvest.reading(harvest.run(*world(5, link=0.06), first=20, shifts=shifts))
     assert v["passes"] and v["model"]["s"] > 0.05 and v["model"]["beats"] == len(shifts)
+    assert v["size"] == min(v["model"]["s"], v["flat"]["s"])
     for seed in (6, 7):
         v = harvest.reading(harvest.run(*world(seed), first=20, shifts=shifts))
         assert not v["passes"] and abs(v["model"]["s"]) < 0.01

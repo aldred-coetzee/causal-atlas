@@ -1,0 +1,34 @@
+drift_sq_x2 23021 kind=drift mult=2
+drift_sq_x2 23022 kind=drift mult=2
+drift_sq_x2 23023 kind=drift mult=2
+drift_sq_x2 23024 kind=drift mult=2
+drift_sq_x2 23025 kind=drift mult=2
+drift_sq_x2 23026 kind=drift mult=2
+drift_sq_x2 23027 kind=drift mult=2
+drift_sq_x2 23028 kind=drift mult=2
+drift_hockey_x1 23031 kind=drift shape=hockey
+drift_hockey_x1 23032 kind=drift shape=hockey
+drift_hockey_x1 23033 kind=drift shape=hockey
+drift_hockey_x1 23034 kind=drift shape=hockey
+drift_hockey_x1 23035 kind=drift shape=hockey
+drift_hockey_x1 23036 kind=drift shape=hockey
+drift_hockey_x1 23037 kind=drift shape=hockey
+drift_hockey_x1 23038 kind=drift shape=hockey
+drift_u_x2 23041 kind=drift shape=u mult=2
+drift_u_x2 23042 kind=drift shape=u mult=2
+drift_u_x2 23043 kind=drift shape=u mult=2
+drift_u_x2 23044 kind=drift shape=u mult=2
+drift_u_x2 23045 kind=drift shape=u mult=2
+drift_u_x2 23046 kind=drift shape=u mult=2
+drift_u_x2 23047 kind=drift shape=u mult=2
+drift_u_x2 23048 kind=drift shape=u mult=2
+common_0.5 23051 kind=none common=0.5
+common_0.5 23052 kind=none common=0.5
+common_0.5 23053 kind=none common=0.5
+common_0.5 23054 kind=none common=0.5
+tails_3 23061 kind=none tails=3
+tails_3 23062 kind=none tails=3
+tails_3 23063 kind=none tails=3
+tails_3 23064 kind=none tails=3
+tails_3 23065 kind=none tails=3
+tails_3 23066 kind=none tails=3

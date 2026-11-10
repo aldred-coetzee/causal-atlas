@@ -1,0 +1,8 @@
+drift_sq_x3 23072 no S +0.0139 ci +0.0093 beats 62 ex_ci +0.0093 ok True | flat S -0.0002 ci -0.0014 beats 38 ok False | below True wb +0.0127
+drift_sq_x3 23074 no S +0.0061 ci +0.0035 beats 61 ex_ci +0.0028 ok False | flat S -0.0003 ci -0.0017 beats 18 ok False | below True wb +0.0055
+drift_sq_x3 23071 no S +0.0110 ci +0.0067 beats 62 ex_ci +0.0055 ok True | flat S -0.0004 ci -0.0021 beats 17 ok False | below True wb +0.0098
+drift_sq_x3 23073 no S +0.0015 ci +0.0000 beats 62 ex_ci +0.0003 ok False | flat S -0.0005 ci -0.0014 beats 9 ok False | below True wb +0.0012
+drift_hockey_x2 23077 no S +0.0050 ci +0.0031 beats 57 ex_ci +0.0020 ok False | flat S -0.0001 ci -0.0005 beats 21 ok False | below True wb +0.0046
+drift_hockey_x2 23075 no S +0.0156 ci +0.0070 beats 62 ex_ci +0.0064 ok True | flat S -0.0002 ci -0.0008 beats 19 ok False | below True wb +0.0127
+drift_hockey_x2 23076 no S +0.0054 ci +0.0016 beats 56 ex_ci +0.0006 ok False | flat S -0.0004 ci -0.0010 beats 6 ok False | below True wb +0.0044
+drift_hockey_x2 23078 no S +0.0004 ci -0.0004 beats 48 ex_ci -0.0008 ok False | flat S -0.0009 ci -0.0026 beats 3 ok False | below True wb +0.0002

@@ -141,3 +141,33 @@ In plain terms:
 Guesses against this: "all year-end marks hold, about 80%" held. "Most likely to miss: the 20% link" was the closest (9 against 8).
 
 Next: the independent reader, before any real yield is read.
+
+## Amendment after the independent check (2026-11-10, 06:52 UTC), before any real yield is read
+
+The reader's report, scripts and logs are in `docs/reviews/2026-11-10-harvest-rule-check/`; the reasons are in decision 0052. Its verdict: **the real scoring may go ahead after these changes.** It found no leak (its own test, not this repo's), reproduced the table above from the rows and three seeds from scratch, and found the real path as the rule says. No change below makes a pass easier, and none changes which made-up record was read as a link.
+
+**What it found, on made-up records of its own (seeds 23001 to 23088):**
+
+1. **The shifted years do not guard against a drift shared by drought and yields; only the flat driver does.** With a slow shared drift and no link, the model's side met every condition and beat all 62 shifts in 6 of 37 records, with S up to 1.56%. The flat driver stopped every one (0 of 37 read as a link). On the counted drift records above the true years beat all 62 shifts in 4 of 20, where chance would give about 0.3. So a pass is protected, but S itself can be raised by drift.
+2. **The ruler is the best case.** In the made-up records the drought series the test sees is exactly what moves the yield. With a blurred series (correlation 0.71 with what acts), the 20% link was read 5 times in 8, not 9 in 10, and S about halved.
+3. **A cause shared by both passes as a link.** A year-to-year swing put into both moisture and yields, with no path from one to the other, was read as a link 4 times in 4 (S 1.5% to 2.7%), with the flat driver too.
+4. Places where the words above and the code differ; none changes a number.
+
+**What is changed:**
+
+- **The size reported is the smaller of S and S with the flat driver** (`reading`'s `size`), each given with its interval. The size words (under 1%, 1% to 5%, 5% or more) are applied to that. The verdict is unchanged: condition 4 already required the flat driver's S to be at least 0.2%, so no reading of any made-up record changes, and none was run again. This can lower the size reported and cannot raise it.
+- **"Not through a shared drift"** is withdrawn. A pass says: not through a drift that a straight line for each country and calendar month removes.
+- **What a silence would rule out** is a link of the size on the ruler *in the index as measured*. A real effect that a country's mean SPEI-3 at these six months only partly catches could be larger and still be missed.
+- **What a pass would mean:** drought at these months helps to forecast the official yield. It does not say drought lowers yields. Heat, rain tied to El Niño and any other weather that moves with the index are not separated, and a cause shared by the index and the yield would be read as a link every time.
+- **`run_harvest.py real once` reads both variants before it writes either,** so a run that stops part-way leaves nothing behind and can be started again without a second look at anything.
+
+**The words corrected to the code** (the code is unchanged in each):
+
+- "The term is clipped at 4": each scale's forecast is clipped at 4; their weighted sum is not. The weights summed to 0.89 at most on every counted record.
+- "Ten known earlier years": a record is forecast in a year when it has nine consecutive known year-on-year changes behind it for its scale; the ten-year line needs 6 of its 10 years and the twenty-year line 8 of its 20.
+- "Last year's figure" is the three-year mean where last year's is missing.
+- Targets are figures flagged A only. Figures flagged E (estimated) and X (from international organisations) are both left out of the targets and kept as past values.
+
+**Not done, and why:** no drift record was added with a mark, because the flat driver stopped every drift the reader tried and the change above covers the size. The made-up driver was not blurred and run again, because that would only move the ruler, which is now said to be the best case.
+
+What the reader did not check is listed in its report: the mid-year variant on its own records, published effect sizes, FAO's revisions, crop calendars.

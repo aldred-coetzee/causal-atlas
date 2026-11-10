@@ -1,0 +1,3 @@
+23001 33 yields and flags only 8 {'base': True, 'alone': True, 'chosen': True, 'weights': True, 'model as fell': True, 'unit model as fell': True, 'pick': True, 'model all shifts': True, 'flat all': True, 'changed after': True}
+23001 33 driver only 8 {'base': True, 'alone': True, 'chosen': True, 'weights': True, 'model as fell': True, 'unit model as fell': True, 'pick': True, 'model all shifts': False, 'flat all': False, 'changed after': True}
+23001 33 all 8 {'base': True, 'alone': True, 'chosen': True, 'weights': True, 'model as fell': True, 'unit model as fell': True, 'pick': True, 'model all shifts': False, 'flat all': False, 'changed after': True}

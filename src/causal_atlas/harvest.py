@@ -245,6 +245,7 @@ def reading(r, seed=0):
     out["below"] = {b: bool(r["model"][:, 0].sum() < v.sum()) for b, v in r["alone"].items()}
     out["without_best"] = float(1 - r["model"][rest, 0].sum() / r["base"][rest].sum())
     out["passes"] = bool(out["model"]["ok"] and out["flat"]["ok"] and all(out["below"].values()) and out["without_best"] > 0)
+    out["size"] = float(min(out["model"]["s"], out["flat"]["s"]))  # the size that is reported: a drift shared by driver and outcome can raise S, and does not raise S with the flat driver
     return out
 
 

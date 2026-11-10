@@ -1,0 +1,8 @@
+drift_sq_x3 23071 kind=drift mult=3
+drift_sq_x3 23072 kind=drift mult=3
+drift_sq_x3 23073 kind=drift mult=3
+drift_sq_x3 23074 kind=drift mult=3
+drift_hockey_x2 23075 kind=drift shape=hockey mult=2
+drift_hockey_x2 23076 kind=drift shape=hockey mult=2
+drift_hockey_x2 23077 kind=drift shape=hockey mult=2
+drift_hockey_x2 23078 kind=drift shape=hockey mult=2

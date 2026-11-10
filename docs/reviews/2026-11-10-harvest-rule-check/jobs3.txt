@@ -1,0 +1,8 @@
+link20_blur1 23081 kind=link share=0.2 blur=1
+link20_blur1 23082 kind=link share=0.2 blur=1
+link20_blur1 23083 kind=link share=0.2 blur=1
+link20_blur1 23084 kind=link share=0.2 blur=1
+link20_blur1 23085 kind=link share=0.2 blur=1
+link20_blur1 23086 kind=link share=0.2 blur=1
+link20_blur1 23087 kind=link share=0.2 blur=1
+link20_blur1 23088 kind=link share=0.2 blur=1

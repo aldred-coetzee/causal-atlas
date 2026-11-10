@@ -1,0 +1,8 @@
+link20_blur1 23081 PASS S +0.0031 ci +0.0009 beats 62 ex_ci +0.0012 ok True | flat S +0.0053 ci +0.0028 beats 62 ok True | below True wb +0.0025
+link20_blur1 23083 no S +0.0023 ci -0.0002 beats 62 ex_ci +0.0000 ok False | flat S +0.0039 ci +0.0011 beats 62 ok True | below True wb +0.0015
+link20_blur1 23084 PASS S +0.0038 ci +0.0021 beats 62 ex_ci +0.0024 ok True | flat S +0.0051 ci +0.0029 beats 62 ok True | below True wb +0.0035
+link20_blur1 23082 PASS S +0.0048 ci +0.0008 beats 62 ex_ci +0.0010 ok True | flat S +0.0072 ci +0.0030 beats 62 ok True | below True wb +0.0040
+link20_blur1 23086 PASS S +0.0026 ci +0.0006 beats 62 ex_ci +0.0009 ok True | flat S +0.0036 ci +0.0015 beats 62 ok True | below True wb +0.0020
+link20_blur1 23085 PASS S +0.0051 ci +0.0018 beats 62 ex_ci +0.0021 ok True | flat S +0.0080 ci +0.0037 beats 62 ok True | below True wb +0.0043
+link20_blur1 23088 no S +0.0015 ci +0.0001 beats 62 ex_ci +0.0003 ok False | flat S +0.0024 ci +0.0005 beats 62 ok True | below True wb +0.0013
+link20_blur1 23087 no S +0.0016 ci +0.0002 beats 62 ex_ci +0.0005 ok False | flat S +0.0033 ci +0.0011 beats 62 ok True | below True wb +0.0012
