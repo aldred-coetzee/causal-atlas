@@ -310,3 +310,29 @@ S is the share of squared forecast error the drought term takes off the chosen b
 - Before this was written the planting was checked on one field's fitting years with a throwaway generator (Europe, 1983 to 2003: a fifth of cells planted, nothing changed outside them or off the months in use, the outcome's spread unchanged). Nothing was fitted or scored.
 
 **Guesses.** Heard without the baseline condition, of 4: 20%, 4; 10%, 4; 5%, 3; 2%, 1. Under the full amended verdict: 20%, 1; the rest, 0. So the guess is that 5% is the smallest size heard and that the registered rule could not have read it.
+
+### Result (2026-11-10, 04:26 to 04:30 UTC)
+
+16 rows in `results/explore-planted.jsonl`. Machine time about four minutes on four threads.
+
+| Planted, in a fifth of the cells | Burned area: pooled S, median (range) | Adjusted: pooled S, median (range) | Heard, both outcomes, without the baseline condition | Under the full amended verdict |
+|---|---|---|---|---|
+| 20% of variance | +0.32% (+0.30% to +0.38%) | +0.32% (+0.27% to +0.41%) | **4 of 4** | 0 of 4 |
+| 10% | +0.06% (+0.04% to +0.12%) | +0.08% (+0.04% to +0.11%) | 1 of 4 | 0 of 4 |
+| 5% | +0.01% (-0.02% to +0.02%) | +0.00% (-0.01% to +0.04%) | 0 of 4 | 0 of 4 |
+| 2% | -0.01% (-0.02% to -0.01%) | -0.02% (-0.03% to -0.01%) | 0 of 4 | 0 of 4 |
+| The real fields, nothing planted | -0.03% (-0.08% to +0.03%) | -0.03% (-0.08% to +0.01%) | | |
+
+- **By the reading fixed beforehand, 20% is the smallest size heard.** The silence rules out a link that moves a fifth of the variance in a fifth of the cells, in this easy shape. It does not rule out one half that size, and a link at 5% or 2% scores the same as no link at all.
+- **The registered rule could not have read any of these as a link.** Not one of the 32 pooled readings is below every baseline alone. On the scoring years the baseline chosen on the fitting years is worse than the plain level of a cell's last five years by about 14% and worse than the month's average too, and a drought term worth a third of a percent cannot make that up. So on these fields the rule, as registered, was unable to say "link" whatever the data held.
+- **Every replicate beats all 14 shifted drivers,** down to 2%, where S is below zero. So does the real record. On these fields "beats all 14" is met with nothing behind it; the interval is what carries the reading.
+- **The search hears little of what is planted.** A link at 20% in a fifth of the cells, found in full, would take about 4% off the pooled error. It takes 0.3%. And the claims are not placed: a fifth of claimed cell-months fall in planted cells, which is the share planted.
+- **Guesses:** heard without the baseline condition, 4, 4, 3, 1 of 4 for 20%, 10%, 5%, 2%: it was 4, 1, 0, 0. Under the full verdict, 1 of 4 at 20%: it was 0. The search hears less than guessed.
+
+**One thing about the planting, seen only after it ran.** The limits above call the planted link an easy shape. Its placement is the opposite: squares set half a square off the detector's blocks are cut in four by them, so no block ever holds a planted square whole, and a slope shared across a block is diluted to a quarter. That is the least favourable placement for this detector, and it pulls against "what is heard is a ceiling". A real link has no reason to sit on the detector's blocks either, but none to sit astride them. So the same check is run once more with the squares on the detector's own blocks, the most favourable placement, to bracket it.
+
+### The same, with the planted squares on the detector's blocks (rule written 2026-11-10, 04:32 UTC, before it is run; marks nothing)
+
+Everything as above, except that the planted squares are the detector's own five-degree blocks. Seeds 21401 to 21404 (20%), 21501 to 21504 (10%), 21601 to 21604 (5%), 21701 to 21704 (2%). Read the same way: a size is heard when both outcomes pass without the baseline condition in at least 3 of 4. The two placements bracket what the silence rules out; the statement made from them names both.
+
+**Guesses.** Heard, of 4: 20%, 4; 10%, 4; 5%, 2; 2%, 0. Pooled S at 20% about 1.5%. Under the full verdict, 0 at every size.
