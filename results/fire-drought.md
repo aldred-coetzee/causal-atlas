@@ -138,4 +138,43 @@ A pass does not show cause, does not say where, and does not say drought acts by
 
 ## Estimates
 
-Machine: about 20 seconds a seed for the three outcomes, 164 seeds, under an hour in one process. Real fields: minutes. Tokens: this rule and its run about 300k; the reader 300k to 450k, from what the last one cost. Overruns are reported beside the result.
+Machine: about 20 seconds a seed for the three outcomes, 164 seeds (148: a miscount, corrected 2026-11-10 after the run), under an hour in one process. Real fields: minutes. Tokens: this rule and its run about 300k; the reader 300k to 450k, from what the last one cost. Overruns are reported beside the result.
+
+## Result, step 1: the made-up panels (2026-11-10, 01:53 to 02:09 UTC)
+
+`run_local.py known`, three processes, 148 seeds, 444 rows in `results/fire-drought.jsonl`; then `run_local.py marks`. **Every mark held.** Nothing was rerun or left out.
+
+| Panel | Mark | Read as a link | Burned area passes | Adjusted passes | What the satellite saw passes |
+|---|---|---|---|---|---|
+| Link, 20% | at least 7 of 10 | **9 of 10** | 9 | 9 | 0 |
+| Link and instrument | at least 7 of 10 | **9 of 10** | 10 | 9 | 10 |
+| Nothing | at most 4 of 60 | **1 of 60** | 1 | 1 | 0 |
+| Drift only | at most 2 of 24 | **0 of 24** | 1 | 0 | 0 |
+| Instrument only | at most 2 of 24; sight at least 22 of 24 | **0 of 24; sight 24 of 24** | 24 | 0 | 24 |
+| Link, 10% | none | 6 of 10 | 6 | 7 | 0 |
+| Link, 5% | none | 1 of 10 | 1 | 1 | 0 |
+
+**Six at a time, as the real fields are read: 0 of 18 sixes read as a link** (at most 1 allowed). Nothing: S on burned area from −0.0018 to 0.0000 across its ten sixes. Drift only: −0.0002 to +0.0006, adjusted −0.0004 to +0.0005, none passing. Instrument only: burned area passes in all four sixes (S about 1.1%), adjusted in none (−0.0003 to +0.0001), sight in all four (about 19%).
+
+Each empty panel's seeds all together, a measurement:
+
+| Panel | Burned area, S (interval) | Adjusted | Sight |
+|---|---|---|---|
+| Nothing, 60 seeds | −0.0004 (−0.0005 to −0.0003) | −0.0003 (−0.0005 to −0.0002) | −0.0002 |
+| Drift only, 24 | +0.0001 (−0.0003 to +0.0003) | −0.0000 (−0.0004 to +0.0003) | −0.0003 |
+| Instrument only, 24 | +0.0109 (+0.0100 to +0.0118), passes | −0.0001 (−0.0002 to +0.0001) | +0.1912, passes |
+
+What this shows, in plain terms:
+
+- **A link of 20% of a season's variance over a fifth of the cells is read 9 times in 10,** with or without an instrument effect beside it. At 10% it is read 6 times in 10; at 5%, once in 10. So a silence on the real fields means "nothing as large as about 10% of a season's variance over a fifth of a field", not "nothing".
+- **With nothing there it reads a link once in 60 single panels and never in 18 sets of six.** With nothing there the model costs a little: about 0.04% more error than the baseline.
+- **The lean seen on four smoke seeds of the drift panels was chance.** On 24 seeds together it is +0.0001 with an interval across zero, and beyond 3 of the 14 controls.
+- **The instrument check works both ways.** With no link and an instrument effect, burned area alone passes 24 times in 24: without the adjusted outcome this test would have reported a link every time. Adjusted passes 0 in 24, and what the satellite saw gives it away 24 in 24.
+- **Sizes are small even when the link is real.** With a planted link of 20%, S on burned area is 0.3% to 2.5% (middle 1.7%), because the model's claims spread over far more cell-months than hold the link. A size on the real fields is to be read against that.
+- **It does not say where.** 40% of claims fall in planted cells, which are 20% of the cells kept.
+
+Corrections to the rule's own wording, found in the run: the panels hold 148 seeds, not the 164 written under Estimates (a miscount; every registered seed was run). The six patches cover about a fifth of the cells a panel keeps (0.19 to 0.20), not a quarter, because patches overlap and run off the edge. "A quarter" above should be read as "a fifth".
+
+Guess made beforehand: all marks hold, about 70%. They held.
+
+Not yet done: the independent reader; no real field has been set against drought.
