@@ -134,3 +134,58 @@ Run once: `scripts/run_fire.py confirm once`, which refuses unless the condition
 ## Estimates
 
 Machine time: under half an hour for both parts of step 1 (840 searches), a few minutes for step 2. Tokens for the whole iteration, an independent reader included: about 500k fresh, to be reported beside the result.
+
+## Result of step 1 (2026-11-10): a miss on every mark; step 2 is not run
+
+Rows: `results/fire-enso.jsonl` (360 ruler runs, 480 naming runs, 6 rows of where the ONI's correlation is largest). Machine time about 12 minutes. No burned-area value after 2003 has been set against anything: **2004 to 2018 stay sealed.**
+
+### The marks
+
+| Mark | Needed | Got | |
+|---|---|---|---|
+| K1: the ONI a lead in South and Southeast Asia | 18 of 20 | **0 of 20** | missed |
+| F1: a decoy a lead, the ONI among the candidates | at most 9 of 120 | **18** | missed |
+| F2: anything a lead, the ONI left out | at most 9 of 120 | **18** | missed |
+| F3: anything a lead, years mixed | at most 9 of 120 | **18** | missed |
+
+The ONI was a lead in 0 of 20 sets in every field, 0 of 120 in all. No field enters step 2, and F1 to F3 would have stopped it anyway.
+
+### The false-alarm marks could not have been expected to hold, and the author should have seen that before registering them
+
+A candidate is named when its real alignment beats every year-moved copy of every candidate. With 19 moved copies, the strongest of the candidates does that by luck once in 20 in each gate, however many candidates there are. Over two gates that is about 1 run in 10 (9.75% if the gates were independent): about 12 of 120. The marks allowed 9, a rate carried over from fields with 47 or 49 copies, where the same arithmetic gives about 4%. A sound search would have held these marks about one time in four. That arithmetic was not done before the rule was committed, and the guess written there (2 to 7 of 120) was wrong for the same reason.
+
+What was measured, 18 of 120, is above even that floor; a sound search would give 18 or more about 1 time in 25. By gate: broad 12, 12 and 10 of 120 for the three kinds, sharp 8, 8 and 8, against 6 expected in each. Kinds 1 and 2 are the same decoys on the same field and gave the same alarms, so they are one measurement, not two. So there may be something more than the floor on these fields, or it may be chance; this result cannot tell which.
+
+**This does not reopen the earlier results.** With 49 controls the floor is about 4 in 100 and those runs measured 3, 3 and 5; with 47 it is about 4 and they measured 3 and 5 (`results/real-enso-continents.md`, `results/real-indices-2.md`). But it is a property of the search that was not written down before: **the false-alarm rate cannot go below about two in (controls + 1), and the number of whole-year controls is set by the length of the record.**
+
+### What the search can hear on 1982 to 2003
+
+Runs of 10 in which the planted link was found:
+
+| Field | 5% over 5% | 5% over 25% | 15% over 5% | 15% over 25% | 40% over 5% | 40% over 25% | In earshot |
+|---|---|---|---|---|---|---|---|
+| Africa | 0 | 0 | 0 | 4 | 4 | 9 | yes |
+| South America | 0 | 0 | 0 | 1 | 4 | 10 | yes |
+| Australia | 0 | 0 | 0 | 0 | 0 | 7 | no |
+| South and Southeast Asia | 0 | 0 | 1 | 3 | 3 | 10 | yes |
+| North America | 0 | 0 | 0 | 5 | 2 | 10 | yes |
+| Europe | 0 | 0 | 0 | 6 | 6 | 9 | yes |
+
+- A link of 40% of variance over a quarter of the cells in one season is heard in 55 of 60 runs; anything smaller in at most a third.
+- The bar a region's correlation must clear in the sharp gate was 0.85 to 0.95 across the 120 naming runs. On twenty years, only a nearly exact relationship in some region is named.
+- **Mapping does not work at this length.** Where the largest planted link was found, the number of cell-month-lags then claimed ran from 0 to about 10,000, and in 7 of the 55 runs it was 0: the driver is named and nothing can be said about where. Where there were claims, 90% or more lay in the planted cells in all but one run (51%, on 102 claims).
+- A decoy with nothing planted on it was named in 39 of the 360 ruler runs (11 of the 60 decoy sets; the six runs on one set are not independent), about 1 in 9.
+- Guessed: Africa, South America and Australia in earshot, the two northern fields doubtful. Wrong on both counts: Australia is the one out, and the northern fields are in.
+
+### Where El Niño stood
+
+- **Against burned area it is not close.** It was among the five strongest candidates of either gate in no set in Africa, South America, Australia or Europe, and in the broad gate in 2 of 20 in North America. In South and Southeast Asia it was among the five sharpest in 14 of 20 sets and never the sharpest. Its largest correlation with a region's average there: +0.81, for March, two months back, around 5°N 125°E. That is the sign and the part of the world the published link gives, and it is below the bar (0.87 to 0.93), about where the best decoy stands.
+- **Against what the satellite saw it is stronger than against what burned.** In South and Southeast Asia the ONI was among the five strongest in all 20 sets in both gates and the sharpest candidate in 18; in South America among the five strongest in 19 and 20. It was named in 3 of 20 in South and Southeast Asia and in none elsewhere, so by the rule nothing is flagged. But the order is plain: **on this record El Niño shows more clearly in how much of the land the instrument could see than in the burned area it reports.** Any link between El Niño and burned area drawn from this product has that beside it.
+- Guessed: the ONI named in South and Southeast Asia about one time in two, and in South America, Australia and Africa a little less. It was named nowhere.
+
+### What this means
+
+- **The known answer was not recovered.** By the rule's own reading: in the five fields in earshot there is no link from El Niño to burned area as large as 40% of a season's variance over a quarter of the field on 1982 to 2003; in Australia this record cannot say. The published link is not contradicted: it is far smaller than that, and was never shown out of sample.
+- **The search as built does not suit a record this short.** Two reasons, both arithmetic: with 19 controls its false-alarm floor is about 1 in 10, and on 20 years the bar it sets is a correlation near 0.9. Naming one driver for a whole continent, blind among 32, needs more years than a satellite record has. That is a limit of this method, not a finding about fire.
+- **Nothing is changed and rerun on these fields' fitting years without a fresh reader first,** as the rule says. The burned-area years after 2003 are unread and unspent.
+- What the short record does have is many places. A driver that differs from cell to cell (local drought, not one ocean index) can be tested across thousands of cells at once, with years as the unit of evidence. That is a different question and a different test, and it needs its own rule and its own known-answer check before it touches these fields.

@@ -49,10 +49,14 @@ more months ahead once each region's own history and El Niño are in it
 usable lead found, and the search can now be trusted with many real candidates,
 for large links only.
 
-The step now under way is the first outside climate: burned area from satellites,
-1982 to 2018, with a link others have published (El Niño leading fire) to
-rediscover first. Its rule is committed (`results/fire-enso.md`); nothing has been
-run on it yet.
+The first step outside climate was burned area from satellites, 1982 to 2018, with
+a link others have published (El Niño leading fire) to rediscover first. It missed
+(`results/fire-enso.md`): on twenty fitting years the search named El Niño nowhere,
+and its own false-alarm checks failed, partly because they were set tighter than a
+record that short allows. The forecast step was not run. Two things came out of it:
+this search needs more years than a satellite record has, and in this product El
+Niño shows more clearly in how much land the satellite could see than in what it
+reports as burned.
 
 `STATUS.md` says where things stand in more detail.
 
