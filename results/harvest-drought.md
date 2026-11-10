@@ -114,3 +114,30 @@ On smoke, year-end: 20% read 4 times in 4; 10% read 2 in 2, narrowly; 5% not rea
 - **Step and drift panels use one strength each,** a guess.
 - **The drought file** carries an error its makers have acknowledged; a corrected file is not yet out.
 - **No person-level inference:** the unit is a country, a cereal and a year.
+
+## Result, step 1: the made-up records (2026-11-10, 06:26 UTC)
+
+Run at commit 363c2fa, the rule as above, 190 runs on 110 records, 62 shifts each. **Every mark held.** Rows: `results/harvest-drought.jsonl`.
+
+| Panel | Year-end: read as a link | Pooled S, lowest, middle, highest | Mid-year: read as a link |
+|---|---|---|---|
+| Link, 20% | **9 of 10** (mark: at least 8) | +0.37%, +0.79%, +1.14% | **8 of 10** (at least 8) |
+| Link, 10% | 3 of 10 (measured) | +0.04%, +0.17%, +0.30% | not run |
+| Link, 5% | 0 of 10 (measured) | −0.04%, +0.05%, +0.13% | not run |
+| Link in few, 20% | 2 of 10 (measured) | +0.01%, +0.15%, +0.59% | not run |
+| Nothing | **0 of 30** (mark: at most 1) | −0.09%, −0.02%, +0.03% | **0 of 30** |
+| Drift | **0 of 20** (at most 1) | −0.10%, −0.01%, +0.12% | **0 of 20** |
+| Step | **0 of 20** (at most 1) | −0.25%, −0.05%, +0.01% | **0 of 20** |
+
+In plain terms:
+
+- **No false link in 140 readings** of records with none in them (70 records, read year-end and mid-year).
+- **The ruler.** A link taking a fifth of a linked record's year-to-year departures, in half the countries, is heard nine times in ten. At a tenth it is heard three times in ten; at a twentieth, never; at a fifth in only a fifth of the countries, twice in ten. So a silence on the real record would rule out a link of about the first size and shape and nothing smaller.
+- **What is heard is a small part of what is there,** and smaller than the smoke runs suggested: the pooled S for the 20% link has a middle of 0.8% (smoke: 1.2% to 1.4%). In the linked records the term removes about 2.3% of the error; in the others it adds about 0.7%.
+- **The mid-year mark held with nothing to spare** (8 of 10, 8 needed). The two it missed had intervals reaching zero (lowest ends −0.20% and −0.01%).
+- **Where it helped before:** on the 20% link the top third by earlier gain were 73% linked records (half would be chance), and the term removed a middle 1.6% of their error in the later years, twice the whole panel's; clear of zero and of every shift in 9 of 10. On records with nothing in them that reading was clear in none of 30, none of 20 and none of 20 year-end, and in 0, 1 and 1 mid-year (drift, step). It is not a verdict and has no mark.
+- The one 20% record not read year-end (seed 22002) had S +0.37% with an interval from −0.11%.
+
+Guesses against this: "all year-end marks hold, about 80%" held. "Most likely to miss: the 20% link" was the closest (9 against 8).
+
+Next: the independent reader, before any real yield is read.
