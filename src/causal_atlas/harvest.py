@@ -182,8 +182,8 @@ def terms(zb, target, chosen, fc, country, pools, first):
     return term, weights
 
 
-def run(y, official, country, cereal, x, lat, lon, first, upto=len(SEASONS), shifts=None):
-    """Forecast every year from `first` on from the years before it. Scored on official figures from year first + WARM. Returns sums by scored year of squared error (in units of each unit's past scale, clipped): the baseline chosen that year, each baseline alone, the model with the driver as it fell, with the driver moved by each of `shifts` whole years (round the record), and the same with each country's and calendar month's mean and straight line taken out of the driver; and by cereal, the weights by year, the baseline chosen by year, and, unit by unit and year by year, which are scored, the baseline's squared error and the model's under the driver as it fell and under each shift."""
+def run(y, official, country, cereal, x, lat, lon, first, upto=len(SEASONS), shifts=None, flat=True):
+    """Forecast every year from `first` on from the years before it. Scored on official figures from year first + WARM. Returns sums by scored year of squared error (in units of each unit's past scale, clipped): the baseline chosen that year, each baseline alone, the model with the driver as it fell, with the driver moved by each of `shifts` whole years (round the record), and the same with each country's and calendar month's mean and straight line taken out of the driver; and by cereal, the weights by year, the baseline chosen by year, and, unit by unit and year by year, which are scored, the squared error of the baseline chosen and of each baseline alone, the model's under the driver as it fell and under each shift, and what they are made of: the outcome less the baseline, and the driver's term. With flat false the driver with its mean and line out is not run."""
     units, years = y.shape
     shifts = list(range(2, years)) if shifts is None else list(shifts)
     s = scale(y)
@@ -200,7 +200,7 @@ def run(y, official, country, cereal, x, lat, lon, first, upto=len(SEASONS), shi
 
     def errors(drv):
         term, w = terms(zb, target, chosen, seasons(drv, years, upto), country, pools, first)
-        return np.where(pick, (now - term[:, scored]) ** 2, 0), w
+        return np.where(pick, (now - term[:, scored]) ** 2, 0), w, np.where(pick, term[:, scored], 0)
 
     def level(drv):
         q = drv.reshape(len(drv), -1, 12).astype(float)
@@ -208,18 +208,21 @@ def run(y, official, country, cereal, x, lat, lon, first, upto=len(SEASONS), shi
         q = q - q.mean(axis=1, keepdims=True)
         return (q - t[None, :, None] * np.einsum("ctm,t->cm", q, t)[:, None, :] / (t @ t)).reshape(len(drv), -1)
 
-    e, w = errors(x)
-    flat = level(x)
-    each = np.stack([e] + [errors(np.roll(x, 12 * k, axis=1))[0] for k in shifts], axis=2)
+    e, w, term = errors(x)
+    moved = [errors(np.roll(x, 12 * k, axis=1)) for k in shifts]
+    each = np.stack([e] + [m[0] for m in moved], axis=2)
     model = each.sum(axis=0)
-    level_model = np.stack([errors(flat)[0].sum(axis=0)] + [errors(np.roll(flat, 12 * k, axis=1))[0].sum(axis=0) for k in shifts], axis=1)
+    level_model = None
+    if flat:
+        lv = level(x)
+        level_model = np.stack([errors(lv)[0].sum(axis=0)] + [errors(np.roll(lv, 12 * k, axis=1))[0].sum(axis=0) for k in shifts], axis=1)
     b = np.where(pick, now**2, 0)
     return {
         "years": scored, "base": b.sum(axis=0), "model": model, "flat": level_model,
         "alone": {k: np.where(pick, zb[k][:, scored] ** 2, 0).sum(axis=0) for k in BASELINES},
         "by_cereal": {int(c): [float(b[cereal == c].sum()), float(e[cereal == c].sum())] for c in np.unique(cereal)},
         "weights": w[scored], "chosen": [chosen[t] for t in scored], "scored": int(pick.sum()),
-        "pick": pick, "unit_base": b, "unit_model": each,
+        "pick": pick, "unit_base": b, "unit_alone": {k: np.where(pick, zb[k][:, scored] ** 2, 0) for k in BASELINES}, "unit_model": each, "unit_now": np.where(pick, now, 0), "unit_term": np.stack([term] + [m[2] for m in moved], axis=2),
     }
 
 

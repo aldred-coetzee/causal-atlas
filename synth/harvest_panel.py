@@ -20,8 +20,8 @@ def near(rng, dist, reach, shape):
     return np.einsum("ij,j...->i...", root, rng.standard_normal((len(dist),) + shape))
 
 
-def make(seed, kind="link", share=0.2, countries=141, years=64, linked=0.5):
-    """One world. kind: "link" (moisture in a growing season moves the yield, in about the fraction `linked` of countries, taking `share` of the variance of a linked series' year-to-year departures), "none" (no link), "drift" (no link; a slow drying or wetting that speeds up, and a yield path bending the same way in the same places), "step" (no link from year to year; in patches of countries the climate turns drier for good in one year, and yields there fall to a lower path in the same year). In every kind most countries dry a little over the record, as the real drought file's country means do.
+def make(seed, kind="link", share=0.2, countries=141, years=64, linked=0.5, crops=None, rainfed=0.5, sure=0, shape=None):
+    """One world. kind: "link" (moisture in a growing season moves the yield, in about the fraction `linked` of countries, taking `share` of the variance of a linked series' year-to-year departures), "none" (no link), "drift" (no link; a slow drying or wetting that speeds up, and a yield path bending the same way in the same places), "step" (no link from year to year; in patches of countries the climate turns drier for good in one year, and yields there fall to a lower path in the same year). In every kind most countries dry a little over the record, as the real drought file's country means do. With `crops`, that many crops and not six: the first `sure` of them are grown as often as the six cereals and are linked wherever their country is; each of the others is grown in a tenth to two thirds of countries and is rain-fed, so linked where its country is, with chance `rainfed`. With `shape` "drift" or "step", a link world also carries that drift or step. With `crops`, how widely each crop is grown and when it is harvested are drawn.
 
     Returns log yield (units by years, NaN where no figure), which figures are official, each unit's country and cereal, the monthly moisture by country starting twelve months before the first year, each country's latitude and longitude, and the truth: which units are linked and each unit's season as (first month, length), months counted from January of the harvest year, negative for the year before."""
     rng = np.random.default_rng(seed)
@@ -47,25 +47,28 @@ def make(seed, kind="link", share=0.2, countries=141, years=64, linked=0.5):
     bend = near(rng, dist, 3000.0, ())  # where the drift goes, if there is one
     clock = np.linspace(0, 1, months)
     wet += rng.normal(-0.5, 0.45, countries)[:, None] * clock * wet.std()
-    if kind == "drift":
+    if "drift" in (kind, shape):
         wet += 1.2 * bend[:, None] * clock**2 * wet.std()
     stepped = bend > np.quantile(bend, 0.65)  # where the step falls, if there is one
     peak = np.argmax(np.where(stepped[None, :] & (dist < 2000.0), bend[None, :], -np.inf), axis=1)  # the strongest stepped country within reach: a patch takes its year from it
     when = np.where(stepped, (15 + (np.abs(bend) * 1000).astype(int) % 30)[peak], 0)
-    if kind == "step":
+    if "step" in (kind, shape):
         wet -= 1.2 * wet.std() * stepped[:, None] * (np.arange(months)[None, :] >= 12 * (when[:, None] + 1))
     wet = (wet - wet.mean(axis=1, keepdims=True)) / wet.std(axis=1, keepdims=True)
     width = rng.uniform(0.6, 1.05, countries)  # a wide country's mean moves less
     moisture = wet * width[:, None]
 
     # Which cereals a country grows.
-    grows = rng.random((countries, CEREALS)) < np.array([0.70, 0.83, 0.67, 0.56, 0.49, 0.32])
+    often = np.array([0.70, 0.83, 0.67, 0.56, 0.49, 0.32])
+    if crops:
+        often = np.concatenate([often[:sure], rng.uniform(0.1, 0.65, crops)[sure:]])
+    grows = rng.random((countries, crops or CEREALS)) < often
     grows[~grows.any(axis=1), 1] = True
     country, cereal = np.nonzero(grows)
     units = len(country)
 
     # Each unit's season: where the months are counted from January of the harvest year.
-    late = np.array([5, 7, 8, 5, 8, 8])[cereal] + rng.integers(-1, 2, units)  # the season's last month, in the north
+    late = (rng.integers(4, 10, crops) if crops else np.array([5, 7, 8, 5, 8, 8]))[cereal] + rng.integers(-1, 2, units)  # the season's last month, in the north
     south = lat[country] < -15
     tropic = np.abs(lat[country]) <= 15
     late = np.where(south, late - 6, late)
@@ -76,6 +79,8 @@ def make(seed, kind="link", share=0.2, countries=141, years=64, linked=0.5):
     # Who is linked: rain-fed places, in patches.
     patch = near(rng, dist, 2500.0, ()) + 0.5 * rng.standard_normal(countries)
     is_linked = (patch > np.quantile(patch, 1 - linked))[country] if kind == "link" else np.zeros(units, dtype=bool)
+    if crops:
+        is_linked &= ((rng.random(crops) < rainfed) | (np.arange(crops) < sure))[cereal]
 
     # The yield's own path: a level, growth that changes once or twice, a memory, shocks neighbours share, a level that wanders and does not come back, and noise in the figure.
     t = np.arange(years)
@@ -86,9 +91,9 @@ def make(seed, kind="link", share=0.2, countries=141, years=64, linked=0.5):
         for b in rng.integers(8, years - 5, rng.integers(0, 3)):
             rate[b:] = rng.uniform(-0.01, 0.03)
         path[u] = np.cumsum(rate)
-    if kind == "drift":
+    if "drift" in (kind, shape):
         path -= 0.25 * bend[country][:, None] * (t / years)[None, :] ** 2
-    if kind == "step":
+    if "step" in (kind, shape):
         path -= rng.uniform(0.15, 0.3, units)[:, None] * stepped[country][:, None] * (t[None, :] >= when[country][:, None])
     spread = rng.lognormal(np.log(0.14), 0.55, units)  # how much a unit's yield moves from year to year
     own = np.zeros((units, years))

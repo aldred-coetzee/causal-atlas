@@ -122,6 +122,16 @@ reader rebuilt the forecast with its own code and found the same thing a little
 smaller (1.2%), found no leak, and had the wording here corrected; its report is
 in `docs/reviews/2026-11-10-harvest-result-check/`.
 
+The next test is written down and not yet run (`results/crops-drought.md`). It
+asks whether that small gain is large enough to use in the records where it
+has shown itself before: each year a record "claims" if, over its own earlier
+years, the drought term has gone with its yield, and only claims are forecast
+with drought. It will be scored once on the 47 other crops in the same FAO
+file (2,339 records, chosen by a count and not by hand), with the cereals
+running beside them unscored. The rule was shaped on the cereal record, which
+is why the cereals cannot test it. On made-up records it hears only strong
+links, so a silence would rule out little.
+
 `STATUS.md` says where things stand in more detail.
 
 ## The question
