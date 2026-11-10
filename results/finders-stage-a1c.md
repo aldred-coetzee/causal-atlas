@@ -1,5 +1,7 @@
 # The label counted: does "may be moving together" mark the shared slow paths, and leave the planted leads alone?
 
+**Outcome (2026-11-10): counted once, both marks hold at every size of table. Worlds in which a shared slow path passed and went unlabelled: 2 of 210 at 120 places (0.1% to 3.4%), 8 of 210 at 240 (1.7% to 7.4%), 3 of 210 at 480 (0.3% to 4.1%); the limit was 17. Worlds in which a planted lead's pass was labelled: 4 of 180 (0.6% to 5.6%), 4 of 180, 7 of 180 (1.6% to 7.8%); the limit was 15. Of 1,686 passes that were only a shared path, 1,669 carry the label; of 2,298 passes of a planted lead, 20 do. So a pass now comes with a label that is right about 99 times in 100 on these worlds, in both directions. Where a lead and a shared path sit in one pair, the lead is heard in about half the worlds and is then mostly labelled: a label does not mean there is no lead. At 240 places, near the real yearly table's size, seven of nine kinds of link at 35% are heard in at least 54 of 60 links. The section "Result" has it with its limits.** Everything above that section stands as it was written before the count.
+
 Rule first, committed before any counted seed (rule 9). Stage A1 of `docs/plan-finders-and-referee.md`, a third count, of the label only. Authority: decisions 0040, 0055 to 0057, 0059, 0060 and 0061. Code: `src/causal_atlas/referee.py`, `scripts/run_referee_c.py` (which uses `scripts/run_referee.py` and `scripts/run_referee_b.py`), `synth/table_panel.py`, `synth/shared_paths.py`; tests in `tests/test_referee.py`. Seeds: `results/seed-ledger.md`. Rows: `results/finders-stage-a1c.jsonl`, one a world.
 
 Made-up tables only. No real series is read.
@@ -89,3 +91,77 @@ Counted in worlds, at each size of table apart. Each limit is the count a true r
 - Every lag here is one year.
 - The directly sent pairs and the answers are handed over by a script that knows the layout. They measure the referee and its label, not any finder.
 - The label cannot see an unrecorded thing that moves the series first and the outcome later: that is unlabelled, and is a lead in time and not a cause.
+
+## Result (2026-11-10, counted once, 14:17 to 14:37 UTC, on commit 36b7380)
+
+1,305 worlds, each read once, none read twice; no error in any log. Intervals are over worlds (exact binomial, 95%). `scripts/run_referee_c.py table` prints the tables from `results/finders-stage-a1c.jsonl`.
+
+**Both marks hold at every size.**
+
+| Places | Mark 1: path worlds with a pass left unlabelled (limit 17 of 210) | Mark 2: linked worlds with a lead's pass labelled (limit 15 of 180) |
+|---|---|---|
+| 120 | 2 (0.1% to 3.4%) | 4 (0.6% to 5.6%) |
+| 240 | 8 (1.7% to 7.4%) | 4 (0.6% to 5.6%) |
+| 480 | 3 (0.3% to 4.1%) | 7 (1.6% to 7.8%) |
+
+### 1. A shared slow path
+
+| Places | Worlds with a path pass, of 210 | of those, with one left unlabelled | Passes | labelled | by turning round | by the same year |
+|---|---|---|---|---|---|---|
+| 120 | 27 | 2 (0.9% to 24.3%) | 44 | 41 | 35 | 40 |
+| 240 | 124 | 8 (2.8% to 12.3%) | 464 | 454 | 397 | 430 |
+| 480 | 147 | 3 (0.4% to 5.8%) | 1,178 | 1,174 | 1,070 | 1,154 |
+
+At 120 places mark 1 is held mostly by the referee refusing the path (183 of 210 worlds had no path pass), as said beforehand; of the 27 worlds where one passed, 2 left one unlabelled, and that interval is wide. At 240 places, where it was not known, 8 of 124.
+
+By kind of path, worlds with a pass and with one unlabelled, of 30 (120, 240, 480 places): waves 0, 0, 0; cycle 4, 26, 30 with 0, 1, 1 unlabelled; boom 0, 0, 2 with 0, 0, 1; wander 8, 29, 30 with none; regimes 8, 29, 30 with 0, 2, 0; quasi_cycle 5, 25, 28 with 1, 2, 0; mixed 2, 15, 27 with 1, 3, 1. The one-off hump (boom) passed in 2 of 30 worlds at 480 places; in the second count it passed in none of 40.
+
+The 17 unlabelled path passes, described after the count: 9 were sent by claim, and in 6 of those the turned-round form stood above the mark (2.4 to 3.1) but took nothing off its baseline's error, so it did not count as standing. In the other 11 the turned-round form stood below the mark (0.4 to 1.95). In all 17 the same-year reading fell just short of the forward one (by 0.05 to 0.9).
+
+### 2. A planted lead
+
+| Places | Passes of a lead | labelled | by turning round | by the same year | cannot be turned round | of those, labelled |
+|---|---|---|---|---|---|---|
+| 120 | 532 | 8 | 1 | 7 | 63 | 2 |
+| 240 | 878 | 5 | 2 | 3 | 108 | 2 |
+| 480 | 888 | 7 | 3 | 4 | 48 | 1 |
+
+Answers alone: 4 of 394, 3 of 651, 5 of 664 labelled; keen passes naming a planted input: 4 of 138, 2 of 227, 2 of 224. By kind, the labelled passes: hidden mover 10, a series common to all places 5, many weak 4, sign differing by place 1; none for steady, thresholds, extremes, pairs or a sign by a third series' state. The hidden mover and the common series are labelled by the same year (a same-year reading a little above the forward one); many weak by turning round, a little above the mark (2.1 to 2.8).
+
+### Beside, no mark
+
+**A lead and a path in one pair** (135 worlds). The link that has a path beside it, sent for its own places, passed in 70 of 135 worlds (19 of 45 at 120 places, 26 at 240, 25 at 480), where the same kinds of link with no path beside them pass nearly always; and of those 70 passes 50 are labelled (10, 17 and 23). Counting every way it was sent and the keen proposer: 45, 74 and 85 passes at the three sizes, 21, 46 and 67 labelled. The world's other two links passed in 264 of 270 and 3 were labelled. So a slow path riding on a link's own pair hides the link about half the time (the path enters the series with either sign, so it can work against the link), and when the link is heard it mostly carries the label. Both are true of such a pair. **A label does not mean there is no lead.**
+
+**The ceiling at 240 places**, the answer sent for the link's own places, of 60 links a kind (20 worlds, so rougher than the first two counts), beside 120 places at 35% and 480 places at 20% from the same count:
+
+| Kind | 120 places, 35% | 240 places, 35% | 480 places, 20% |
+|---|---|---|---|
+| steady | 60 | 60 | 60 |
+| threshold | 31 | 57 | 60 |
+| extremes | 28 | 54 | 58 |
+| pair | 27 | 56 | 60 |
+| sign differing by place | 60 | 60 | 60 |
+| sign by a third series' state | 8 | 10 | 17 |
+| many weak | 29 | 60 | 60 |
+| hidden mover | 53 | 60 | 60 |
+| from a series common to all places | 27 | 41 | 24 |
+
+At 240 places and 35%, seven of nine kinds are heard in at least 54 of 60 links; the two that are not both turn on a series common to all places, as before.
+
+**Nothing else passed.** No keen pass in any of the 1,305 worlds named something that was neither a path's pair, a planted input, nor a near copy of one (near copies: 89 passes, all in worlds with links). The bar ran from 3.0 to 4.5. Seconds a world: middle 0.9 to 6.3 by size, 51.5 at most.
+
+### What it changes
+
+- **The second count's condition is met on made-up tables:** a pass carries a label, by a rule registered and counted on fresh worlds. On these worlds an unlabelled pass was a real lead in time and a labelled pass was shared slow movement about 99 times in 100 (1,669 of 1,686 path passes labelled; 20 of 2,298 lead passes labelled).
+- **The words, from here on.** A pass: the forecast improves. An unlabelled pass: the series comes first in time. A labelled pass: the two may only be moving together, and a lead is not shown, nor ruled out. None of them: a cause.
+- **At the size of the real yearly table** the referee hears seven of nine kinds of link at 35% when told where they are, and the label holds. That is the first measure at that size.
+- **Still owed before a real table is read:** Stage B's own rule, with the table's main shared movements in the baseline (decision 0060). The label does not replace it: a lead riding on shared movement is hidden half the time and then labelled, so a real table full of shared movement would give few unlabelled passes whatever is in it.
+
+### Limits
+
+- One family of worlds, and the referee and the label were shaped on it; the seven path shapes had all been seen. The 99 in 100 is a figure for these worlds, not for a real table.
+- The links here act a year later and never within the year. A real link that does both is labelled; how often real links are like that is not known.
+- The hidden mover is the kind most often labelled (10 of its 430 passes), and it is also the kind the label cannot tell from a lead when it is unlabelled.
+- Mark 1 at 120 places rests mostly on the referee refusing paths; among the 27 worlds where one passed the miss rate could be as high as one in four.
+- Every lag is one year. A series common to all places cannot be turned round.
+- The directly sent pairs and the answers are handed over by a script that knows the layout. They measure the referee and its label, not any finder.
