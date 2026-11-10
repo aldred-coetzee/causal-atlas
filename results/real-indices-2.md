@@ -65,3 +65,73 @@ All the limits of `results/real-indices.md` stand. Added:
 ## Estimates
 
 Step 1: about 55 minutes of machine time (the first attempt took 51). Step 2: about 5 to 10. Tokens to the report: about 300k.
+
+## Results of step 1 (run 2026-11-09 23:36 to 2026-11-10 00:08 UTC; rows in `results/real-indices-2.jsonl`)
+
+Everything above this line was committed before any of these numbers existed. 500 runs, all on 1950 to 1999.
+
+### Step 1a. The instrument check: held
+
+| Part of the mark | Asked | Got | With the old controls |
+|---|---|---|---|
+| The link of 40% of variance over 25% of the cells found, pooled | at least 45 of 50 | **49 of 50** | 42 |
+| The same, in every field | at least 8 of 10 | South America 10, Australia 9, South and Southeast Asia 10, North America 10, Europe 10 | 9, 10, 4, 9, 10 |
+| Where found, share of claims in the planted cells | at least 0.80 | 49 runs between 0.88 and 1.00 | one at 0.73 |
+
+The one run not found is Australia, seed 15709.
+
+The ruler, found out of 10, by share of variance and share of cells:
+
+| Field | 5% over 5% | 5% over 25% | 15% over 5% | 15% over 25% | 40% over 5% | 40% over 25% |
+|---|---|---|---|---|---|---|
+| South America | 0 | 0 | 0 | 0 | 0 | 10 |
+| Australia | 0 | 0 | 0 | 1 | 1 | 9 |
+| South and Southeast Asia | 0 | 0 | 0 | 5 | 6 | 10 |
+| North America | 0 | 1 | 1 | 4 | 7 | 10 |
+| Europe | 0 | 0 | 0 | 0 | 4 | 10 |
+| All five | 0 of 50 | 1 of 50 | 1 of 50 | 10 of 50 | 18 of 50 | 49 of 50 |
+| All five, old controls | 0 | 0 | 0 | 1 | 11 | 42 |
+
+So with 44 candidates this search hears a large, wide link nearly every time, a large narrow one or a middling wide one in a fifth to a third of runs, and nothing small. A link it does not name is not shown to be absent. South America is the hardest field: nothing below the largest size was found there.
+
+A decoy that had no link planted was named in 8 of the 300 runs: one decoy in all six runs of one Australian set (seed 15707), once more in Australia (15708), once in South and Southeast Asia (15806). Reported, marking nothing; by decoy set that is 3 of 50.
+
+### Step 1b. Naming: N1, N2 and N3 held
+
+| Mark | Asked | Got |
+|---|---|---|
+| N1: the ONI a lead where it was before | at least 18 of 20 in each of four fields | South America 20, Australia 20, South and Southeast Asia 20, North America 20 |
+| N2: a decoy a lead | at most 8 of 100 | 3 (South America 15113 and 15119, North America 15420; in each beside several real series) |
+| N3: anything a lead with the years mixed | at most 8 of 100 | 5 (South America 15105, a decoy; South and Southeast Asia 15301, 15308 and 15312: the Arctic Oscillation, a decoy, the Iceland North Atlantic Oscillation; North America 15406, the Indian Ocean Dipole) |
+
+In Europe the ONI was a lead in 0 of 20, as in every earlier test.
+
+**Named (a lead in at least 18 of 20 sets), beyond the ONI: 16 pairs.**
+
+| Field | Named | Below 18 |
+|---|---|---|
+| South America | Northern Oscillation (noi) 20, warm pool (whwp) 20, tropical South Atlantic (tsa) 18 | eastern Indian Ocean pole (dmieast) 8, Atlantic Meridional Mode 1 |
+| Australia | Indian Ocean Dipole (dmi) 19 | noi 6 |
+| South and Southeast Asia | Pacific Meridional Mode wind (pmmwind) 20, dmi 20, dmieast 20, whwp 20, noi 20 | Pacific Meridional Mode 10, Arctic Oscillation 10, East Atlantic 10, North Pacific Gyre 8, Scandinavian 5 |
+| North America | dmieast 20, Pacific Decadal Oscillation (pdo) 20, noi 20 | Pacific/North American pattern 12 |
+| Europe | Scandinavian (scand) 20, North Atlantic Oscillation, Gibraltar (nao_gib) 19, Arctic Oscillation (ao) 18, Greenland Blocking (gbi) 18 | |
+
+Nothing was named anywhere for the sunspot number, the tornado count, either stratospheric wind series, or ten of the other series.
+
+### What follows from the rule
+
+Every mark of step 1 held, so step 2 is run, once, on these 16 pairs: m = 16, and the interval is taken at 1 − 0.05/16. This is the search the first attempt was meant to test, with its controls put right.
+
+What the naming says and does not: these series are tied to drought in these fields in 1950 to 1999 more strongly than 47 displaced copies of any candidate. It does not say they are separate causes. Most of those named outside Europe are El Niño seen from another place or moving with it, and three false-alarm runs in a hundred is what the search costs.
+
+### Against the guesses
+
+- Instrument check passes: yes. The 40% over 5% link "in about half": 18 of 50, a third. Better than 11, less than guessed.
+- N1 holds in all four: yes. N2 and N3 between 2 and 6: 3 and 5.
+- Named: the lists seen beforehand, as said, which was no guess. Not seen beforehand: none of the 16. m guessed at 20 to 30; it is 16, because the series near the bar in South and Southeast Asia stopped at 10 of 20.
+
+### Disclosures
+
+- **Order of looking.** One ruler row was looked at while the run was going, to see that it had started (South America, seed 15601, the smallest link: not found, and the ONI, noi, whwp and tsa named). After that only the row count, until the marks were printed at the end.
+- **Machine time:** 32 minutes (ruler 19, naming 13) against 55 estimated.
+- **The naming was not blind,** as stated in the rule above. The marks were.
