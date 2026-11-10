@@ -13,6 +13,8 @@ from the repo root, with `uv run python scripts/fetch_<name>.py`. Files land in 
 | [SPEIbase 2.11](#speibase) | Drought | Used | Direct, no login | ODbL 1.0, contents DbCL 1.0 | 1901 to 2024-12 | 0.5 degree, monthly | 383 MB | CSIC, Spain |
 | [NOAA ONI](#noaa-oni) | El Nino state | Used | Direct, no login | Public domain | 1950 to 2026-09 | One global value, monthly | 7 KB | NOAA PSL, USA |
 | [ESA Fire_cci FireCCILT11 v1.1](#esa-fire_cci-fireccilt11) | Burned area | Used, outcome | Direct, no login | ESA CCI terms: any use, with acknowledgement | 1982 to 2018, no 1994 | 0.25 degree, monthly | 7.2 GB | CEDA, United Kingdom |
+| [World Bank Real Time Food Prices](#world-bank-real-time-food-prices) | Market food prices | Fetched, outcome under design | Direct, no login | Open data, citation asked; CC BY 4.0 per the Data Catalog | 2007 to 2026-11 | Market, monthly | 133 MB zipped, 1.2 GB | World Bank, USA |
+| [FAO GIEWS FPMA](#fao-giews-fpma) | Market food prices | Checked, not fetched (fallback) | Open API, no login | CC BY 4.0, third-party series excluded | 1987 to 2026 | Market, monthly, no coordinates | 4,938 series | FAO, Italy |
 | [Natural Earth](#natural-earth) | Country borders | Used, grid | Direct, no login | Public domain | Fixed release | 1:10m vector | 5 MB | Natural Earth CDN |
 | [CHIRPS v3](#chirps) | Rainfall | Checked, not used | Direct, no login | Public domain, per page | 1981 to near present, file not opened | 0.05 degree, monthly | 8.3 GiB | UCSB, USA |
 | [WFP food prices](#wfp-food-prices) | Market food prices | Checked, **not fetched** | **Scripted fetching disallowed** | CC BY-IGO, per metadata | 1990 to 2026, per metadata | Market, monthly | 0.62 GB | HDX |
@@ -73,6 +75,28 @@ from the repo root, with `uv run python scripts/fetch_<name>.py`. Files land in 
   - **Several satellites, drifting orbits.** The record is stitched from AVHRR instruments whose overpass time drifted and which replaced one another. The makers correct for this; that cannot be checked here. A change of satellite could look like a change in fire.
   - **Coarse pixels.** About 5 km: small fires are missed, so burning on cropland and at forest edges is under-counted, and the product is trained against a finer one (MODIS) that exists only from 2001.
   - Latitude runs north first in the files; cells are centred at .125, .375, .625 and .875 of a degree, so four of them make one cell of this project's half-degree grid exactly.
+
+## World Bank Real Time Food Prices
+
+- **Data:** <https://microdata.worldbank.org/catalog/4483/download/361260/WLD_RTFP_mkt_2026-11-02.zip>, one zip holding one CSV. **Study page:** <https://microdata.worldbank.org/index.php/catalog/4483>. **Study record, as data:** <https://microdata.worldbank.org/index.php/api/catalog/4483?id_format=id>. **Older and newer releases:** <https://microdata.worldbank.org/index.php/api/catalog/WLD_2021_RTFP_v02_M/resources>. Read 2026-11-10.
+- **Fetch:** `scripts/fetch_rtfp.py`. The release is dated in its address; a later release is a different file and needs a new manifest entry.
+- **Licence requires:** the study record gives access as "open" and "Public use" and says "The dataset of price estimates is published as open data." A country entry in the Bank's Data Catalog states "License: Creative Commons Attribution 4.0" (read by a helper, not re-checked here). **Cite:** Andrée, B. P. J. (2021). Monthly food price estimates by product and market (Version 2026-11-02). WLD_2021_RTFP_v02_M. Washington, DC: World Bank Microdata Library. <https://doi.org/10.48529/2ZH0-JF55>
+- **No account, and none made.** The site has no robots file; its terms say nothing on automated access. One request fetches the whole release.
+- **Know before use:**
+  - **Most of the file is model output.** Each item has a plain column (`maize`) and estimated columns (`o_`, `h_`, `l_`, `c_` for open, high, low and close, plus `inflation_` and `trust_`). The record says: "Predicted data for missing entries are based on exchange rates, and price data available either at other market locations or from related price items." This project uses the plain columns only (decision 0049). That the plain column is the price as collected is read from the file: it is filled in a minority of months, and the closing estimate equals it in about 90% of those.
+  - **Weather is not an input to the estimates,** by the record and the method paper (World Bank WPS 9886), as read; the plain columns do not depend on that.
+  - **Outliers:** "To produce smooth price series, outliers in the data are often adjusted using non-parametric density estimation and other techniques." Whether that touches the plain columns is not stated.
+  - **Sparse and short.** 2007-01 onwards. Of 3,229 markets, 571 in 33 countries have one cereal with 120 or more observed months and 272 have 180 or more; Mali, Burkina Faso, Niger and Senegal hold 237 of the 571. 37 markets have no coordinates.
+  - **Sources behind it** are WFP, FAO and national statistical offices; columns ending `_fao` are FAO's series. Prices are in local currency per the row's `currency`.
+  - **Host:** the World Bank, in the United States. No European source with coordinates and a dated release was found (decision 0049).
+
+## FAO GIEWS FPMA
+
+- **API, found by a helper in the web tool's own code:** catalogue `https://fpma.fao.org/giews/v4/global/price_module/api/v1/FpmaSerie/`, one series `.../FpmaSeriePrice/<id>/?periodicity=monthly`. **Terms:** <https://www.fao.org/contact-us/terms/db-terms-of-use/en/>. Read by the helper 2026-11-10; not opened by this session.
+- **Not fetched.** No fetch script. It is the fallback if the World Bank file proves too short.
+- **Licence requires:** "licensed under the Creative Commons Attribution-4.0 International licence", but third-party data "may not be redistributed or reused without the consent of the original data provider". Many series are WFP's, FEWS NET's or a national body's, so each would need its own check.
+- **Know before use:** observed prices, source named per series, 4,938 series in 690 markets and 139 countries from 1987; 714 cereal series in 95 countries span 15 years or more (by first and last date, gaps not counted). **No coordinates**: markets would be placed by name. A live service with no dated release.
+- **Also checked and closed to us, 2026-11-10:** FEWS NET's data warehouse (its robots file disallows everything and it asks not to be crawled) and WFP's DataBridges (credentials only by email).
 
 ## Natural Earth
 

@@ -31,6 +31,16 @@ sha256 = "cd9310ac83c6a1e1a7f9fdb4f311476d38bb3a8e6b20904daad55fe11362a2d7"
 coverage = "Global 0.25 degree, monthly, 1982-01 to 2018-12 without 1994; 432 files, 7,198,477,344 bytes. The checksum is of data/firecci.sha256, which lists each file's own"
 known_biases = "1994 absent. Stitched from several AVHRR satellites with drifting orbits. Pixels of about 5 km miss small fires. Each cell-month carries the share of burnable land observed; cloud hides fire and a dry year is a clear year, so what is seen is tied to the weather. Trained against MODIS, which starts in 2001."
 
+[rtfp]
+source_url = "https://microdata.worldbank.org/catalog/4483/download/361260/WLD_RTFP_mkt_2026-11-02.zip"
+fetch_script = "scripts/fetch_rtfp.py"
+version = "World Bank, Monthly food price estimates by product and market (Real Time Food Prices), WLD_2021_RTFP_v02_M, release 2026-11-02; doi:10.48529/2ZH0-JF55"
+licence = "Study record: access 'open', 'Public use', 'The dataset of price estimates is published as open data'; cite Andree (2021) with the release date and DOI. A World Bank Data Catalog country entry states Creative Commons Attribution 4.0 (read by a helper, not re-checked)"
+fetched = "2026-11-10"
+sha256 = "a8a5fb21dce5f81467e6b1129d124ca5e28c9b56135e8306b783bd3fd77a29d7"
+coverage = "37 countries, 3,229 markets (3,192 with latitude and longitude), monthly, 2007-01 to 2026-11; one zip of 133,148,482 bytes holding one CSV of 1,193,401,643 bytes, 762,728 rows, 816 columns"
+known_biases = "Most columns are model estimates that fill every month from other markets, other items, exchange rates and the season; only the plain item columns are prices as collected, and that reading is from the file, not stated in the documentation seen. Observed months are sparse: 571 markets have a cereal with 120 or more. Outliers 'are often adjusted'. Starts 2007. Countries are those the Bank counts as food insecure or fragile, mostly the Sahel and eastern and southern Africa. Updated weekly; this release is pinned by checksum and its address may stop answering."
+
 [oni]
 source_url = "https://psl.noaa.gov/data/correlation/oni.data"
 fetch_script = "scripts/fetch_oni.py"
