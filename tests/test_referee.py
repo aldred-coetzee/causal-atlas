@@ -5,6 +5,7 @@ import pytest
 from causal_atlas import referee as rf
 
 PLACES, YEARS, FIRST = 60, 50, 28
+FORMS = rf.READS + rf.CHECKS
 GROUP = np.repeat(np.arange(PLACES // 5), 5)
 
 
@@ -24,10 +25,11 @@ def test_comparable_reads_earlier_years_only():
     cut = 30
     changed = v.copy()
     changed[:, :, cut:] = np.random.default_rng(2).standard_normal(changed[:, :, cut:].shape) * 5
-    for flat in (False, True):
-        a, b = rf.comparable(v, flat), rf.comparable(changed, flat)
+    for form in FORMS:
+        a, b = rf.comparable(v, form), rf.comparable(changed, form)
         assert np.array_equal(a[:, :, :cut], b[:, :, :cut], equal_nan=True)
-        assert np.isnan(a[:, :, : rf.MIN_PAST]).all() and np.isfinite(a[:, :, rf.MIN_PAST + 2 :]).all()
+        start = 2 * rf.MIN_PAST if form == "recent" else rf.MIN_PAST  # a recent line needs its years, and then years of its own departures
+        assert np.isnan(a[:, :, : rf.MIN_PAST]).all() and np.isfinite(a[:, :, start + 2 :]).all()
         assert np.abs(a[np.isfinite(a)]).max() <= rf.CLIP
 
 
@@ -35,11 +37,12 @@ def test_a_value_in_the_past_moves_only_what_follows_it():
     v = world(3)
     moved = v.copy()
     moved[2, 7, 20] += 4.0
-    a, b = rf.comparable(v), rf.comparable(moved)
-    differ = ~np.isclose(a, b, equal_nan=True)
-    assert differ[2, 7, 20:].any() and not differ[2, 7, :20].any()
-    differ[2, 7] = False
-    assert not differ.any()
+    for form in FORMS:
+        a, b = rf.comparable(v, form), rf.comparable(moved, form)
+        differ = ~np.isclose(a, b, equal_nan=True)
+        assert differ[2, 7, 20:].any() and not differ[2, 7, :20].any()
+        differ[2, 7] = False
+        assert not differ.any()
 
 
 PROPOSALS = [
@@ -67,10 +70,10 @@ def test_no_later_year_reaches_an_earlier_score(p):
     got = []
     for values in (v, changed):
         out = rf.outcome(values[0], GROUP, FIRST, p["event"])
-        for flat in (False, True):
-            a, claims = rf.score(out, rf.terms(p, rf.comparable(values, flat)), p["where"], FIRST)
-            got.append(({k: x[:, : cut - FIRST] for k, x in a.items()}, claims[: cut - FIRST], out["chosen"][:cut]))
-    for (a, ca, cha), (b, cb, chb) in zip(got[:2], got[2:]):
+        for form in FORMS:
+            a, claims = rf.score(out, rf.terms(p, rf.comparable(values, form)), p["where"], FIRST)
+            got.append(({k: x[:, : cut - FIRST] for k, x in a.items()}, claims[: cut - FIRST], out["chosen"][:, :cut]))
+    for (a, ca, cha), (b, cb, chb) in zip(got[: len(FORMS)], got[len(FORMS) :]):
         assert all(np.array_equal(a[k], b[k]) for k in a) and np.array_equal(ca, cb) and np.array_equal(cha, chb)
         assert np.abs(a["base"]).sum() > 0
 
@@ -121,6 +124,66 @@ def test_sending_more_raises_the_bar():
     copies = rf.judge(v, GROUP, FIRST, [rf.proposal(0, [(1, 1)])] * 40, seed=1)["bar"]
     assert forty > one + 0.5
     assert copies < one + 0.3  # near copies are charged about as one; one proposal is still two reads
+
+
+def test_the_check_is_not_charged_in_the_bar(monkeypatch):
+    v = world(11, series=41)
+    sent = [rf.proposal(0, [(s, 1)]) for s in range(1, 41)]
+    with_check = rf.judge(v, GROUP, FIRST, sent, seed=1)
+    monkeypatch.setattr(rf, "CHECKS", ())
+    assert rf.judge(v, GROUP, FIRST, sent, seed=1)["bar"] == with_check["bar"]
+
+
+def path(seed, shape):
+    """A slow path of its own for each place, in units of a series' spread: a line, or a long wave."""
+    rng = np.random.default_rng(seed)
+    t = np.arange(YEARS)[None, :]
+    if shape == "line":
+        return rng.choice([-1, 1], (PLACES, 1)) * 0.15 * (t - YEARS / 2)
+    return 2.5 * np.sin(2 * np.pi * (t / rng.uniform(40, 80, (PLACES, 1)) + rng.random((PLACES, 1))))
+
+
+def test_a_place_with_a_path_of_its_own_gets_a_baseline_that_follows_it(monkeypatch):
+    """A few places on a slow wave of their own: chosen place by place, they get a line that follows it; chosen once for all places, as the referee first stood, they get what serves the many, and their path stays in the baseline's error."""
+    v = world(16)
+    inside = GROUP < 2
+    v[0] += np.where(inside[:, None], path(17, "wave"), 0.0)
+
+    def chosen():
+        out = rf.outcome(v[0], GROUP, FIRST)
+        mine = np.take_along_axis(rf.baselines(out["y"], GROUP)[0], out["chosen"][None], 0)[0]
+        return np.isin(out["chosen"][inside, FIRST:], (3, 5)).mean(), np.nanmean((out["y"] - mine)[inside, FIRST:] ** 2)  # its own line, or its recent line
+
+    follows, error = chosen()
+    monkeypatch.setattr(rf, "OWN", None)
+    for_all, error_for_all = chosen()
+    assert follows > 0.7 and for_all < 0.2 and error < 0.5 * error_for_all
+
+
+def test_a_shared_slow_path_is_not_a_link(monkeypatch):
+    """A series and an outcome that ride one slow path in the same places: the series tells nothing the place's own path did not. The referee as it first stood passed this."""
+    inside = GROUP < 6
+    sent = [rf.proposal(0, [(1, 1)], where=inside), rf.proposal(0, [(1, 1)]), rf.proposal(0, [(1, 1)], where="claim")] + [rf.proposal(0, [(s, 1)]) for s in range(2, 6)]
+    passed = 0
+    for seed in range(20, 26):
+        v = world(seed)
+        p = np.where(inside[:, None], path(seed + 100, "wave"), 0.0)
+        v[0], v[1] = v[0] + p, v[1] + p
+        r = rf.judge(v, GROUP, FIRST, sent, seed=1)
+        assert r["passed"] == 0
+        with monkeypatch.context() as m:
+            m.setattr(rf, "OWN", None), m.setattr(rf, "PATH", False), m.setattr(rf, "CHECKS", ())
+            passed += rf.judge(v, GROUP, FIRST, sent, seed=1)["passed"] > 0
+    assert passed >= 4
+
+
+def test_a_link_still_passes_beside_a_slow_path():
+    inside = GROUP < 6
+    v = world(30, share=0.3)
+    v[0] += np.where(inside[:, None], path(31, "wave"), 0.0)
+    v[2] += np.where(inside[:, None], path(31, "wave"), 0.0)
+    r = rf.judge(v, GROUP, FIRST, [rf.proposal(0, [(1, 1)]), rf.proposal(0, [(2, 1)], where=inside)], seed=1)
+    assert r["proposals"][0]["passes"] and not r["proposals"][1]["passes"]
 
 
 def test_too_narrow_a_proposal_cannot_pass():

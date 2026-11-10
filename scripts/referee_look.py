@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import run_referee as rr  # noqa: E402
 
 table_panel = rr.table_panel
+rf.OWN, rf.PATH, rf.CHECKS = None, False, ()  # the referee as Stage A1 counted it; decision 0060 changed it afterwards
 
 
 def drift_pairs(seed, outcomes=8, local=24):

@@ -1,4 +1,5 @@
-"""The referee: every proposal, whatever kind of mathematics found it, is fitted and scored the same way on years no finder saw, and all proposals of a run share one interval, so sending more costs more. docs/plan-finders-and-referee.md, "The referee"; the rule is the other-crops rule (claims.py) made general."""
+"""The referee: every proposal, whatever kind of mathematics found it, is fitted and scored the same way on years no finder saw, and all proposals of a run share one interval, so sending more costs more. docs/plan-finders-and-referee.md, "The referee"; the rule is the other-crops rule (claims.py) made general.
+Since decision 0060 each place's baseline is chosen for that place, a place's recent line carried forward is among the baselines, and a proposal must also stand, by a lower mark, on what was new in its inputs against their recent path: a slow path shared by a series and an outcome is the place's own history, not a link. OWN = None, PATH = False and CHECKS = () give the referee as Stage A1 counted it."""
 import warnings
 
 import numpy as np
@@ -13,6 +14,12 @@ CLIP = 3.0  # a departure of more than this many of a place's usual errors so fa
 FLOOR = 0.25  # no place's usual error is taken as less than this share of the middle place's
 GROUPS = 5  # a proposal must apply in at least this many groups of places
 YEARS = 10  # and in this many of the scored years
+SPAN = 15  # years behind a recent line: shorter follows a bend sooner and costs more of what can be heard
+OWN = 10.0  # years of every place's error that stand beside a place's own when its baseline is chosen; None: one baseline for all places
+PATH = True  # whether a place's recent line carried forward is among the baselines
+READS = ("mean", "line")  # the forms of its inputs a proposal is read in and held to the bar in
+CHECKS = ("recent",)  # forms it is read in beside, not charged in the bar: it must still stand LEAST of its own spreads above zero there, and take something off the baseline's error
+LEAST = 2.0  # of its own spreads above zero, for a read that is a check
 FORMS = ("slope", "hinge", "tail", "product", "by_group", "by_state", "mode")
 
 
@@ -42,6 +49,30 @@ def _line(v):
     return level + slope * t, spread, n
 
 
+def _recent(v, span=None):
+    """For each year, the line through the last SPAN years before it carried forward to that year; the spread is how far the series has stood from that line in the years before (root mean square), so it carries what carrying a line forward costs; and how many such years there were."""
+    span = SPAN if span is None else span
+    ok = np.isfinite(v)
+    x, t = np.where(ok, v, 0.0), np.arange(v.shape[-1], dtype=float)
+
+    def last(a):
+        c = _before(a)
+        c[..., span:] = c[..., span:] - c[..., :-span]
+        return c
+
+    n, st, stt, sx, sxt = (last(a) for a in (ok * 1.0, ok * t, ok * t * t, x, x * t))
+    with np.errstate(divide="ignore", invalid="ignore"):
+        slope = (n * sxt - st * sx) / (n * stt - st * st)
+        centre = (sx - slope * st) / n + slope * t
+    centre[(n < MIN_PAST) | ~np.isfinite(centre)] = np.nan
+    d = np.where(ok & np.isfinite(centre), v - centre, np.nan)
+    have = np.isfinite(d)
+    m = _before(have * 1.0)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        spread = np.sqrt(_before(np.where(have, d * d, 0.0)) / m)
+    return centre, spread, m
+
+
 def _mean(v):
     """For each year, the mean and spread of the years before it; and how many there were."""
     ok = np.isfinite(v)
@@ -53,9 +84,9 @@ def _mean(v):
     return mean, spread, n
 
 
-def comparable(v, flat=False):
-    """Each value as its departure from its own past, in units of its own past spread, from earlier years only: from its past mean, or (flat) from its past line carried forward; no departure counted as more than CLIP spreads, so that one wild figure cannot speak for a series. The one form in which series of different kinds are set beside each other."""
-    centre, spread, n = _line(v) if flat else _mean(v)
+def comparable(v, form="mean"):
+    """Each value as its departure from its own past, in units of its own past spread, from earlier years only: from its past mean; from its past line carried forward; or from the line through its last SPAN years carried forward, which follows a slow path of any smooth shape. No departure counted as more than CLIP spreads, so that one wild figure cannot speak for a series. The one form in which series of different kinds are set beside each other."""
+    centre, spread, n = {"mean": _mean, "line": _line, "recent": _recent}[form](v)
     with np.errstate(divide="ignore", invalid="ignore"):
         out = (v - centre) / spread
     out[(n < MIN_PAST) | ~np.isfinite(out)] = np.nan
@@ -135,10 +166,10 @@ def _group_before(y, group):
 
 
 def baselines(y, group):
-    """What a place's own history and its group say about next year, five ways: its past mean; its last value; its mean with a share of its last departure; its own line; its group's mean the year before. And for each year, which had the least squared error over the years before: the baseline is chosen again every year, from the past alone."""
+    """What a place's own history and its group say about next year, six ways: its past mean; its last value; its mean with a share of its last departure; its own line; its group's mean the year before; and, with PATH, the line through its last SPAN years. And for each place and year, which had the least squared error over the years before: the baseline is chosen again every year, from the past alone."""
     mean, _, n = _mean(y)
     last = _lag(y, 1)
-    b = np.array([mean, last, mean + _share(y - mean, last - mean) * (last - mean), _line(y)[0], _group_before(y, group)])
+    b = np.array([mean, last, mean + _share(y - mean, last - mean) * (last - mean), _line(y)[0], _group_before(y, group), _recent(y)[0]][: 6 if PATH else 5])
     b[:, n < 3] = np.nan
     return b, _choose(y, b)
 
@@ -153,12 +184,16 @@ def chances(e, group, rate):
 
 
 def _choose(y, b):
-    """For each year, the baseline with the least squared error over all places in the years before it, from WARM on."""
+    """For each place and year, the baseline with the least squared error in the years before it, from WARM on: the place's own, with OWN years of every place's usual beside it, so that a place with a path of its own gets the baseline that follows it and a place with little to go on gets what serves all places best."""
     usable = np.isfinite(b).any(axis=(1, 2))
     both = np.isfinite(y) & np.isfinite(b[usable]).all(axis=0)  # compared only where every baseline in use has something to say
-    err = np.where(both, (y - b) ** 2, 0.0)[:, :, WARM:].sum(axis=1)
-    past = np.concatenate([np.zeros((len(b), WARM + 1)), np.cumsum(err, axis=1)[:, :-1]], axis=1)
-    return np.argmin(np.where(usable[:, None], past, np.inf), axis=0)
+    err = np.where(both, (y - b) ** 2, 0.0)
+    err[:, :, :WARM] = 0.0
+    own = _before(err)
+    every = own.sum(axis=1)
+    count = np.maximum(_before(both * 1.0 * (np.arange(y.shape[1]) >= WARM)).sum(axis=0), 1.0)
+    total = every[:, None, :] + 0 * own if OWN is None else own + OWN * (every / count)[:, None, :]
+    return np.argmin(np.where(usable[:, None, None], total, np.inf), axis=0)
 
 
 def _usual(e):
@@ -187,10 +222,11 @@ def outcome(v, group, first, event=None):
         b, chosen = baselines(y, group)
     past = []
     for t in range(first, y.shape[1]):
-        e = y - b[chosen[t]]
+        mine = b[chosen[:, t], np.arange(len(y))]
+        e = y - mine
         unit = np.ones(len(y)) if event is not None else _usual(e[:, WARM:t])
         u = e[:, WARM : t + 1] / unit[:, None]
-        past.append((u if event is not None else np.clip(u, -CLIP, CLIP), unit, b[chosen[t]][:, t]))
+        past.append((u if event is not None else np.clip(u, -CLIP, CLIP), unit, mine[:, t]))
     return {"y": y, "past": past, "chosen": chosen, "chance": event is not None}
 
 
@@ -274,10 +310,11 @@ def bar(reads, rate=RATE):
 
 
 def judge(values, group, first, proposals, seed=0, draws=DRAWS, rate=RATE, fit="claimed", shifts=()):
-    """Every proposal read both ways, with its inputs as they fell and with their past level and line removed, and all of them held to one bar.
-    A proposal passes when, both ways: its tested statistic stands more than the bar of its own spreads above zero; it took something off the baseline's squared error, and still did without its best year; and it applies widely enough. Its size is the smaller of the two shares removed.
+    """Every proposal read both ways, with its inputs as they fell and with their past level and line removed, and all of them held to one bar; and read once more as a check, with its inputs against their recent line, which the bar is not charged for.
+    A proposal passes when, both ways: its tested statistic stands more than the bar of its own spreads above zero; it took something off the baseline's squared error, and still did without its best year; and it applies widely enough. And when, in the check, the statistic stands more than LEAST of its own spreads above zero and something came off the baseline's error. Its size is the smaller of the two shares removed.
     values: series by places by years. first: the first year scored; finders saw only the years before it. shifts: years to move the inputs by, for the scores reported beside (a weak control alone, decision 0058)."""
-    comp = {False: comparable(values), True: comparable(values, flat=True)}
+    forms = READS + CHECKS
+    comp = {f: comparable(values, f) for f in forms}
     group = np.asarray(group)
     cg, cy = _draws(len(np.unique(group)), values.shape[2] - first, draws, seed)
     outs, reads, beside = {}, [], []
@@ -285,22 +322,25 @@ def judge(values, group, first, proposals, seed=0, draws=DRAWS, rate=RATE, fit="
         key = (p["outcome"], p["event"])
         if key not in outs:
             outs[key] = outcome(values[p["outcome"]], group, first, p["event"])
-        for flat in (False, True):
-            a, claims = score(outs[key], terms(p, comp[flat]), p["where"], first, fit)
+        for f in forms:
+            a, claims = score(outs[key], terms(p, comp[f]), p["where"], first, fit)
             reads.append({**read(a, group, cg, cy), "claims": int(claims.sum())})
-        beside.append([_shifted(p, comp[False], k, outs[key], first, fit) for k in shifts])
-    level, spread = bar(reads, rate)
+        beside.append([_shifted(p, comp[READS[0]], k, outs[key], first, fit) for k in shifts])
+    held = [j for j in range(len(reads)) if j % len(forms) < len(READS)]
+    level, _ = bar([reads[j] for j in held], rate)
+    spread = np.array([np.nanstd(r["again"]) if np.isfinite(r["k"]) else np.nan for r in reads])
     out = []
     for i in range(len(proposals)):
         both = []
-        for j in (2 * i, 2 * i + 1):
+        for n, j in enumerate(range(len(forms) * i, len(forms) * (i + 1))):
             r = {k: v for k, v in reads[j].items() if k != "again"}
             r["t"] = float(r["k"] / spread[j]) if np.isfinite(spread[j]) and spread[j] > 0 else None
-            r["ok"] = bool(r["groups"] >= GROUPS and r["years"] >= YEARS and r["t"] is not None and r["t"] > level and r["s"] > 0 and r["without_best"] > 0)
+            wide = r["groups"] >= GROUPS and r["years"] >= YEARS and r["t"] is not None
+            r["ok"] = bool(wide and r["t"] > (level if n < len(READS) else LEAST) and r["s"] > 0 and (r["without_best"] > 0 or n >= len(READS)))
             both.append(r)
-        sizes = [r["s"] for r in both]
-        out.append({"passes": both[0]["ok"] and both[1]["ok"], "size": float(min(sizes)) if np.all(np.isfinite(sizes)) else None, "fell": both[0], "flat": both[1], "shifts": beside[i]})
-    chosen = {f"{int(k[0])}" + ("" if k[1] is None else f" beyond {k[1]}"): sorted(set(int(c) for c in o["chosen"][first:])) for k, o in outs.items()}
+        sizes = [r["s"] for r in both[: len(READS)]]
+        out.append({"passes": all(r["ok"] for r in both), "size": float(min(sizes)) if np.all(np.isfinite(sizes)) else None, "fell": both[0], "flat": both[1], **dict(zip(forms, both)), "shifts": beside[i]})
+    chosen = {f"{int(k[0])}" + ("" if k[1] is None else f" beyond {k[1]}"): [int(c) for c in np.bincount(o["chosen"][:, first:].ravel(), minlength=5)] for k, o in outs.items()}
     return {"bar": level, "sent": len(proposals), "passed": int(sum(v["passes"] for v in out)), "proposals": out, "chosen": chosen}
 
 
