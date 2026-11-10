@@ -81,6 +81,43 @@ Most worlds are small, six crops and twelve others (about 500 to 700 scored reco
 
 **Before step 2, an independent reader sees this rule, the code and the made-up results.** What it finds is applied and disclosed before any real yield of these crops is read.
 
+## Result, step 1: the made-up records (2026-11-10)
+
+`run_claims.py known`, all nine panels, 95 seeds, 62 shifts, run from 08:28 to 10:15 UTC; 120 rows in `results/crops-drought.jsonl`. **Every mark holds, year-end and mid-year.** Read means read at 1.5 standard errors, the level the verdict uses. S is the share of the baseline's squared error removed on the claims, with the driver as it fell.
+
+| Panel | Seeds | Read, year-end | Mark | Read, mid-year | Mark | S on the claims, year-end: middle world (lowest to highest) |
+|---|---|---|---|---|---|---|
+| Leak | 20 | **0** | at most 1: holds | **0** | at most 1: holds | −0.18% (−0.76% to 0.55%) |
+| Leak and drift | 10 | **0** | at most 1: holds | not run | | −0.12% (−0.35% to 0.58%) |
+| Leak and step | 10 | **0** | at most 1: holds | not run | | −0.02% (−0.87% to 0.20%) |
+| Nothing | 10 | **0** | at most 1: holds | not run | | −0.01% (−0.08% to 0.02%) |
+| Link, 35% | 10 | **10** | at least 8: holds | **9** | at least 8: holds | 4.41% (2.50% to 5.74%); mid-year 3.68% (2.02% to 5.25%) |
+| Weak link, 20% | 10 | 4 | measured | not run | | 1.20% (0.27% to 2.33%) |
+| Link in few, 35% | 10 | 5 | measured | not run | | 1.83% (−1.40% to 3.76%) |
+| Leak, full size | 5 | **0** | at most 1: holds | not run | | −0.00% (−0.06% to 0.08%) |
+| Link, full size | 5 | 5 | measured | not run | | 3.04% (2.12% to 6.22%) |
+
+At the two other levels, reported and deciding nothing: at 1.0 the counts are the same but for mid-year link, 10; at 2.0, link 9 and 8, few 4, weak 1, full size 5. No world without a link in the other crops was read at any level.
+
+**What the no-link worlds show.**
+
+- **The cereals beside do not make a gain in crops that have none.** In 45 year-end and 20 mid-year worlds where the six cereal-like crops are linked and no other crop is, with a drift, with a step, at the small size and at the real one, the claims gained nothing: the middle world lost a little (−0.09% year-end), the best gained 0.58%, and in no world, under either driver, at any level, was the interval above zero (the highest lower end, −0.11%).
+- **The other-years controls alone would not have held that, and the interval did.** In those worlds the claims beat all 62 shifts in 3 of 45 year-end (2 of 45 with the flat driver, 1 of 45 with both) and in 3 of 20 mid-year (both drivers in 2), where a fair control would be beaten about once in 63. The likely reason, not yet checked: the linked crops beside give the term some size under the true alignment, and under another year's weather the shared weights fall to nearly nothing, so the shifts' scores sit close to zero while the true alignment's scatters more widely around a small loss. So "beats every shift" is a weaker condition here than it looks, and what kept every one of these worlds unread was the interval. The independent reader is asked to measure this.
+- **With no link in any crop** the weights are nearly zero, the term is nearly nothing and S is within a tenth of a percent of zero.
+
+**What the link worlds show.**
+
+- **A 35% link in about a quarter of the scored records is read**: 15 of 15 year-end (small and real size), 9 of 10 mid-year. The one miss (seed 25405, mid-year) had S 2.39% and an interval from −0.20%; it failed on the interval alone.
+- **The size it reads is 2.1% to 6.2% of squared error on the claims** (1.1% to 3.2% of a typical error); the word was "a usable aid" in 7 of the 15 year-end worlds and "a real but small aid" in 8. In those worlds the linked records, a sixth to two fifths of the scored, gained 3.5% to 7.7% over all their years; the records with no link lost 0.3% to 1.0%; between a half and four fifths of the claimed record-years were in linked records; the claims covered 11% to 20% of the squared error that could have been claimed. **So the number reported on a real record is smaller than the link in the records that carry it**, because a third or so of the claims are chance claims in records with none, and because the term is shrunk by weights shared with records that have no link.
+- **A 20% link in about a quarter of the records is read in 4 of 10.** All ten beat all 62 shifts; the six misses failed on the interval alone (S 0.27% to 1.43%). Where read, "a real but small aid".
+- **A 35% link in about a tenth of the records is read in 5 of 10.** Two of the ten worlds drew no rain-fed crop, so had no linked record at all, and were rightly not read (S −0.67% and −1.40%, beating none of the 62 shifts). Of the eight with any link (6% to 13% of records), five were read, at 1.8% to 3.8%; the three misses failed on the interval alone.
+- **Read by a whisker** (lower end of the interval under 0.2%): year-end 25507 (0.14%), 25804 (0.06%), 25805 (0.03%), 25810 (0.12%); mid-year 25403 (0.08%).
+- **Beside, deciding nothing: the claim hears a link in few records where the cereal test's pooled reading does not.** Over all scored records, as the cereals were read, the same worlds pass in 13 of 15 at 35% in a quarter, 2 of 10 at 20%, and 0 of 10 at 35% in a tenth.
+
+**What a silence on the real record would rule out, and would not.** It would rule out a link taking 35% or more of the year-to-year departures in a quarter or more of these crops' records. It would not rule out 20% in a quarter (missed 6 times in 10), or 35% in a tenth (missed 3 times in 8). The real cereals, for comparison, gave 1.67% over all records and, in development, 6.3% on the claims.
+
+**The guess** was that all year-end marks would hold, about 70%. They held.
+
 ## Step 2: the real record, once
 
 `run_claims.py real once` (refuses a second run): year-end, then mid-year, both read before either is written. No fitting step comes before it.

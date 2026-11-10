@@ -122,15 +122,22 @@ reader rebuilt the forecast with its own code and found the same thing a little
 smaller (1.2%), found no leak, and had the wording here corrected; its report is
 in `docs/reviews/2026-11-10-harvest-result-check/`.
 
-The next test is written down and not yet run (`results/crops-drought.md`). It
+The next test is written down and its made-up records are run; no real figure
+has been read (`results/crops-drought.md`). It
 asks whether that small gain is large enough to use in the records where it
 has shown itself before: each year a record "claims" if, over its own earlier
 years, the drought term has gone with its yield, and only claims are forecast
 with drought. It will be scored once on the 47 other crops in the same FAO
 file (2,339 records, chosen by a count and not by hand), with the cereals
 running beside them unscored. The rule was shaped on the cereal record, which
-is why the cereals cannot test it. On made-up records it hears only strong
-links, so a silence would rule out little.
+is why the cereals cannot test it. On made-up records every mark set
+beforehand held: of 75 runs on 55 worlds where only the cereal-like crops are
+linked, or nothing is, none was read; a link taking 35% of the year-to-year
+departures in about a quarter of the records was read in 15 of 15 worlds at
+year-end and 9 of 10 at mid-year; a 20% link in 4 of 10, and a 35% link in a
+tenth of the records in 5 of 10. So a silence on the real record would rule out
+only a strong and fairly widespread link. An independent reader sees the rule,
+the code and these results before the real record is read, once.
 
 `STATUS.md` says where things stand in more detail.
 
