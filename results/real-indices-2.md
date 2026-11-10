@@ -135,3 +135,54 @@ What the naming says and does not: these series are tied to drought in these fie
 - **Order of looking.** One ruler row was looked at while the run was going, to see that it had started (South America, seed 15601, the smallest link: not found, and the ONI, noi, whwp and tsa named). After that only the row count, until the marks were printed at the end.
 - **Machine time:** 32 minutes (ruler 19, naming 13) against 55 estimated.
 - **The naming was not blind,** as stated in the rule above. The marks were.
+
+## Results of step 2 (run once, 2026-11-10 00:10 to 00:12 UTC, from d306ee9; rows in `results/real-indices-2.jsonl`)
+
+Step 1's results were committed before this step ran. It ran once. These fields' years after 1999 are now spent for these 16 pairs.
+
+**No pair passes.** This is the third outcome written beforehand: named, but no pass.
+
+Region scale, the headline. A claim is one region in one calendar month at one lag of 4 to 12 months, kept only where it is significant on the fitting years in what own history and El Niño leave. For scale, El Niño's own term claimed 353, 113, 260 and 57 region-months in the four fields where it was named.
+
+| Field | Series | Claims | S | Interval at 1 − 0.05/16 | Beyond the 24 shifts | Below every baseline |
+|---|---|---|---|---|---|---|
+| South America | tropical South Atlantic | 1 | +0.039 | −0.301 to +0.240 | 24 | yes |
+| South America | warm pool | 0 | | | | |
+| South America | Northern Oscillation | 0 | | | | |
+| Australia | Indian Ocean Dipole | 0 | | | | |
+| South and Southeast Asia | Pacific Meridional Mode wind | 1 | −0.000 | −0.019 to +0.015 | 10 | no |
+| South and Southeast Asia | Indian Ocean Dipole | 3 | −0.018 | −0.053 to +0.016 | 15 | no |
+| South and Southeast Asia | eastern Indian Ocean pole | 14 | −0.035 | −0.163 to +0.097 | 17 | yes |
+| South and Southeast Asia | warm pool | 0 | | | | |
+| South and Southeast Asia | Northern Oscillation | 0 | | | | |
+| North America | eastern Indian Ocean pole | 0 | | | | |
+| North America | Pacific Decadal Oscillation | 2 | −0.114 | −0.453 to +0.376 | 14 | no |
+| North America | Northern Oscillation | 0 | | | | |
+| Europe | Arctic Oscillation | 1 | −0.018 | −0.255 to +0.202 | 15 | no |
+| Europe | Scandinavian | 0 | | | | |
+| Europe | Greenland Blocking | 0 | | | | |
+| Europe | North Atlantic Oscillation, Gibraltar | 0 | | | | |
+
+- **Ten of the 16 pairs make no claim at all** at four months or more. By the wording fixed beforehand: related, with nothing to say three months ahead.
+- **Six make a claim, on 1 to 14 region-months of the 768 to 1,260 a field has, and none adds to the forecast.** Five have S at or below zero. The sixth, the tropical South Atlantic for South America, has S of +0.039 on a single region-month: beyond all 24 shifts and below every baseline, with an interval from −0.30 to +0.24. One region in one month of the year is no evidence either way.
+
+Cell scale, reported and marking nothing: three pairs make claims. The tropical South Atlantic for South America, 70 cell-months, S +0.002 (−0.158 to +0.130); the eastern Indian Ocean pole for South and Southeast Asia, 137, S +0.008 (−0.122 to +0.100); the Arctic Oscillation for Europe, 22, S −0.088 (−0.652 to +0.305). None would pass.
+
+The straight line in time, marking nothing: at the region scale it makes no claim in four fields, and in North America 20 claims with S of −2.92, which is to say a trend fitted on 1950 to 1999 made the forecast far worse after. No pair passed, so there is no pass to set against it.
+
+### What this says, and what it does not
+
+- **About these series:** eleven of them are tied to drought in one or more of these fields in 1950 to 1999, strongly enough to be named among decoys. Once each region's own recent history and El Niño are in the forecast, none of them says anything usable four or more months ahead about 2000 to 2024. Most of those named outside Europe move with El Niño; Europe's four made one claim between them at these lags. That is roughly what the author guessed, and it was the outcome named beforehand as the most likely.
+- **About the search:** with its controls corrected it handles 26 real series and 18 decoys at once and passes its checks. That is the thing this iteration was built to find out, and it stands whatever step 2 said.
+- **Not shown:** that these series have no lagged effect. The forecast step asks for significance on 49 fitting years in a residual, then a gain over 25 scored years at a level set for 16 pairs. No planted link was put through this step with a second driver, so how large an added effect it would have caught is not measured. Links inside three months cannot pass by design.
+- **Not about anything but climate series and drought.** The project's question, a link between domains, is still open.
+
+### Against the guesses
+
+Most named series add nothing beyond El Niño: yes. If any passed, the tropical South Atlantic for South America, the Dipole for Australia or the Pacific Decadal Oscillation for North America: none passed; the first was the only pair with S above zero, the Dipole made no claim for Australia, the third was negative. Europe's patterns make few claims: one, of four series. No pass at all: as guessed.
+
+### Disclosures
+
+- **Machine time:** under 2 minutes against 5 to 10 estimated.
+- **One step, one run.** The script refuses a second scoring.
+- Nothing passed, so the independent check and the reading against published science that a pass would have had are not run.

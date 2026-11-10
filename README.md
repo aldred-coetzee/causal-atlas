@@ -12,7 +12,7 @@ still an open question. His words are in
 `docs/decisions/0021-owner-refines-the-aim.md`. The first experiment below tests
 the narrower question.
 
-**Where it stands (2026-11-09).** Nothing new about the world has been found.
+**Where it stands (2026-11-10).** Nothing new about the world has been found.
 What has been shown is that the chain works end to end on a link that is already
 known. Among 31 decoys, the search named El Niño blind as a driver of drought on
 four continents and stayed silent in Europe. A forecast built from that, fitted
@@ -37,13 +37,17 @@ From that tested model there is a dated outlook for November 2026 to September
 2027, with the rule for scoring it fixed in advance: `results/outlook-2026-27.md`.
 It is a test of the method that can fail in public, not a warning service.
 
-The step after that did not get as far as a result. The search was handed 25 more
-real climate series at once, chosen by a rule and not by hand. Its own check
-failed first: among that many real candidates it could no longer reliably hear a
-link planted on purpose, and it lost El Niño in one region. By the rule written
-beforehand nothing was scored on the later years, which stay unread for those
-series. The search needs work before it is trusted with many real candidates:
-`results/real-indices.md`.
+The step after that handed the search 25 more real climate series at once, chosen
+by a rule and not by hand. The first attempt stopped at its own check: among that
+many real candidates the search could no longer reliably hear a link planted on
+purpose, and nothing was scored (`results/real-indices.md`). The cause was a defect
+in the search's controls. With it corrected, and the same pass marks on fresh
+seeds, the search passed every check and named 16 series-and-region pairs beyond
+El Niño. Scored once on 2000 to 2024, none of them improves the forecast four or
+more months ahead once each region's own history and El Niño are in it
+(`results/real-indices-2.md`). So among these climate series El Niño is the only
+usable lead found, and the search can now be trusted with many real candidates,
+for large links only.
 
 `STATUS.md` says where things stand in more detail.
 
