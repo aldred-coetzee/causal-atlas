@@ -32,6 +32,8 @@ stand until a plan revision and his yes change them.
 
 **Confirmed and extended by him the same day** (decision 0056): "yes, your understanding of the next steps is correct, but keep in mind that you may need to use various forms of mathematics, not just the typical ones, because some of the correlations will not be evident and they won't be hypothesis based. They'll be emergent. So really think hard about the different kinds of maths we're going to use and how we're going to tie them together." And where it leads: connections that, "when brought together, will perhaps lead us to be able to predict an event which, if you change certain factors, could then be avoided. Or we could ask questions of what factors should we change to end up with a different outcome." He suspects the agentic-swarms work "may also at some point come to play". The sketch of how to tie the kinds together (many finders, one referee) is in decision 0056 and is untested.
 
+**And on how to begin, the same day** (decision 0057): "We could just have deterministic swarms to start with". Read by this session as: the finders are a swarm of small plain-code functions, no model calls, posting to one shared board; nothing is taken from or asked of the agentic-swarms project. His to correct.
+
 Update this statement, with the date, when the owner refines it.
 
 ## Who does what

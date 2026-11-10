@@ -2,11 +2,11 @@
 
 **A draft, written 2026-11-10 while the other-crops test was still open, and committed so that it is not lost. It is not yet the plan: nothing in it is registered and nothing is built.** The referee section waits for the independent reader of the other-crops rule, because that rule is the referee's prototype and the reader is measuring its weak points.
 
-For decisions 0055 and 0056. A plan for an experiment and a build, not a survey (rules 1, 3, 5). No real series is set beside another under this plan until its last stage, which gets its own registered rule.
+For decisions 0055, 0056 and 0057. A plan for an experiment and a build, not a survey (rules 1, 3, 5). No real series is set beside another under this plan until its last stage, which gets its own registered rule.
 
 ## What it is for, in the owner's words
 
-"many, many data sets across which we find unexpected correlations for prediction"; "the right maths and things in place to find those connections"; "collecting the data and making it consumable and comparable"; "various forms of mathematics, not just the typical ones"; links that "won't be hypothesis based. They'll be emergent"; "how we're going to tie them together"; and in the end "what factors should we change to end up with a different outcome".
+"many, many data sets across which we find unexpected correlations for prediction"; "the right maths and things in place to find those connections"; "collecting the data and making it consumable and comparable"; "various forms of mathematics, not just the typical ones"; links that "won't be hypothesis based. They'll be emergent"; "how we're going to tie them together"; and in the end "what factors should we change to end up with a different outcome". And on how to begin: "We could just have deterministic swarms to start with".
 
 ## What ten iterations taught, which this is built on
 
@@ -20,6 +20,7 @@ For decisions 0055 and 0056. A plan for an experiment and a build, not a survey 
 ## The idea
 
 - **Finding is free.** Any kind of maths may propose a link, by any route, on the early years only.
+- **The finders are a swarm of small plain-code functions** (decision 0057). Each holds one kind of judgement. None makes a model call. They post to one shared board and may build on what others posted.
 - **A proposal is a description, not a number.** Which outcome, which series, where, how far ahead, under what condition, in what form. One small vocabulary, the same for every finder.
 - **One referee fits and scores every proposal the same way**, on years no finder saw, against the baseline, and charges for how many were proposed.
 - **What passes says "helps predict".** "Changing it would change the outcome" is a different claim with its own evidence, and is a later layer.
@@ -50,7 +51,15 @@ Each world plants a few links of one kind, a year ahead, in a quarter of the pla
 
 `outcome`, `inputs` (one or more series, each with how far ahead), `where` (all places, or a named set), `when` (always, or a condition on a series), `form` (one of: slope; hinge; tail event; product; slope by group; a mode built from named series with fixed weights). Nothing fitted to the outcome travels with it. A finder may send at most a fixed number per world.
 
+### The board
+
+One table that is only ever added to. A row is a proposal in the form above, with who posted it and which earlier rows it was built from. Members run in a fixed order with fixed seeds, in rounds: the first round reads the data; later rounds may also read the board (a pair-finder starts from the inputs single-series members put forward; a mode-builder gathers many weak proposals into one). Same inputs, same board, every time.
+
+A steward, also plain code, chooses what goes to the referee within the fixed number, by a rule set beforehand: a share for each family, then proposals that members of different families arrived at separately. **Agreement decides the order, never the verdict.**
+
 ### The finders, first set
+
+Each row below is a family of small members (one lag, one tail level, one scale each), not one large program.
 
 | Finder | Kind of maths | Should hear | Read in |
 |---|---|---|---|
@@ -73,7 +82,7 @@ Tests of the test, marks set before any counted seed:
 
 ### The scorecard
 
-For each kind and size: how often the answer passes; for each finder, how often the true link is among its proposals, how often it then passes, how many false passes, and the minutes it took. A last row for all finders together under the one count.
+For each kind and size: how often the answer passes; for each family, how often the true link is among its proposals, how often it then passes, how many false passes, and the minutes it took. A row for all families together under the one count. **And a row for the board: the same members with later rounds allowed to read it, against each working alone.** The kinds that should show a difference are "two together" and "many weak"; if the board adds nothing there, that is the finding.
 
 ### What is fixed beforehand
 
@@ -104,7 +113,7 @@ A passed proposal says a series helps predict. Before anything is called a facto
 
 ## The swarm
 
-Noted, nothing done. This project's pipeline makes no model calls at run time. If small judging functions become useful here, it would be at design time or as a finder whose proposals face the same referee; that goes through next-pattern.
+The finders are one, of plain-code members, from the start (decision 0057, the owner's "deterministic swarms to start with"). Nothing is taken from the agentic-swarms project and nothing is asked of it; the board here is kept in a shape the two could later share. A member that is not plain code would need a new decision: this project's pipeline makes no model calls at run time.
 
 ## Stages and cost
 
