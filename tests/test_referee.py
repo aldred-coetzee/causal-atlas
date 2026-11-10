@@ -205,3 +205,67 @@ def test_gaps_are_carried():
     r = rf.judge(v, GROUP, FIRST, [rf.proposal(0, [(1, 1)]), rf.proposal(0, [(2, 1)])], seed=1)
     assert r["proposals"][0]["passes"] and not r["proposals"][1]["passes"]
     assert np.isfinite(r["bar"])
+
+
+def wander(seed, size=2.5, smooth=5):
+    """A slow path a place: a random walk smoothed over a few years."""
+    r = np.random.default_rng(seed)
+    w = np.cumsum(r.standard_normal((PLACES, YEARS + smooth)), axis=1)
+    w = np.stack([np.convolve(x, np.ones(smooth) / smooth, mode="valid")[:YEARS] for x in w])
+    return size * (w - w.mean(axis=1, keepdims=True)) / w.std()
+
+
+def test_a_planted_lead_passes_and_is_not_labelled_as_moving_together():
+    for seed in range(40, 46):
+        r = rf.judge(world(seed, share=0.3), GROUP, FIRST, [rf.proposal(0, [(1, 1)])] + [rf.proposal(0, [(s, 1)]) for s in range(2, 6)], seed=1)
+        first = r["proposals"][0]
+        assert first["passes"] and first["label"]["back"] is False and not first["label"]["together"]
+        assert all(q["label"] is None for q in r["proposals"] if not q["passes"])
+
+
+def test_a_shared_wandering_path_is_labelled_as_moving_together():
+    """The label is asked for directly, so the test does not rest on which of these small worlds pass."""
+    together = 0
+    for seed in range(50, 58):
+        v = world(seed)
+        p = wander(seed + 100)
+        v[0], v[1] = v[0] + p, v[1] + p
+        ps = [rf.proposal(0, [(1, 1)])] + [rf.proposal(0, [(s, 1)]) for s in range(2, 6)]
+        r = rf.judge(v, GROUP, FIRST, ps, seed=1, labels=False)
+        assert all("label" not in q or q["label"] is None for q in r["proposals"])
+        together += rf.label(v, GROUP, FIRST, ps[0], r["proposals"][0], seed=1)["together"]
+    assert together >= 7
+
+
+def test_a_link_within_the_year_through_a_lasting_series_is_labelled_by_the_same_year():
+    """Series 1 lasts from year to year and moves the outcome in the same year: last year's value helps, this year's helps more, and the outcome a year before says nothing of the series."""
+    for seed in range(60, 66):
+        rng = np.random.default_rng(seed)
+        v = rng.standard_normal((6, PLACES, YEARS))
+        for t in range(1, YEARS):
+            v[1][:, t] = 0.8 * v[1][:, t - 1] + 0.6 * v[1][:, t]
+        v[0] = np.sqrt(0.5) * v[0] + np.sqrt(0.5) * v[1]
+        first = rf.judge(v, GROUP, FIRST, [rf.proposal(0, [(1, 1)])] + [rf.proposal(0, [(s, 1)]) for s in range(2, 6)], seed=1)["proposals"][0]
+        assert first["passes"] and first["label"]["back"] is False and first["label"]["same"] and first["label"]["together"]
+
+
+def test_a_series_common_to_all_places_cannot_be_turned_round():
+    v = world(70)
+    v[1] = v[1][:1]
+    before = np.concatenate([np.zeros((PLACES, 1)), v[1][:, :-1]], axis=1)
+    v[0] = np.sqrt(0.5) * v[0] + np.sqrt(0.5) * before
+    p = rf.proposal(0, [(1, 1)])
+    assert rf.turned(p, v) == []
+    first = rf.judge(v, GROUP, FIRST, [p], seed=1)["proposals"][0]
+    assert first["passes"] and first["label"]["back"] is None and not first["label"]["together"]
+
+
+def test_the_label_neither_makes_nor_unmakes_a_pass():
+    v = world(41, share=0.3)
+    p = wander(141)
+    v[2], v[3] = v[2] + p, v[3] + p
+    ps = [rf.proposal(0, [(1, 1)]), rf.proposal(2, [(3, 1)])] + [rf.proposal(0, [(s, 1)]) for s in range(4, 6)]
+    a, b = rf.judge(v, GROUP, FIRST, ps, seed=1), rf.judge(v, GROUP, FIRST, ps, seed=1, labels=False)
+    assert a["bar"] == b["bar"] and [q["passes"] for q in a["proposals"]] == [q["passes"] for q in b["proposals"]]
+    for q, w in zip(a["proposals"], b["proposals"]):
+        assert all(q[f]["t"] == w[f]["t"] for f in rf.READS)

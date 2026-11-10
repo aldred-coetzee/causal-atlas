@@ -1,5 +1,6 @@
 """The referee: every proposal, whatever kind of mathematics found it, is fitted and scored the same way on years no finder saw, and all proposals of a run share one interval, so sending more costs more. docs/plan-finders-and-referee.md, "The referee"; the rule is the other-crops rule (claims.py) made general.
-Since decision 0060 each place's baseline is chosen for that place, a place's recent line carried forward is among the baselines, and a proposal must also stand, by a lower mark, on what was new in its inputs against their recent path: a slow path shared by a series and an outcome is the place's own history, not a link. OWN = None, PATH = False and CHECKS = () give the referee as Stage A1 counted it."""
+Since decision 0060 each place's baseline is chosen for that place, a place's recent line carried forward is among the baselines, and a proposal must also stand, by a lower mark, on what was new in its inputs against their recent path: a slow path shared by a series and an outcome is the place's own history, not a link. OWN = None, PATH = False and CHECKS = () give the referee as Stage A1 counted it.
+Since decision 0061 each pass carries a label: whether it also stands turned round, the outcome a year before for the series, or is as strong read in the same year. Either way it may be two series moving together and not one leading the other. The label is not charged in the bar and neither makes nor unmakes a pass."""
 import warnings
 
 import numpy as np
@@ -20,6 +21,7 @@ PATH = True  # whether a place's recent line carried forward is among the baseli
 READS = ("mean", "line")  # the forms of its inputs a proposal is read in and held to the bar in
 CHECKS = ("recent",)  # forms it is read in beside, not charged in the bar: it must still stand LEAST of its own spreads above zero there, and take something off the baseline's error
 LEAST = 2.0  # of its own spreads above zero, for a read that is a check
+BACK = 2.0  # of its own spreads above zero, in every read held to the bar, for a passed proposal turned round to count as standing too
 FORMS = ("slope", "hinge", "tail", "product", "by_group", "by_state", "mode")
 
 
@@ -309,10 +311,41 @@ def bar(reads, rate=RATE):
     return float(np.quantile(np.nanmax(np.where(np.isfinite(depart), depart, -np.inf), axis=0), 1 - rate)), spread
 
 
-def judge(values, group, first, proposals, seed=0, draws=DRAWS, rate=RATE, fit="claimed", shifts=()):
+def turned(p, values):
+    """A proposal turned round: each of its inputs that differs by place as the outcome, with the outcome that many years before, in the same places; the form kept where there is one input, a plain slope otherwise. Empty when every input is one series common to all places."""
+    single = len(p["inputs"]) == 1
+    out = []
+    for s, k in p["inputs"]:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            if not np.nanmax(np.nanstd(values[s], axis=0)) > 1e-9 * np.nanstd(values[s]):
+                continue
+        kw = {"form": p["form"], "level": p["level"], "groups": p["groups"], "state": p["state"]} if single else {}
+        out.append(proposal(s, [(p["outcome"], max(k, 1))], where=p["where"], by=p["by"], **kw))
+    return out
+
+
+def label(values, group, first, p, r, seed=0, draws=DRAWS, fit="claimed"):
+    """What a pass may be read as. A pass says the inputs, known beforehand, improve the forecast; it does not say they lead. Two readings beside it, neither charged in the bar and neither able to make or unmake a pass:
+    back: the proposal turned round stands too, more than BACK of its own spreads above zero with something off the baseline's error, in every read held to the bar; None when it cannot be turned round.
+    same: read with each input as it stood in the outcome's own year, it stands at least as far above zero as with the inputs beforehand.
+    together: either. Then the two may only be moving together, and a lead is not shown."""
+    def least(x):
+        ts = [x[f]["t"] for f in READS]
+        return -np.inf if any(t is None for t in ts) else min(ts)
+
+    back = turned(p, values)
+    more = judge(values, group, first, back + [{**p, "inputs": [(s, 0) for s, _ in p["inputs"]]}], seed=seed, draws=draws, fit=fit, labels=False)["proposals"]
+    stands = [bool(least(x) > BACK and all(x[f]["s"] > 0 for f in READS)) for x in more[:-1]]
+    out = {"back": any(stands) if back else None, "same": bool(least(more[-1]) >= least(r)), "back_t": [least(x) for x in more[:-1]], "same_t": least(more[-1]), "t": least(r)}
+    return {**out, "together": bool(out["back"] or out["same"])}
+
+
+def judge(values, group, first, proposals, seed=0, draws=DRAWS, rate=RATE, fit="claimed", shifts=(), labels=True):
     """Every proposal read both ways, with its inputs as they fell and with their past level and line removed, and all of them held to one bar; and read once more as a check, with its inputs against their recent line, which the bar is not charged for.
     A proposal passes when, both ways: its tested statistic stands more than the bar of its own spreads above zero; it took something off the baseline's squared error, and still did without its best year; and it applies widely enough. And when, in the check, the statistic stands more than LEAST of its own spreads above zero and something came off the baseline's error. Its size is the smaller of the two shares removed.
-    values: series by places by years. first: the first year scored; finders saw only the years before it. shifts: years to move the inputs by, for the scores reported beside (a weak control alone, decision 0058)."""
+    values: series by places by years. first: the first year scored; finders saw only the years before it. shifts: years to move the inputs by, for the scores reported beside (a weak control alone, decision 0058).
+    Each pass carries a label (see `label`): whether it also stands turned round or in the same year, and so may be two things moving together."""
     forms = READS + CHECKS
     comp = {f: comparable(values, f) for f in forms}
     group = np.asarray(group)
@@ -340,6 +373,8 @@ def judge(values, group, first, proposals, seed=0, draws=DRAWS, rate=RATE, fit="
             both.append(r)
         sizes = [r["s"] for r in both[: len(READS)]]
         out.append({"passes": all(r["ok"] for r in both), "size": float(min(sizes)) if np.all(np.isfinite(sizes)) else None, "fell": both[0], "flat": both[1], **dict(zip(forms, both)), "shifts": beside[i]})
+    for p, r in zip(proposals, out):
+        r["label"] = label(values, group, first, p, r, seed, draws, fit) if labels and r["passes"] else None
     chosen = {f"{int(k[0])}" + ("" if k[1] is None else f" beyond {k[1]}"): [int(c) for c in np.bincount(o["chosen"][:, first:].ravel(), minlength=5)] for k, o in outs.items()}
     return {"bar": level, "sent": len(proposals), "passed": int(sum(v["passes"] for v in out)), "proposals": out, "chosen": chosen}
 

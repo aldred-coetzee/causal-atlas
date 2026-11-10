@@ -139,7 +139,7 @@ The finders are one, of plain-code members, from the start (decision 0057, the o
 | Data layer | three tables from held sources (a helper, to `docs/specs/2026-11-10-data-in-one-shape.md`), the comparable function, the ledger (started: `results/spent-ledger.md`) | 0.5M to 1M |
 | A1 | made-up tables, the proposal form, the referee, the answer, tests of the test | 1M to 1.5M |
 | A1, second count | the shared-curve hole closed (decision 0060), a helper's shapes of shared path, the referee counted again | not estimated beforehand; counted and reported with its result |
-| The label | a pass marked when the same pair also stands turned round, at a lower mark, not charged in the bar; registered and counted on fresh worlds; owed before any real table (the second count's result) | not estimated; counted and reported with its result |
+| The label | a pass marked "may be moving together" when the same proposal also stands turned round, at a lower mark, or is as strong read in the same year; not charged in the bar (decision 0061); registered in `results/finders-stage-a1c.md` and counted on fresh worlds at 120, 240 and 480 places; owed before any real table (the second count's result) | not estimated; counted and reported with its result |
 | A2 | five finders, the registered rule, the counted run, an independent reader | 1.5M to 2.5M |
 | B | its own plan | not estimated |
 
