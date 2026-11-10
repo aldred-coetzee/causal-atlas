@@ -128,11 +128,18 @@ def fit(y, near, x, used, group, years):
     return {"baseline": name, "fold_error": err, "e": e, "lag": lag, "claimed": claimed, "slope": slope, "k": k, "season": season, "tau": tau, "gain": gain, "blocks": kept}
 
 
-def score(model, x, years):
-    """By year on the scoring years, over claimed cell-months: the baseline's squared error, the model's, and the model's under each whole-year shift of the driver field."""
+def level(d):
+    """A term less its own straight line across its years, cell and calendar month by cell and calendar month: what is left differs from year to year and neither rises nor falls over them."""
+    t = (np.arange(d.shape[1]) - (d.shape[1] - 1) / 2)[None, :, None]
+    return d - d.mean(axis=1, keepdims=True) - t * (d * t).sum(axis=1, keepdims=True) / (t * t).sum()
+
+
+def score(model, x, years, flat=False):
+    """By year on the scoring years, over claimed cell-months: the baseline's squared error, the model's, and the model's under each whole-year shift of the driver field. With flat, every term, shifted or not, is first taken less its own straight line across the scoring years (level), so a rise or fall shared by driver and outcome over those years earns nothing."""
     out = []
     for shift in range(len(years)):
-        a, b, c = sums(model["e"], term(x, years, model["lag"], model["slope"], shift), model["claimed"], years)
+        d = term(x, years, model["lag"], model["slope"], shift)
+        a, b, c = sums(model["e"], level(d) if flat else d, model["claimed"], years)
         out.append(a - 2 * model["k"] * b + model["k"] ** 2 * c)
     return a, out[0], np.array(out[1:])
 

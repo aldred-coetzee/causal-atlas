@@ -1,0 +1,12 @@
+lagged 1.0 seed 20062 plain    k=0.63 claimed= 10739 S=-0.0006 ci=(-0.0021,+0.0007) beats=11/14 shifts mean=-0.0013 passes=False
+lagged 1.0 seed 20062 adjusted k=0.24 claimed= 14727 S=-0.0003 ci=(-0.0009,+0.0002) beats=7/14 shifts mean=-0.0002 passes=False
+lagged 1.0 seed 20062 sight    k=0.95 claimed= 23764 S=+0.1922 ci=(+0.1760,+0.2122) beats=14/14 shifts mean=-0.1559 passes=True
+lagged 1.0 seed 20062 LINK=False sight=True
+lagged 1.0 seed 20063 plain    k=0.24 claimed= 23730 S=+0.0014 ci=(+0.0004,+0.0025) beats=14/14 shifts mean=-0.0007 passes=True
+lagged 1.0 seed 20063 adjusted k=0.26 claimed= 16265 S=+0.0002 ci=(-0.0005,+0.0009) beats=13/14 shifts mean=-0.0003 passes=False
+lagged 1.0 seed 20063 sight    k=0.98 claimed= 23730 S=+0.1957 ci=(+0.1769,+0.2168) beats=14/14 shifts mean=-0.1799 passes=True
+lagged 1.0 seed 20063 LINK=False sight=True
+lagged 1.0 seed 20064 plain    k=0.43 claimed= 22515 S=+0.0019 ci=(-0.0002,+0.0038) beats=14/14 shifts mean=-0.0014 passes=False
+lagged 1.0 seed 20064 adjusted k=0.20 claimed= 23701 S=+0.0008 ci=(-0.0002,+0.0017) beats=14/14 shifts mean=-0.0005 passes=False
+lagged 1.0 seed 20064 sight    k=0.97 claimed= 23701 S=+0.1845 ci=(+0.1730,+0.1947) beats=14/14 shifts mean=-0.1720 passes=True
+lagged 1.0 seed 20064 LINK=False sight=True

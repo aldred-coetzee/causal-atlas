@@ -1,0 +1,24 @@
+lagged 1.0 seed 20014 plain    k=0.63 claimed= 23711 S=+0.0110 ci=(+0.0052,+0.0172) beats=14/14 shifts mean=-0.0076 passes=True
+lagged 1.0 seed 20014 adjusted k=0.51 claimed= 23711 S=+0.0058 ci=(+0.0024,+0.0095) beats=14/14 shifts mean=-0.0032 passes=True
+lagged 1.0 seed 20014 sight    k=0.97 claimed= 23711 S=+0.1917 ci=(+0.1793,+0.2028) beats=14/14 shifts mean=-0.1642 passes=True
+lagged 1.0 seed 20014 LINK=True sight=True
+lagged 1.0 seed 20015 plain    k=0.82 claimed= 22967 S=+0.0079 ci=(+0.0019,+0.0148) beats=14/14 shifts mean=-0.0105 passes=True
+lagged 1.0 seed 20015 adjusted k=0.73 claimed= 22170 S=+0.0055 ci=(+0.0015,+0.0100) beats=14/14 shifts mean=-0.0055 passes=True
+lagged 1.0 seed 20015 sight    k=0.98 claimed= 23760 S=+0.1919 ci=(+0.1741,+0.2101) beats=14/14 shifts mean=-0.1803 passes=True
+lagged 1.0 seed 20015 LINK=True sight=True
+lagged 1.0 seed 20016 plain    k=0.48 claimed= 23810 S=+0.0085 ci=(+0.0044,+0.0123) beats=14/14 shifts mean=-0.0045 passes=True
+lagged 1.0 seed 20016 adjusted k=0.34 claimed= 23810 S=+0.0043 ci=(+0.0022,+0.0062) beats=14/14 shifts mean=-0.0015 passes=True
+lagged 1.0 seed 20016 sight    k=0.97 claimed= 23810 S=+0.1921 ci=(+0.1753,+0.2078) beats=14/14 shifts mean=-0.1765 passes=True
+lagged 1.0 seed 20016 LINK=True sight=True
+lagged 1.0 seed 20017 plain    k=0.68 claimed= 23695 S=+0.0134 ci=(+0.0101,+0.0167) beats=14/14 shifts mean=-0.0100 passes=True
+lagged 1.0 seed 20017 adjusted k=0.55 claimed= 23695 S=+0.0075 ci=(+0.0052,+0.0098) beats=14/14 shifts mean=-0.0046 passes=True
+lagged 1.0 seed 20017 sight    k=0.98 claimed= 23695 S=+0.1888 ci=(+0.1694,+0.2065) beats=14/14 shifts mean=-0.1679 passes=True
+lagged 1.0 seed 20017 LINK=True sight=True
+lagged 1.0 seed 20018 plain    k=0.59 claimed= 23719 S=+0.0062 ci=(+0.0033,+0.0093) beats=14/14 shifts mean=-0.0080 passes=True
+lagged 1.0 seed 20018 adjusted k=0.47 claimed= 23719 S=+0.0030 ci=(+0.0007,+0.0051) beats=14/14 shifts mean=-0.0037 passes=True
+lagged 1.0 seed 20018 sight    k=0.98 claimed= 23719 S=+0.1938 ci=(+0.1760,+0.2114) beats=14/14 shifts mean=-0.1930 passes=True
+lagged 1.0 seed 20018 LINK=True sight=True
+lagged 1.0 seed 20019 plain    k=0.70 claimed= 23690 S=+0.0165 ci=(+0.0134,+0.0197) beats=14/14 shifts mean=-0.0097 passes=True
+lagged 1.0 seed 20019 adjusted k=0.53 claimed= 23690 S=+0.0088 ci=(+0.0069,+0.0107) beats=14/14 shifts mean=-0.0036 passes=True
+lagged 1.0 seed 20019 sight    k=0.97 claimed= 23690 S=+0.1844 ci=(+0.1674,+0.2021) beats=14/14 shifts mean=-0.1716 passes=True
+lagged 1.0 seed 20019 LINK=True sight=True

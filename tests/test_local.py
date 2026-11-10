@@ -118,3 +118,29 @@ def test_a_departure_drops_a_steady_drift_and_reads_nothing_later():
     later[:, first + 30 :] = 9.0
     assert np.allclose(local.departure(later, first)[:, :30], d[:, :30])
     assert np.allclose(local.departure(x, 0)[:, :12], x[:, :12])  # with no year before it, a value stands as it is
+
+
+def test_a_term_less_its_line_keeps_only_what_differs_from_year_to_year():
+    rng = np.random.default_rng(7940)
+    d, t = rng.normal(size=(4, 15, 12)), np.arange(15)[None, :, None]
+    line = rng.normal(size=(4, 1, 12)) + t * rng.normal(size=(4, 1, 12))
+    flat = local.level(d)
+    assert np.allclose(local.level(d + line), flat) and np.allclose(local.level(line), 0)
+    assert np.allclose(flat.mean(axis=1), 0) and np.allclose((flat * t).sum(axis=1), 0)
+
+
+def test_a_planted_link_still_passes_with_every_term_less_its_line():
+    y, near, x, used, group = world(7932, 0.6)
+    out = forecast.skill(*local.score(local.fit(y, near, x, used, group, FIT), x, SCORED, flat=True))
+    assert out["ci"][0] > 0 and out["beats"] == len(SCORED) - 1
+
+
+def test_a_rise_shared_over_the_scoring_years_passes_as_first_scored_and_not_once_terms_are_less_their_line():
+    rng = np.random.default_rng(7941)
+    cells, months = 60, 12 * 37
+    rise = ((np.arange(months) / 12 - 29) / 7)[None, :]
+    x, e = rise + rng.normal(size=(cells, months)), 1.5 * rise + rng.normal(size=(cells, months))
+    model = {"e": e, "lag": np.full((12, cells), 6), "slope": np.full((12, cells), 0.3), "claimed": np.ones((12, cells), bool), "k": 1.0}
+    first, then = forecast.skill(*local.score(model, x, SCORED)), forecast.skill(*local.score(model, x, SCORED, flat=True))
+    assert first["ci"][0] > 0 and first["beats"] == len(SCORED) - 1
+    assert then["s"] < 0 and then["ci"][1] < 0

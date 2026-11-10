@@ -6,6 +6,11 @@ Written from what such records look like, not from how the detector works, and i
 - none: burning owes nothing to moisture;
 - instrument only: burning owes nothing to moisture, but how much the satellite sees does, and what it records is biased by how much it sees;
 - trends: burning owes nothing to moisture, but both drift over the record, in the same places and the same direction.
+
+Two more, added after the independent check of 2026-11-10 (docs/reviews/2026-11-10-fire-drought-rule-check/), each from the reader's own panel:
+
+- before: instrument only, but what is recorded depends on how well the month before was seen, not only on this month's share;
+- curve: burning owes nothing to moisture, but both drift at a quickening pace.
 """
 import numpy as np
 from scipy.ndimage import gaussian_filter
@@ -24,10 +29,10 @@ def smooth(rng, n, scale):
     return w / w.std()
 
 
-def make(seed, share=0.0, instrument=0.0, trend=0.0, cover=0.25):
+def make(seed, share=0.0, instrument=0.0, trend=0.0, cover=0.25, before=0.0, curve=0.0):
     """Returns burned km2 and share observed (cells by years by 12, the absent year NaN), moisture (cells by months), latitude, longitude, and which cells hold a planted link.
 
-    share: the part of the variance of burning's underlying strength, in the patches' fire seasons, that comes from moisture. instrument: how strongly the share observed follows moisture five months before. trend: the size of a slow drift, one wide map of places times a straight line through the record, added alike to moisture and to burning's strength."""
+    share: the part of the variance of burning's underlying strength, in the patches' fire seasons, that comes from moisture. instrument: how strongly the share observed follows moisture five months before. trend: the size of a slow drift, one wide map of places times a straight line through the record, added alike to moisture and to burning's strength. before: with an instrument effect, what is recorded goes as this month's share times the month before's share to this power, in place of the cube of this month's. curve: the size of a drift that quickens, one wide map of places times the square of the time gone, added alike to moisture and to burning's strength."""
     rng = np.random.default_rng(seed)
     months = 12 * YEARS
     weather = smooth(rng, months + 2, 6)
@@ -63,6 +68,9 @@ def make(seed, share=0.0, instrument=0.0, trend=0.0, cover=0.25):
     if trend:
         slow = trend * smooth(np.random.default_rng([seed, 1]), 1, 12).reshape(-1, 1) * np.linspace(-1, 1, months)[None, :]
         moisture, strength = moisture + slow, strength + slow
+    if curve:
+        slow = curve * smooth(np.random.default_rng([seed, 2]), 1, 12).reshape(-1, 1) * np.linspace(0, 1, months)[None, :] ** 2
+        moisture, strength = moisture + slow, strength + slow
 
     size = np.exp(rng.normal(3, 1, cells))[:, None]  # km2 in a typical burning month, cell by cell
     drift = 1 + 0.4 * rng.random(cells)[:, None] * (np.arange(months)[None, :] >= 240)  # a later satellite records more, by a cell's own factor
@@ -74,7 +82,10 @@ def make(seed, share=0.0, instrument=0.0, trend=0.0, cover=0.25):
     seen = 0.75 + 0.15 * cloud
     seen[:, 5:] -= 0.2 * instrument * moisture[:, :-5]
     seen = np.clip(np.where(rng.random((cells, months)) < 0.08, 0.1 * rng.random((cells, months)), seen), 0.0, 1.0)
-    recorded = burned * seen ** (1 + 2 * (instrument > 0))  # with an instrument effect, what is recorded falls faster than the share observed
+    if before:  # a clear view the month before is needed to record a burn
+        recorded = burned * seen * (np.concatenate([seen[:, :1], seen[:, :-1]], axis=1) / 0.75) ** before
+    else:
+        recorded = burned * seen ** (1 + 2 * (instrument > 0))  # with an instrument effect, what is recorded falls faster than the share observed
 
     out = [a.reshape(cells, YEARS, 12).copy() for a in (recorded, seen)]
     for a in out:

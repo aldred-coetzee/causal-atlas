@@ -1,0 +1,12 @@
+curve 2.0 seed 20001 plain    k=0.09 claimed=  6873 S=+0.0005 ci=(-0.0001,+0.0009) beats=6/14 shifts mean=+0.0004 passes=False
+curve 2.0 seed 20001 adjusted k=0.18 claimed=  2588 S=+0.0007 ci=(-0.0005,+0.0019) beats=3/14 shifts mean=+0.0009 passes=False
+curve 2.0 seed 20001 sight    k=0.03 claimed= 23930 S=+0.0001 ci=(-0.0001,+0.0002) beats=12/14 shifts mean=-0.0000 passes=False
+curve 2.0 seed 20001 LINK=False sight=False
+curve 2.0 seed 20002 plain    k=0.01 claimed= 23858 S=-0.0000 ci=(-0.0001,+0.0001) beats=11/14 shifts mean=-0.0001 passes=False
+curve 2.0 seed 20002 adjusted k=0.04 claimed= 23858 S=-0.0003 ci=(-0.0006,+0.0000) beats=13/14 shifts mean=-0.0004 passes=False
+curve 2.0 seed 20002 sight    k=0.83 claimed=  1347 S=-0.0086 ci=(-0.0157,-0.0018) beats=1/14 shifts mean=-0.0042 passes=False
+curve 2.0 seed 20002 LINK=False sight=False
+curve 2.0 seed 20003 plain    k=0.02 claimed=  2877 S=+0.0001 ci=(-0.0000,+0.0003) beats=7/14 shifts mean=+0.0001 passes=False
+curve 2.0 seed 20003 adjusted k=0.11 claimed=  2876 S=+0.0004 ci=(-0.0003,+0.0011) beats=7/14 shifts mean=+0.0004 passes=False
+curve 2.0 seed 20003 sight    k=0.08 claimed=   748 S=-0.0000 ci=(-0.0003,+0.0002) beats=9/14 shifts mean=-0.0000 passes=False
+curve 2.0 seed 20003 LINK=False sight=False

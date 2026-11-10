@@ -178,3 +178,29 @@ Corrections to the rule's own wording, found in the run: the panels hold 148 see
 Guess made beforehand: all marks hold, about 70%. They held.
 
 Not yet done: the independent reader; no real field has been set against drought.
+
+## Amendment after the independent check (2026-11-10, 02:35 UTC), before any real field is fitted
+
+The reader's report is `docs/reviews/2026-11-10-fire-drought-rule-check/report.md`, saved as it came. It found no leak, and that the code does what this rule says. It found two ways a link could be read where there is none, and showed both on made-up panels of its own. What changes, and why, is decision 0048. Everything below is stricter than the rule above and replaces it where they differ.
+
+**Seen before this amendment.** The reader's panels and looks, in its report. This session's smoke runs, never counted: the reader's two drift seeds (20006, 20004) under the amended verdict; seeds 20901 and 20902 of the new `before` panel; smoke seeds 19901 and 19902 again. The reader's look at real burned area against the share observed on 1982 to 2003, with no drought, run again here with the same numbers. No burned-area value has been set against drought.
+
+1. **A pass needs one thing more.** Each reading is repeated with every driver term, shifted or not, less its own straight line across the scoring years (`local.level`). An outcome passes when it passes as registered above **and** this second reading has its interval above zero and beats all 14 shifts.
+2. **New made-up panels** (`synth/local_panel.py`, `before` and `curve`):
+
+   | Panel | What it is | Seeds | Mark |
+   |---|---|---|---|
+   | before | No link. What is recorded depends on this month's view and the month before's (power 0.3) | 20101 to 20124 | read as a link at most 2 of 24 |
+   | curve | No link. Moisture and burning share a drift that quickens (size 6) | 20201 to 20212 | none: measured |
+
+   The four sixes of `before` join the empty sixes: at most 1 of 22 read as a link.
+3. **Every panel above is run again under the amended verdict,** same seeds, as rows of kind `made_up_2`. The marks are the ones registered above, now counted on these rows, with the two lines of the table added. `run_local.py fit` refuses the real fields unless all hold. The first run's rows are kept; on the old panels the reading as first registered must come out the same, and that is checked.
+4. **The real reading is named** from the three pooled outcomes: "link" when burned area and adjusted burned area pass and the share observed does not; "not separable from what the satellite saw" when all three pass; "no link" otherwise. Under "What each outcome would mean" above, a pass with the share observed also passing is no longer called a link.
+5. **`run_local.py score once` scores nothing** unless each model it fits equals the one `fit` recorded (baseline, form, tau, k, counts, lags).
+6. **Beside every S:** S under the shifted drivers on average, and S with terms less their line. The headline size is the smaller of the two S. The pooled reading is also given without 2018; that marks nothing.
+
+**Guesses.** Every mark holds on the new rows: 80%. `curve` read as a link: at most 1 of 12. The guesses for the real fields stand, with "a link is read" lowered from a third to a quarter, since a pass is harder and a gain that shows in the satellite's view is no longer called one.
+
+**Corrections of wording, from the reader.** The outcome's mean and spread, and which months are in use, come from 1982 to 2003; "the fitting years" for targets are 1983 to 2003 without 1994. The planted patches cover 0.18 to 0.22 of kept cells by seed (mean 0.198). A pass carries no floor on size: one drift seed passed on burned area with S of 0.01%.
+
+**Limits added.** The instrument check is tested against a same-month effect and a month-before effect of one sign; other forms are not excluded. The panels have one satellite step, the real record several. A link that is itself a steady rise or fall over the scoring years cannot pass.

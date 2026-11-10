@@ -1,27 +1,31 @@
-"""Local drought and burned area: does each cell's own drought, four or more months before, improve a forecast of its burned area beyond own history. First on made-up panels with a link, with none, with a link only through the instrument, and with nothing but a shared drift; then on the real fields, fitted on 1982 to 2003 and scored once on 2004 to 2018. Rule: results/fire-drought.md."""
+"""Local drought and burned area: does each cell's own drought, four or more months before, improve a forecast of its burned area beyond own history. First on made-up panels with a link, with none, with a link only through the instrument, and with nothing but a shared drift; then on the real fields, fitted on 1982 to 2003 and scored once on 2004 to 2018. Rule: results/fire-drought.md, as amended there after the independent check (decision 0048)."""
 import json
+import os
 import sys
 from pathlib import Path
 
 import numpy as np
 
-from causal_atlas import confirm, field, fire, local
-from run_continents import verdict
-from run_fire import SCORED, YEARS, pooled
+from causal_atlas import confirm, field, fire, forecast, local
+from run_continents import verdict as registered
+from run_fire import SCORED, YEARS
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "synth"))
 import local_panel  # noqa: E402
 
 OUT = Path(__file__).resolve().parents[1] / "results" / "fire-drought.jsonl"
 KINDS = ("plain", "adjusted", "sight")  # burned area; burned area less what the share observed that month explains; the share observed itself
-MADE_UP = {  # name: (share of variance from moisture, instrument effect, shared drift, seeds)
-    "link_20": (0.20, 0.0, 0.0, range(19101, 19111)),
-    "link_10": (0.10, 0.0, 0.0, range(19201, 19211)),
-    "link_05": (0.05, 0.0, 0.0, range(19301, 19311)),
-    "none": (0.0, 0.0, 0.0, range(19401, 19461)),
-    "instrument": (0.0, 1.0, 0.0, range(19501, 19525)),
-    "both": (0.20, 1.0, 0.0, range(19601, 19611)),
-    "trends": (0.0, 0.0, 1.0, range(19701, 19725)),
+KIND = "made_up_2"  # the made-up panels under the verdict as amended after the independent check. Rows of kind "made_up" are the first run, under the verdict as first registered, and are kept as they were
+MADE_UP = {  # name: (how the panel is made, seeds)
+    "link_20": ({"share": 0.20}, range(19101, 19111)),
+    "link_10": ({"share": 0.10}, range(19201, 19211)),
+    "link_05": ({"share": 0.05}, range(19301, 19311)),
+    "none": ({}, range(19401, 19461)),
+    "instrument": ({"instrument": 1.0}, range(19501, 19525)),
+    "both": ({"share": 0.20, "instrument": 1.0}, range(19601, 19611)),
+    "trends": ({"trend": 1.0}, range(19701, 19725)),
+    "before": ({"instrument": 1.0, "before": 0.3}, range(20101, 20125)),  # instrument only, through the month before's view
+    "curve": ({"curve": 6.0}, range(20201, 20213)),  # a quickening drift: measured, no mark
 }
 MARKS = {  # panel: (what is counted, "least" or "most", how many seeds)
     "link_20": ("link", "least", 7),
@@ -29,17 +33,19 @@ MARKS = {  # panel: (what is counted, "least" or "most", how many seeds)
     "none": ("link", "most", 4),
     "trends": ("link", "most", 2),
     "instrument": ("link", "most", 2),
+    "before": ("link", "most", 2),
 }
 SIGHT = ("instrument", "least", 22)  # and the instrument-only panels must show in what the satellite saw
-EMPTY = ("none", "instrument", "trends")  # panels with no link, also read six at a time, as the six real fields are read together
+EMPTY = ("none", "instrument", "trends", "before")  # panels with no link, also read six at a time, as the six real fields are read together
 SIX = 6
 MOST_SIXES = 1  # sixes read as a link, of all the sixes of the empty panels
 
 
 def row(r):
-    with open(OUT, "a") as f:
-        f.write(json.dumps(r) + "\n")
-    print({k: v for k, v in r.items() if k not in ("shifted", "by_year", "alone", "fold_error", "by_month")}, flush=True)
+    f = os.open(OUT, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o644)  # one write a row, so several processes may share the file
+    os.write(f, (json.dumps(r) + "\n").encode())
+    os.close(f)
+    print({k: v for k, v in r.items() if k not in ("shifted", "by_year", "alone", "fold_error", "by_month", "without_2018")}, flush=True)
 
 
 def rows():
@@ -67,9 +73,9 @@ def real(which):
     return y[has], x[has], fire.sight(which)[has], used[has], lat[has], lon[has]
 
 
-def made_up(seed, share, instrument, trend=0.0):
+def made_up(seed, **how):
     """One made-up field through the same preparation as the real ones, and which of its cells hold a planted link."""
-    burned, seen, moisture, lat, lon, planted = local_panel.make(seed, share, instrument, trend)
+    burned, seen, moisture, lat, lon, planted = local_panel.make(seed, **how)
     y, used = fire.standard(burned, seen)
     kept = used.any(axis=1)
     y = np.clip(y, -fire.CLIP, fire.CLIP).reshape(len(y), -1)
@@ -111,38 +117,60 @@ def scored(data, kind):
     """One field and outcome, fitted on the fitting years and scored on the years after."""
     model, info, (y, near, x, used) = fitted(data, kind)
     base, got, shifted = local.score(model, x, SCORED)
-    return model, info, [base, got, shifted, local.alone(y, near, used, model["claimed"], YEARS, SCORED)]
+    _, flat, moved = local.score(model, x, SCORED, flat=True)
+    return model, info, [base, got, shifted, local.alone(y, near, used, model["claimed"], YEARS, SCORED), flat, moved]
+
+
+def verdict(base, got, shifted, alone, flat, moved):
+    """The verdict as first registered, and what the independent check added to it: the same reading must hold with every term, shifted or not, less its own straight line across the scoring years. shifted_mean is S under the shifted drivers, on average: above zero, that much of the gain is not tied to the year."""
+    out = registered(base, got, shifted, alone)
+    again = forecast.skill(base, flat, moved)
+    out["registered"] = out["passes"]
+    out["flat"] = {k: again[k] for k in ("s", "ci", "beats")}
+    out["shifted_mean"] = float(1 - shifted.mean(axis=0).sum() / base.sum()) if base.sum() else float("nan")
+    out["passes"] = bool(out["registered"] and again["ci"][0] > 0 and again["beats"] == len(moved))
+    return out
+
+
+def pooled(parts, which):
+    """Squared errors summed over fields or seeds, year by year, part by part."""
+    return [{k: sum(parts[f][i][k] for f in which) for k in parts[which[0]][i]} if i == 3 else sum(parts[f][i] for f in which) for i in range(6)]
 
 
 def known(names):
     """Rule 3: the made-up panels, each seed fitted and scored as a real field would be."""
-    done = {(r["panel"], r["seed"], r["outcome"]) for r in rows() if r["kind"] == "made_up"}
+    done = {(r["panel"], r["seed"], r["outcome"]) for r in rows() if r["kind"] == KIND}
     for name in names:
-        *how, seeds = MADE_UP[name]
+        how, seeds = MADE_UP[name]
         for seed in seeds:
             if all((name, seed, kind) in done for kind in KINDS):
                 continue
-            data, planted = made_up(seed, *how)
+            data, planted = made_up(seed, **how)
             for kind in KINDS:
                 if (name, seed, kind) in done:
                     continue
                 model, info, parts = scored(data, kind)
                 c = model["claimed"]
                 inside = round(float(c[:, planted].sum() / max(c.sum(), 1)), 3)
-                row({"kind": "made_up", "panel": name, "seed": seed, "outcome": kind, **info, "claims_in_planted_cells": inside, "planted_cells": int(planted.sum()), **verdict(*parts), "by_year": by_year(parts)})
+                row({"kind": KIND, "panel": name, "seed": seed, "outcome": kind, **info, "claims_in_planted_cells": inside, "planted_cells": int(planted.sum()), **verdict(*parts), "by_year": by_year(parts)})
 
 
 def by_year(parts):
-    """The squared errors by scoring year, as kept in a row: the baseline's, the model's, the model's under each shift, each baseline's alone."""
-    base, got, shifted, alone = parts
-    return {"base": base.tolist(), "model": got.tolist(), "shifted": shifted.tolist(), "alone": {k: v.tolist() for k, v in alone.items()}}
+    """The squared errors by scoring year, as kept in a row: the baseline's, the model's, the model's under each shift, each baseline's alone, and the model's and the shifts' with every term less its line."""
+    base, got, shifted, alone, flat, moved = parts
+    return {"base": base.tolist(), "model": got.tolist(), "shifted": shifted.tolist(), "alone": {k: v.tolist() for k, v in alone.items()}, "flat": flat.tolist(), "moved": moved.tolist()}
+
+
+def parted(kept):
+    """by_year, back again."""
+    return [np.array(kept[k]) for k in ("base", "model", "shifted")] + [{k: np.array(v) for k, v in kept["alone"].items()}] + [np.array(kept[k]) for k in ("flat", "moved")]
 
 
 def together(found):
     """Several panels read as one, their squared errors summed year by year as the real fields' are: by outcome, the verdict."""
     out = {}
     for kind in KINDS:
-        parts = {r["seed"]: [np.array(r["by_year"][k]) for k in ("base", "model", "shifted")] + [{k: np.array(v) for k, v in r["by_year"]["alone"].items()}] for r in found if r["outcome"] == kind}
+        parts = {r["seed"]: parted(r["by_year"]) for r in found if r["outcome"] == kind}
         out[kind] = verdict(*pooled(parts, list(parts)))
     return out
 
@@ -152,20 +180,25 @@ def link(passed):
     return passed["plain"] and passed["adjusted"]
 
 
+def label(passed):
+    """What the real fields' reading is called. A gain that also shows in what the satellite saw is not called a link."""
+    return "no link" if not link(passed) else "not separable from what the satellite saw" if passed["sight"] else "link"
+
+
 def marks(done):
     """By made-up panel: seeds run, seeds read as a link, seeds where each outcome passes; and whether each mark holds."""
     out, held = {}, {}
     for name in MADE_UP:
         by_seed = {}
         for r in done:
-            if r["kind"] == "made_up" and r["panel"] == name:
+            if r["kind"] == KIND and r["panel"] == name:
                 by_seed.setdefault(r["seed"], {})[r["outcome"]] = r["passes"]
         full = [v for v in by_seed.values() if len(v) == len(KINDS)]
         out[name] = {"seeds": len(full), "of": len(MADE_UP[name][-1]), "link": sum(link(v) for v in full), **{k: sum(v[k] for v in full) for k in KINDS}}
     sixes = 0
     for name in EMPTY:
         seeds = list(MADE_UP[name][-1])
-        found = [r for r in done if r["kind"] == "made_up" and r["panel"] == name]
+        found = [r for r in done if r["kind"] == KIND and r["panel"] == name]
         if out[name]["seeds"] < len(seeds):
             continue
         read = [together([r for r in found if r["seed"] in seeds[i : i + SIX]]) for i in range(0, len(seeds), SIX)]
@@ -194,26 +227,38 @@ def step1(which):
                 row({"kind": "fit", "field": name, "outcome": kind, **fitted(real(name), kind, fire.FIT)[1]})
 
 
+SAME = ("cells", "blocks", "baseline", "k", "season", "tau", "gain", "block_months_claimed", "claimed", "cells_with_claim", "lags", "by_month", "positive")  # what step 1 wrote of each model
+
+
 def step2():
-    """Once: every field and outcome scored on 2004 to 2018, and the fields together."""
+    """Once: every field and outcome scored on 2004 to 2018, and the fields together. Nothing is written or shown unless every model is the one step 1 recorded."""
     done = rows()
     if any(r["kind"] in ("score", "pooled") for r in done):
         sys.exit("Already scored. The years after 2003 are spent for this driver and these fields.")
-    fits = [r for r in done if r["kind"] == "fit"]
+    fits = {(r["field"], r["outcome"]): r for r in done if r["kind"] == "fit"}
     if len(fits) != len(KINDS) * len(fire.FIELDS):
         sys.exit("Step 1 is incomplete. The years after 2003 stay sealed.")
-    if not all(any(r["k"] > 0 for r in fits if r["outcome"] == kind) for kind in KINDS[:2]):
+    if not all(any(fits[name, kind]["k"] > 0 for name in fire.FIELDS) for kind in KINDS[:2]):
         sys.exit("Nothing held up within the fitting years on burned area, or nothing once the share observed is taken out. There is nothing to score and the years after 2003 stay sealed.")
+    found = {}
+    for kind in KINDS:
+        for name in fire.FIELDS:
+            _, info, parts = scored(real(name), kind)
+            found[name, kind] = info, parts
+    differ = [(*key, k) for key, (info, _) in found.items() for k in SAME if json.loads(json.dumps(info[k])) != fits[key][k]]
+    if differ:
+        sys.exit(f"A model fitted now is not the one step 1 recorded: {differ}. Nothing is scored.")
     passed = {}
     for kind in KINDS:
-        parts = {}
+        parts = {name: found[name, kind][1] for name in fire.FIELDS}
         for name in fire.FIELDS:
-            model, info, parts[name] = scored(real(name), kind)
-            row({"kind": "score", "field": name, "outcome": kind, **info, **verdict(*parts[name]), "by_year": {"base": parts[name][0].round(3).tolist(), "model": parts[name][1].round(3).tolist()}})
-        out = verdict(*pooled(parts, list(fire.FIELDS)))
+            row({"kind": "score", "field": name, "outcome": kind, **found[name, kind][0], **verdict(*parts[name]), "by_year": by_year(parts[name])})
+        whole = pooled(parts, list(fire.FIELDS))
+        out = verdict(*whole)
         passed[kind] = out["passes"]
-        row({"kind": "pooled", "outcome": kind, "fields": list(fire.FIELDS), **out})
-    row({"kind": "reading", "link": link(passed), "also_in_what_the_satellite_saw": passed["sight"]})
+        short = verdict(*[{k: v[:-1] for k, v in p.items()} if isinstance(p, dict) else p[..., :-1] for p in whole])
+        row({"kind": "pooled", "outcome": kind, "fields": list(fire.FIELDS), **out, "by_year": by_year(whole), "without_2018": short})
+    row({"kind": "reading", "label": label(passed), **{f"passes_{k}": v for k, v in passed.items()}})
 
 
 if __name__ == "__main__":

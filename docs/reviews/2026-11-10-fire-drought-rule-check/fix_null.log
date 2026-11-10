@@ -1,0 +1,9 @@
+link 0.0 lagged seed 20021 plain    k=0.79 S=+0.0123 ci=(+0.0056,+0.0192) beats=14/14 passes=True
+link 0.0 lagged seed 20021 adjusted k=0.67 S=+0.0078 ci=(+0.0034,+0.0127) beats=14/14 passes=True
+link 0.0 lagged seed 20021 twice    k=0.06 S=+0.0002 ci=(-0.0001,+0.0004) beats=14/14 passes=False
+link 0.0 lagged seed 20022 plain    k=0.68 S=+0.0126 ci=(+0.0097,+0.0157) beats=14/14 passes=True
+link 0.0 lagged seed 20022 adjusted k=0.62 S=+0.0068 ci=(+0.0049,+0.0089) beats=14/14 passes=True
+link 0.0 lagged seed 20022 twice    k=0.09 S=+0.0003 ci=(-0.0000,+0.0006) beats=14/14 passes=False
+link 0.0 lagged seed 20023 plain    k=0.88 S=+0.0087 ci=(+0.0072,+0.0104) beats=14/14 passes=True
+link 0.0 lagged seed 20023 adjusted k=0.69 S=+0.0049 ci=(+0.0035,+0.0063) beats=14/14 passes=True
+link 0.0 lagged seed 20023 twice    k=1.00 S=-0.0023 ci=(-0.0058,+0.0008) beats=5/14 passes=False
