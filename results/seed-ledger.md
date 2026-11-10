@@ -24,3 +24,6 @@ A seed scored for a mark is spent for that purpose. A new method's fresh marks n
 | 14901, 14999 | Real fields: smoke test of `scripts/run_indices.py` with decoys standing in for the real series | Smoke test only, never in a count. Spent |
 | 15101 to 15120, 15201 to 15220, 15301 to 15320, 15401 to 15420, 15501 to 15520 | The same five fields, in that order: decoy sets for naming with the corrected controls | Spent (`results/real-indices-2.md`, 2026-11-10) |
 | 15601 to 15610, 15701 to 15710, 15801 to 15810, 15901 to 15910, 16001 to 16010 | The same five fields, in that order: ruler and instrument check with the corrected controls | Spent (`results/real-indices-2.md`, 2026-11-10) |
+| 17101 to 17120, 17201 to 17220, 17301 to 17320, 17401 to 17420, 17501 to 17520, 17601 to 17620 | Burned area, six fields (Africa, South America, Australia, South and Southeast Asia, North America, Europe, in that order): decoy sets for naming | Reserved (`results/fire-enso.md`, 2026-11-10) |
+| 17701 to 17710, 17801 to 17810, 17901 to 17910, 18001 to 18010, 18101 to 18110, 18201 to 18210 | The same six fields, in that order: ruler (planted link and its decoy set) | Reserved (`results/fire-enso.md`, 2026-11-10) |
+| 18901, 18999 | Burned area: smoke test of `scripts/run_fire.py` on noise shaped like the fields | Smoke test only, never in a count. Spent |

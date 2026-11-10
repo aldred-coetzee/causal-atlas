@@ -21,6 +21,16 @@ sha256 = "6bdb1fabdd1b955483bdfca5e7f963f5f0ba10e199bdbf20d999f40fb207aa05"
 coverage = "Global 0.5 degree, monthly, 1901-01 to 2024-12"
 known_biases = "Built from CRU TS; quality over Africa, where station data may be thin, not checked. Standardised by its makers on the whole 1901 to 2024 record, not a reference period, so later years set the level and scale of earlier values and every new release changes every value. Affected by the makers' acknowledged PET unit conversion error in versions 2.6 to 2.12.0 (fixed in 2.13.0; effect 'generally small', 'largest in arid regions'); sources in docs/data-sources.md"
 
+[firecci]
+source_url = "https://dap.ceda.ac.uk/neodc/esacci/fire/data/burned_area/AVHRR-LTDR/grid/v1.1/{year}/{year}{month}01-ESACCI-L4_FIRE-BA-AVHRR-LTDR-fv1.1.nc"
+fetch_script = "scripts/fetch_firecci.py"
+version = "ESA Fire_cci AVHRR-LTDR burned area grid product (FireCCILT11), version 1.1; doi:10.5285/62866635ab074e07b93f17fbf87a2c1a"
+licence = "ESA CCI Data Policy, Fire_cci terms: any use for any purpose; acknowledge the ESA Climate Change Initiative and the Fire CCI project and cite the data set's DOI"
+fetched = "2026-11-10"
+sha256 = "cd9310ac83c6a1e1a7f9fdb4f311476d38bb3a8e6b20904daad55fe11362a2d7"
+coverage = "Global 0.25 degree, monthly, 1982-01 to 2018-12 without 1994; 432 files, 7,198,477,344 bytes. The checksum is of data/firecci.sha256, which lists each file's own"
+known_biases = "1994 absent. Stitched from several AVHRR satellites with drifting orbits. Pixels of about 5 km miss small fires. Each cell-month carries the share of burnable land observed; cloud hides fire and a dry year is a clear year, so what is seen is tied to the weather. Trained against MODIS, which starts in 2001."
+
 [oni]
 source_url = "https://psl.noaa.gov/data/correlation/oni.data"
 fetch_script = "scripts/fetch_oni.py"

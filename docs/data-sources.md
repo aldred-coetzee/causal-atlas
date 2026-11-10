@@ -1,7 +1,7 @@
 # Data sources
 
 Every source this project has checked, used or not: how to get it, and what its licence asks of us.
-Last updated 2026-11-09. Licences were read at source on 2026-11-05, unless a row says otherwise, and
+Last updated 2026-11-10. Licences were read at source on 2026-11-05, unless a row says otherwise, and
 can change, so check again before relying on one for something new.
 
 Versions and checksums are in `data/manifest.toml`. Data is never committed here: run the fetch script,
@@ -12,6 +12,7 @@ from the repo root, with `uv run python scripts/fetch_<name>.py`. Files land in 
 | [UCDP GED 26.1](#ucdp-ged) | Fatal organised violence | Used, outcome | Direct, no login | CC BY 4.0 | 1989 to 2025 | Event, point | 39 MB | Uppsala University, Sweden |
 | [SPEIbase 2.11](#speibase) | Drought | Used | Direct, no login | ODbL 1.0, contents DbCL 1.0 | 1901 to 2024-12 | 0.5 degree, monthly | 383 MB | CSIC, Spain |
 | [NOAA ONI](#noaa-oni) | El Nino state | Used | Direct, no login | Public domain | 1950 to 2026-09 | One global value, monthly | 7 KB | NOAA PSL, USA |
+| [ESA Fire_cci FireCCILT11 v1.1](#esa-fire_cci-fireccilt11) | Burned area | Used, outcome | Direct, no login | ESA CCI terms: any use, with acknowledgement | 1982 to 2018, no 1994 | 0.25 degree, monthly | 7.2 GB | CEDA, United Kingdom |
 | [Natural Earth](#natural-earth) | Country borders | Used, grid | Direct, no login | Public domain | Fixed release | 1:10m vector | 5 MB | Natural Earth CDN |
 | [CHIRPS v3](#chirps) | Rainfall | Checked, not used | Direct, no login | Public domain, per page | 1981 to near present, file not opened | 0.05 degree, monthly | 8.3 GiB | UCSB, USA |
 | [WFP food prices](#wfp-food-prices) | Market food prices | Checked, **not fetched** | **Scripted fetching disallowed** | CC BY-IGO, per metadata | 1990 to 2026, per metadata | Market, monthly | 0.62 GB | HDX |
@@ -59,6 +60,19 @@ from the repo root, with `uv run python scripts/fetch_<name>.py`. Files land in 
   - The wording for CRU, NCAR, Vimont, Di Lorenzo and Lincoln was read at source by a helper's lookup on 2026-11-09 and reported back; it has not been read a second time by this session. The three with no stated licence are used with the credit asked for and are not redistributed.
 - **Know before use:** several are anomalies or patterns computed with years after 1999 in their climatology or their pattern, so each is re-centred and re-scaled on its own 1950 to 1999 calendar months before use; that removes the offset and the scale, not a pattern's shape. Several carry a trend (the highest kept: tornado count 0.19 of variance, eastern Indian Ocean box 0.18, tropical South Atlantic 0.16, PDO 0.15). The tornado count rises with better reporting. Two pairs are close relatives (tna and amm 0.81; Iceland pressure and Greenland blocking 0.75).
 - **Read only to apply the rule and not used:** the Niño-region series, the ONI's relative version, the bivariate ENSO series, the Southern Oscillation and the tropical Pacific upper wind (El Niño by another name); the global temperature records of NASA, Berkeley Earth, CRU and the Hadley Centre, and NOAA, and the Pacific warm pool (mostly a trend); two Sierra Nevada rain-gauge series (rainfall); a second PDO (the same as the first). 45 files are incomplete for 1950 to 2024, among them the Jones NAO (11 months missing), the long tropical Atlantic files (1), the Southern Annular Mode, the MEI, the hurricane counts, carbon dioxide, sea level, snow and ice extent, and outgoing longwave radiation; `scripts/index_candidates.py` lists each with its count.
+
+## ESA Fire_cci FireCCILT11
+
+- **Data:** <https://dap.ceda.ac.uk/neodc/esacci/fire/data/burned_area/AVHRR-LTDR/grid/v1.1/>, one folder per year, one NetCDF file per month, 432 files of 16,663,142 bytes. **Catalogue record:** <https://catalogue.ceda.ac.uk/uuid/62866635ab074e07b93f17fbf87a2c1a>. **Terms:** <https://artefacts.ceda.ac.uk/licences/specific_licences/esacci_fire_terms_and_conditions.pdf>. All read 2026-11-10.
+- **Fetch:** `scripts/fetch_firecci.py`. It picks up where it stopped, keeps a file only at its full size, and writes the checksum of every file to `data/firecci.sha256`; the manifest holds the checksum of that listing.
+- **Licence requires:** "The CCI datasets held on the CCI Open Data Portal may be used by any user for any purpose", on these terms: "Users of the CCI data are required to acknowledge the ESA Climate Change Initiative and the Fire CCI project together with the individual data providers if the data are used in a presentation or publication. Please also cite any relevant dataset DOIs." Users are "encouraged" to tell the programme of their use and to send copies of publications, and "An offer of co-authorship should be considered, if the CCI data constitute a major component of a scientific publication." Rights in the data stay with their producers, and there is no warranty. **Cite as:** Chuvieco, E.; Pettinari, M.L.; Otón, G. (2020): ESA Fire Climate Change Initiative (Fire_cci): AVHRR-LTDR Fire_cci Burned Area Grid product, version 1.1. Centre for Environmental Data Analysis, 28 December 2020. doi:10.5285/62866635ab074e07b93f17fbf87a2c1a. The acknowledgement is in `README.md` and beside each result that uses the data.
+- **No account, and none made.** The folder's own note: "Public data: access to these data is available to both registered and non-registered users." Registering with the Fire CCI project is encouraged by the terms, not required; it would send an address to an outside service, so this project has not.
+- **Know before use:**
+  - **1994 is absent.** The product's README: "Year 1994 is not included in the dataset because there was not enough input data from the LTDR Archive". Every use here treats that year as unknown, never as zero burning.
+  - **Each file says how much of a cell was looked at.** Variables: `burned_area` (square metres, the total in the cell), `standard_error`, `fraction_of_burnable_area` ("fraction of the cell that corresponds to vegetated land covers that could burn") and `fraction_of_observed_area` (the share of the burnable area "that was observed during the time interval, and was not marked as unsuitable/not observable", for lack of input data, cloud or sensor failure). **Both "fraction" variables are stored as per cent, 0 to 100, though their `units` attribute says 1** (seen in the files, 2026-11-10); `src/causal_atlas/fire.py` divides by 100. A month with little observed is not a month with little fire. Cloud hides fire, and a dry year is a clear year, so how much is seen is itself tied to the weather.
+  - **Several satellites, drifting orbits.** The record is stitched from AVHRR instruments whose overpass time drifted and which replaced one another. The makers correct for this; that cannot be checked here. A change of satellite could look like a change in fire.
+  - **Coarse pixels.** About 5 km: small fires are missed, so burning on cropland and at forest edges is under-counted, and the product is trained against a finer one (MODIS) that exists only from 2001.
+  - Latitude runs north first in the files; cells are centred at .125, .375, .625 and .875 of a degree, so four of them make one cell of this project's half-degree grid exactly.
 
 ## Natural Earth
 

@@ -34,12 +34,13 @@ def baseline(name, y, near, fit, months):
     return (design(y, near, months) @ coef).reshape(len(months), len(y)).T
 
 
-def errors(y, near, claimed, split, years):
-    """By baseline: its squared error by year on the claimed unit-months of the years given, fitted on months before split."""
+def errors(y, near, claimed, split, years, fit_years=None):
+    """By baseline: its squared error by year on the claimed unit-months of the years given, fitted on months before split, or on fit_years where a year before split holds no data."""
+    fit = np.arange(12, split) if fit_years is None else all_months(fit_years)
     out = {}
     for name in BASELINES:
         e = np.zeros(y.shape)
-        e[:, 12:] = y[:, 12:] - baseline(name, y, near, np.arange(12, split), np.arange(12, y.shape[1]))
+        e[:, 12:] = y[:, 12:] - baseline(name, y, near, fit, np.arange(12, y.shape[1]))
         out[name] = sums(e, np.zeros((len(y), len(years), 12)), claimed, years)[0]
     return out
 
@@ -100,9 +101,9 @@ def multiplier(y, e, x, years):
     return float(np.clip(b / c, 0, 1)) if c > 0 else 0.0
 
 
-def fit(y, near, x, split):
-    """Everything from months before split: the baseline chosen, its residual on every month, the claims and the multiplier."""
-    years = np.arange(1, split // 12)
+def fit(y, near, x, split, years=None):
+    """Everything from months before split: the baseline chosen, its residual on every month, the claims and the multiplier. years: the target years to fit on, where one before split holds no data."""
+    years = np.arange(1, split // 12) if years is None else years
     name, err = choose(y, near, years)
     months = np.arange(12, y.shape[1])
     e = np.zeros(y.shape)
@@ -129,9 +130,9 @@ def residual(model, x, years):
     return e
 
 
-def after(e, z, split):
+def after(e, z, split, years=None):
     """A further driver fitted to what an earlier model left: its claims, slopes and multiplier from months before split, in the shape score() takes."""
-    years = np.arange(1, split // 12)
+    years = np.arange(1, split // 12) if years is None else years
     lag, claimed, slope = claims(e, e, z, years)
     return {"e": e, "lag": lag, "claimed": claimed, "slope": slope, "k": multiplier(e, e, z, years)}
 

@@ -49,6 +49,11 @@ more months ahead once each region's own history and El Niño are in it
 usable lead found, and the search can now be trusted with many real candidates,
 for large links only.
 
+The step now under way is the first outside climate: burned area from satellites,
+1982 to 2018, with a link others have published (El Niño leading fire) to
+rediscover first. Its rule is committed (`results/fire-enso.md`); nothing has been
+run on it yet.
+
 `STATUS.md` says where things stand in more detail.
 
 ## The question
@@ -89,3 +94,10 @@ makes no model calls: it is deterministic at runtime.
 Code is MIT (`LICENSE`). Text is CC BY 4.0 (`LICENSE-CC-BY-4.0`). Third-party
 material keeps its owner's licence. No dataset is held in this repo: only fetch
 scripts, checksums and a manifest recording each source's own terms.
+
+Burned-area data: this project acknowledges the ESA Climate Change Initiative and
+the Fire CCI project. Chuvieco, E.; Pettinari, M.L.; Otón, G. (2020): ESA Fire
+Climate Change Initiative (Fire_cci): AVHRR-LTDR Fire_cci Burned Area Grid
+product, version 1.1. Centre for Environmental Data Analysis.
+doi:10.5285/62866635ab074e07b93f17fbf87a2c1a. Every source's terms and citation
+are in `docs/data-sources.md`.
