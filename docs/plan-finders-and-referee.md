@@ -1,6 +1,6 @@
 # Plan: many finders, one referee, and the data in one shape
 
-**A draft, written 2026-11-10 while the other-crops test was still open, and committed so that it is not lost. It is not yet the plan: nothing in it is registered and nothing is built.** The referee section waits for the independent reader of the other-crops rule, because that rule is the referee's prototype and the reader is measuring its weak points.
+**The plan since 2026-11-10, 11:20 UTC.** It was committed as a draft while the other-crops test was open; that test is closed (`results/crops-drought.md`: read, a real but small aid), and the referee below is written from its rule, from what the independent reader found in it, and from what the real record did. Nothing here is registered as a test: each counted stage gets a results file with its marks, committed before any counted seed. Nothing is built yet.
 
 For decisions 0055, 0056 and 0057. A plan for an experiment and a build, not a survey (rules 1, 3, 5). No real series is set beside another under this plan until its last stage, which gets its own registered rule.
 
@@ -11,11 +11,13 @@ For decisions 0055, 0056 and 0057. A plan for an experiment and a build, not a s
 ## What ten iterations taught, which this is built on
 
 1. **The judge that has held is the forecast on unseen years against a place's own history.** Every naming step judged by shifted copies of the candidates has had a fault of its own (decisions 0043, 0046). The two real results came from a forecast scored once.
-2. **Real links are small.** About a sixth of the error where El Niño speaks; 1.7% of squared error for drought and cereals, most of it in a minority of records. They were heard only by pooling many places.
+2. **Real links are small.** About a sixth of the error where El Niño speaks; 1.7% of squared error for drought and cereals, most of it in a minority of records; 0.3% over 47 other crops, and 1.6% on the record-years their own past picked out. They were heard only by pooling many places.
 3. **A baseline chosen once goes stale.** It is chosen again each year from the past (the harvest and other-crops tests do this).
 4. **A miss means nothing without a ceiling.** Hand the method the exact answer first; if it cannot hear that, the instrument is at fault and no world is blamed (framework proposal, 2026-11-06).
 5. **Made-up records must carry what real ones do:** drift, a step, shocks shared within a country, near copies of one series, a record that changes behaviour part-way.
 6. **The maths has been read once already** (`docs/reading/further-maths.md`, `maths-for-combinations.md`, `multi-block-integration.md`, `ccm-edm-borrow.md`, 2026-11-05). Each page ends in a first test and a drop rule. None of those tests was run, because the work went to one driver at a time. This plan runs them, in one harness.
+7. **Where matters as much as what.** Choosing place-years by each place's own past concentrated a thin link about five times on records never read (other crops, 2026-11-10). So "where" is part of every proposal, and "by claim" is one of its values.
+8. **A check by someone with no part in the work has changed the wording or the rule every time.** Each counted stage that decides something gets one before its last step.
 
 ## The idea
 
@@ -31,7 +33,7 @@ Why this ties the kinds together: the error rate belongs to the referee alone. A
 
 ### The made-up tables
 
-Shaped like the table the data layer below produces: places by years by series, some series the same for every place (as an ocean index is). Small: 120 places, 60 years, 40 series. One size like the real table, set once the data layer has counted it. Every world carries the nuisances in point 5. The generator lives in `synth/` and shares no code with any finder or the referee.
+Shaped like the table the data layer below produces: places by years by series, some series the same for every place (as an ocean index is). Small: 120 places, 60 years, 40 series. One size like the real table, set once the data layer has counted it. Every world carries the nuisances in point 5, and is rough as real records are: heavy tails and a few very rough places. The generator lives in `synth/` (`table_panel.py`, to the brief in `docs/specs/2026-11-10-made-up-tables.md`), is written by a helper that never sees a finder or the referee, and shares no code with either.
 
 Each world plants a few links of one kind, a year ahead, in a quarter of the places, at a stated share of what the outcome's own history leaves unexplained (10%, 20%, 35%: the sizes of the other-crops panels, so the rulers compare).
 
@@ -49,7 +51,7 @@ Each world plants a few links of one kind, a year ahead, in a quarter of the pla
 
 ### The proposal, in one form
 
-`outcome`, `inputs` (one or more series, each with how far ahead), `where` (all places, or a named set), `when` (always, or a condition on a series), `form` (one of: slope; hinge; tail event; product; slope by group; a mode built from named series with fixed weights). Nothing fitted to the outcome travels with it. A finder may send at most a fixed number per world.
+`outcome`, `inputs` (one or more series, each with how far ahead), `where` (all places, a named set, or by claim: see the referee), `when` (always, or a condition on a series), `form` (one of: slope; hinge; tail event; product; slope by group; a mode built from named series with fixed weights). Nothing fitted to the outcome travels with it. A finder may send at most a fixed number per world.
 
 ### The board
 
@@ -74,11 +76,25 @@ Held for a second set, each only if a kind stays unheard by the first: exhaustiv
 
 ### The referee
 
-[To be written with the reader's findings. Starting point: early years to the finders, later years to the referee. For each proposal the form is fitted each year on earlier years only, shrunk, never enlarged; the baseline is chosen again each year; the score is the share of the baseline's squared error removed where the proposal applies, with the interval over places and years both; a proposal passes on the interval and on a count that charges for every proposal sent, valid when proposals resemble each other. Events are scored as chances, the same way. Combinations of passed proposals are proposals.]
+The other-crops rule, made general and with its weak points mended. The finders see the early years (the first 35 of 60 in the made-up tables); the referee scores every later year, forecasting each from the years before it. For each proposal sent:
 
-Tests of the test, marks set before any counted seed:
-- on worlds with no link, passes stay at or under the stated rate, each null kind by itself and all together;
-- the answer passes in at least 8 of 10 worlds for each kind at 35%. A kind where it does not is reported as "could not be heard at this length", and no finder is blamed for it.
+1. **The term.** One number for each place and year, known before the year, built from the proposal's inputs as its form says: the input a year (or more) before; the part of it beyond a stated level of its own past; a yes or no for a tail event; the product of two inputs; the input with one slope for each named group of places or each state of a named series; a sum of named series with the proposal's fixed weights. Where the `when` condition is not met the term is zero.
+2. **The baseline** for each outcome series is chosen again each year, by its error on the years before, from a small fixed set: the place's own past mean, its last value, its mean with a share of its last departure, its own line, and the mean of its group the year before. One baseline for an outcome, the same for every proposal on it.
+3. **The fit.** Each year, the slope of the baseline's error on the term over every earlier year and every place the proposal applies to; one slope a proposal (one a group or state where the form says so), shrunk toward zero by a fixed amount. No slope of a place's own and no cap: on the real crop record the cap never acted, so it is left out and not claimed as a protection.
+4. **Where.** All places; a set named by the finder from the early years; or **by claim**: each year a place is in when the slope of its own baseline error on the term, over ten or more of its own earlier years, stands 1.5 standard errors above zero. That is the other-crops rule. On the real record it multiplied a thin link about five times, and most single claims were worth nothing; it is a way to choose place-years, not to name places.
+5. **The score** is the share of the baseline's squared error removed on the place-years the proposal applies to. For an event the forecast is a chance and the error is the squared miss of that chance, against the baseline's chance; the score is the same share.
+6. **Twice.** Once with each input as it fell, once with its level and line removed, the line fitted on earlier years only (the crop tests removed a line fitted over the whole record; this lets no later year in). A proposal must pass both, and its size is the smaller. A pass by one form is never a read: a trend shared by an input and an outcome passed the first form alone in 2 of 10 made-up worlds built for it, and the second form in none (decision 0058).
+7. **The interval, and the charge for how many were sent.** Groups of places and years are both drawn again, the same draws for every proposal in the run. In each draw every proposal's score departs from its own by some number of its own spreads; the bar is set by the largest such departure among all proposals and both forms, at the level that 19 draws in 20 stay under. A proposal passes when its score stands more than that bar of its spreads above zero. So forty unlike proposals face a higher bar than one, and forty near copies face about the bar of one. The stated rate is: in a world where nothing predicts, any pass at all in at most 1 run in 20.
+8. **And** the score stays above zero without its best year.
+9. **Reported beside, deciding nothing:** the score with the inputs moved to other years (a weak control alone, because under the true alignment the fitted term is larger; decision 0058); the score on the place-years a claim left out; how many places and place-years; minutes.
+10. **Nothing is chosen after the scores are seen.** A combination of proposals is a proposal like any other: posted before the referee runs, or kept for years not yet opened.
+
+What the real record adds to this, to be remembered at Stage B: a rule shaped on one record gave 6.3% there and 1.6% on records never read, a fourfold fall; and the real record was rougher than any made-up one (a few very rough series, heavier tails), so the made-up tables here are made rough on purpose.
+
+Tests of the test, marks set in the stage's results file before any counted seed:
+- **False passes.** On worlds where nothing predicts (none; a strong shared drift, straight and curving; a step; near copies; a record that changes part-way; same-year movement with nothing leading), the referee is sent the forty proposals that fit the early years best, the hardest case there is for choosing, and passes stay at or under the stated rate, each kind by itself and all together.
+- **The ceiling.** The answer, sent among thirty-nine such proposals so that it faces the full bar, passes in at least 8 of 10 worlds for each kind at 35%. It is sent three ways: with the true places, with all places, and by claim, so the cost of not knowing where is measured for every kind. A kind where it does not pass is reported as "could not be heard at this length", and no finder is blamed for it.
+- **Leak.** Noise from a cut year onward changes no term, fit, claim or score of an earlier year.
 
 ### The scorecard
 
@@ -119,7 +135,7 @@ The finders are one, of plain-code members, from the start (decision 0057, the o
 
 | Stage | What | Estimate, fresh tokens |
 |---|---|---|
-| Data layer | three tables from held sources, the comparable function, the ledger | 0.5M to 1M |
+| Data layer | three tables from held sources (a helper, to `docs/specs/2026-11-10-data-in-one-shape.md`), the comparable function, the ledger (started: `results/spent-ledger.md`) | 0.5M to 1M |
 | A1 | made-up tables, the proposal form, the referee, the answer, tests of the test | 1M to 1.5M |
 | A2 | five finders, the registered rule, the counted run, an independent reader | 1.5M to 2.5M |
 | B | its own plan | not estimated |
