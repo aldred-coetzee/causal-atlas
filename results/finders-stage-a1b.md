@@ -1,5 +1,7 @@
 # The referee counted again: is the shared-curve hole closed, what does it do with a shared slow path, and what did closing it cost?
 
+**Outcome (2026-11-10): counted once. The curving drift that passed in the first count no longer does: 1 of 600 worlds where nothing predicts had any pass (0.0% to 0.9%), none of 200 with four times the places. Nothing passed beside a path or a link that should not (0 of 1,100 worlds). The three kinds heard before are still heard. One mark fails: a regular cycle shared by a series and an outcome passes, in 10 of 40 worlds at 120 places and 40 of 40 at 480; smooth one-off shapes are refused (0 of 160). Shared paths with fresh movement of their own pass, nearly always with 480 places, as said beforehand. So the referee does not pass what is not there, and it cannot tell "this leads that" from "these move together slowly". The turned-round read tells them apart at 480 places and not well enough at 120. No real table is read until a pass carries that label. The section "Result" has it with its limits.** Everything above that section stands as it was written before the count.
+
 Rule first, committed before any counted seed (rule 9). Stage A1 of `docs/plan-finders-and-referee.md`, a second count after decision 0060. Authority: decisions 0040, 0055 to 0057, 0059 and 0060. Code: `src/causal_atlas/referee.py`, `scripts/run_referee_b.py` (which uses `scripts/run_referee.py`), `synth/table_panel.py`, `synth/shared_paths.py`; tests in `tests/test_referee.py`, `tests/test_referee_b.py`, `tests/test_shared_paths.py`. Seeds: `results/seed-ledger.md`. Rows: `results/finders-stage-a1b.jsonl`, one a world.
 
 Made-up tables only. No real series is read.
@@ -95,6 +97,104 @@ Forty proposals a world, under one bar.
 - The directly sent pairs and the answers are handed over by a script that knows the layout. They measure the referee, not any finder.
 - At twice the generator's drift and four times the places, one smoke world of twelve had a drift pair pass (decision 0060). Mark 1's panel none_strong_wide counts that case.
 
-## Result
+## Result (2026-11-10, counted once, 13:30 to 13:45 UTC, on commit 1aa96dc)
 
-Not yet counted.
+All 1,700 worlds read, each once. `scripts/run_referee_b.py table` prints the tables from the rows. Intervals are exact and over worlds.
+
+**Marks 1, 3, 4 and 5 hold. Mark 2 fails at 480 places and holds by one world at 120.** By the rule above: the referee is valid, the hole is closed for the shape that opened it and not for a regular cycle, and no real table is read until a pass carries a label for "moves together".
+
+### 1. Where nothing predicts
+
+| Panel | Worlds with any pass | Drift pairs sent directly: passed, of those sent | passed the two reads held to the bar, before the check |
+|---|---|---|---|
+| none | 0 of 100 | 0 of 800 | 0 |
+| none_strong | 1 of 100 | 1 of 800 | 1 |
+| none_plain | 0 of 50 | 0 of 400 | 0 |
+| none_rough | 0 of 50 | 0 of 400 | 0 |
+| none_gaps | 0 of 50 | 0 of 400 | 0 |
+| same_year | 0 of 50, the answers and their turned-round forms among them | 0 of 400 | 0 |
+| none_wide | 0 of 100 | 0 of 800 | 0 |
+| none_strong_wide | 0 of 100 | 0 of 800 | **11** |
+| all | **1 of 600** (0.0% to 0.9%) | 1 of 4,800 | 12 |
+
+Mark: at most 9 of 100 or 6 of 50 a panel, 40 in all. Held. The keen proposer passed nothing in any of the 600. **With four times the places: 0 of 200 worlds (0% to 1.8%).** The first count had no such panel, and it is where the hole was widest.
+
+The one pass (none_strong, seed 33116) is a drift pair sent for the half of the groups where it fitted the early years best: 6.3 and 3.9 spreads above zero in the two reads, 2.1 in the check, against a check of 2.0. At twice the strength with 480 places the two reads held to the bar passed eleven drift-pair proposals, and the check refused all eleven. So the check on what was new is what closes the hole there; the per-place baseline alone does not.
+
+### 2. A shared slow path, of shapes the referee was not shaped on
+
+Worlds of 40 in which a path's pair passed forwards, sent directly in any way or by the keen proposer:
+
+| Kind | Foreseeable | 120 places | 480 places |
+|---|---|---|---|
+| waves (two S-curves) | yes | 0 | 0 |
+| boom (one hump) | yes | 0 | 0 |
+| cycle (fixed period, 18 to 45 years) | yes | **10** (13% to 41%) | **40** (91% to 100%) |
+| wander (a smoothed random walk) | no | 13 | 40 |
+| regimes (shifting levels) | no | 14 | 40 |
+| quasi_cycle (a cycle whose phase wanders) | no | 6 | 35 |
+| mixed | by place | 2 | 39 |
+
+**Mark 2: the three foreseeable kinds together, 10 of 120 worlds at 120 places (limit 11: held, by one) and 40 of 120 at 480 places (limit 11: failed).** Every one of those fifty worlds is a cycle. Waves and boom were refused in all 160 worlds (0% to 2.3%); at 480 places the two held reads passed six boom proposals and the check refused them.
+
+What this says. The hole as the first count found it, a curving drift, is closed, and so are other smooth one-off shapes. A regular cycle is not: a line through a place's last fifteen years cannot follow a cycle of eighteen years or a little more, so the cycle stays in the baseline's error, and a second series on the same cycle helps forecast it. This was named as possible before the count and it is worse than "possible": every world at 480 places. The kinds with fresh movement of their own pass as expected, and at 480 places nearly always. Taken together: **what the referee passes is "knowing this series a year before improves the forecast", and it does not tell a lead from two series that move slowly together.** Decision 0060 said so for wandering paths; the count shows it for a foreseeable one too, wherever the baselines cannot follow the shape.
+
+How the passes came, at 480 places, for the five kinds that pass: sent for the path's true places 50 to 80 of 80; for the best half of the groups by the early years the same; for all places 14 to 77 of 80; and the keen proposer, knowing nothing, found and passed them 22 to 139 times a panel. So finders will find these without being told.
+
+### 3. Nothing else beside a path or a link
+
+**0 of 560** worlds with a path and **0 of 540** with links (0% to 0.3% together) had a keen pass naming neither a path's pair, nor a planted input, nor a near copy. Marks: at most 38 and 37. Held. The first count had 6 of 810, all six among its 270 worlds with four times the places; here none of 270 such worlds.
+
+### 4. The ceiling, and what closing the hole cost
+
+Links passed of 90, the answer sent for the link's own places. "Same worlds, first referee" is a check after the count: these counted worlds read again with the referee as Stage A1 counted it (`OWN = None`, `PATH = False`, `CHECKS = ()`). It changes no count.
+
+| Kind | 35%, 120 places | same worlds, first referee | first count (other worlds) | 20%, 480 places | same worlds, first referee |
+|---|---|---|---|---|---|
+| steady | **90** | 90 | 90 | **90** | 90 |
+| sign differing by place | **90** | 90 | 89 | **90** | 90 |
+| hidden mover | **80** (81% to 95% of links) | 82 | 80 | **90** | 90 |
+| many weak | 47 | 54 | 48 | **90** | 90 |
+| extremes | 46 | 58 | 52 | **84** | 83 |
+| from a series shared by all places | 45 | 60 | 64 | 45 | 58 |
+| pair | 41 | 51 | 63 | **90** | 90 |
+| threshold | 41 | 48 | 55 | **90** | 90 |
+| sign differing by a third series' state | 9 | 20 | 21 | 14 | 34 |
+
+Bold: at or over 72. **Mark 4 held: steady 90, sign by place 90, hidden mover 80.** Links of one world share places and a bar, so 90 links are not 90 independent trials.
+
+The cost, on the same worlds: nothing for the three kinds that were heard; 7 to 15 links of 90 for each of the six that were not heard anyway at this size (most for links from a shared series, 60 to 45); and with four times the places nothing except the two kinds that turn on a series common to all places (58 to 45, 34 to 14). The smoke worlds of decision 0060 had put it a little lower (1 to 5 links of 36 for those six kinds).
+
+### Beside, no mark
+
+**The turned-round read** (the outcome a year before, for the series, in the true places), as registered: a full pass both ways.
+
+| | Passed forwards in the true places | of those, passed turned round too |
+|---|---|---|
+| Links, 35%, 120 places | 444 | **0** |
+| Links, 20%, 480 places | 638 | **0** |
+| Shared paths, 120 places | 36 | 10 |
+| Shared paths, 480 places | 343 | 293 |
+
+No turned-round proposal passed in any linked world, 0 of 1,440 sent. So a pass both ways never marked a real link, in these worlds. But it misses: at 120 places 26 of the 36 path passes went one way only, and those are passes a reader would take for a lead. The label as registered is good enough at 480 places (293 of 343) and not at 120.
+
+**A check after the count, not a result:** from the same rows, with the turned-round read held to a lower mark (both reads two of their own spreads above zero and something taken off the error) in place of the full bar: 28 of the 36 path passes at 120 places and 318 of 343 at 480; of the link passes, 0 of 444 and 2 of 638. The level was looked for after the rows were seen, so this is a lead for the next rule and nothing more: a label at a lower mark, not charged in the bar, registered and counted on fresh worlds before it is relied on.
+
+Other figures: the answer sent for all places passed 0 to 2 of 90 at 120 places for every kind and 63 (steady), 76 (sign by place), 23 (pairs) at 480; by claim, steady 72 and 77. The keen proposer passed 88 proposals naming a planted input in the 30 steady worlds at 35% and 151 at 480 places. Middle bar 3.54 at 120 places and 3.28 at 480; about 1 second a world and 2.6.
+
+### What it changes
+
+- **Before any real table is read:** a pass carries a label when the same pair also stands turned round, by a rule registered and counted on fresh made-up worlds (the lower mark above is where to start); and the rule for the first real run puts the table's main shared movements into the baseline. Without both, most passes on a real table would be slow shared movement.
+- **What a pass means is said plainly from here on:** "improves the forecast a year ahead beyond the place's own history", never "leads" and never "moves".
+- **Stage A2 (finders and the board) goes ahead on this referee.** Finders send each proposal's turned-round form for the label. A finder of where comes first, as the first count said.
+- **The table wants more places.** At 120 places six of nine kinds are under the ceiling and the label is weak; at 480 seven of nine are heard and the label works. The real yearly table has 218 places. Series below the country stay the data work that matters most.
+
+### Limits
+
+- One family of made-up worlds, and the referee has now been shaped on it twice. The path shapes were a helper's and unseen, seven of them, added to no-link worlds only: nothing here says how a link is heard in a series that also shares a path.
+- The path's size is one setting (about one and a half times each series' own spread in the middle place). Smaller shared paths were not counted.
+- The lower mark for the turned-round read was looked for after the rows were seen. It is not a result.
+- The directly sent pairs and the answers come from a script that knows the layout. They measure the referee, not a finder.
+- The cycle's failure is counted at two sizes of table only. Where between 120 and 480 places it becomes the rule is not measured.
+
+Seeds 33001 to 37830 as listed are spent.
