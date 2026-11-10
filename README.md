@@ -64,13 +64,17 @@ not have been there to find. One thing about the data came out of it: in this
 product El Niño shows more clearly in how much land the satellite could see than
 in what it reports as burned.
 
-A different test on the same record is registered (`results/fire-drought.md`):
+A different test on the same record was then run (`results/fire-drought.md`):
 each place's own drought, four or more months earlier, against its burned area,
-with a check that a link is not only what the satellite could see. It has passed
-its checks on made-up data, where the answer is known. An independent check of
-the rule and code then found two ways it could read a link that is not there.
-The rule was tightened for both, and the made-up checks, run again under the
-tighter rule, all held. No real field has been read yet.
+with a check that a link is not only what the satellite could see. It passed its
+checks on made-up data, where the answer is known. An independent check of the
+rule and code found two ways it could read a link that is not there; the rule
+was tightened for both and the made-up checks held again. Scored once on 2004
+to 2018, **it found nothing**: the drought term changes the forecast error by
+−0.03% (interval −0.08% to +0.03%) over six continental fields. One thing about
+the data came out of this too: after 2003 the record does not behave as it did
+before, in a way the made-up data did not imitate, so how much of a real link
+the test could have heard on these fields is being measured separately.
 
 `STATUS.md` says where things stand in more detail.
 

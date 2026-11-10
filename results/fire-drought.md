@@ -250,4 +250,35 @@ The reader's report is `docs/reviews/2026-11-10-fire-drought-rule-check/report.m
 - Burned area and adjusted burned area each have k above zero in some field, so the rule allows step 3. Nothing here changes the rule or the guesses.
 - Machine time about a minute and a half.
 
-Not yet done: step 3, 2004 to 2018, once.
+## Result, step 3: 2004 to 2018, scored once (2026-11-10, 04:18 UTC)
+
+`run_local.py score once`: 18 rows of kind `score`, 3 of kind `pooled`, 1 of kind `reading`. Every model fitted was the one step 2 recorded. **The reading is "no link": a quiet null.**
+
+S is the share of squared forecast error the drought term takes off the chosen baseline, on the cell-months the model claimed. "Of 14" is how many year-shifted drivers the real pairing of years beats.
+
+| Six fields together | S (95% interval) | Beats | With terms less their line | S under the shifted drivers, mean | Without 2018 |
+|---|---|---|---|---|---|
+| Burned area | **-0.03%** (-0.08% to +0.03%) | 14 of 14 | +0.00% (-0.05% to +0.06%) | -0.06% | -0.03% (-0.09% to +0.04%) |
+| Adjusted burned area | **-0.03%** (-0.08% to +0.01%) | 13 of 14 | -0.01% (-0.06% to +0.03%) | -0.05% | -0.03% (-0.09% to +0.02%) |
+| Share observed | **+0.03%** (-0.04% to +0.10%) | 14 of 14 | +0.03% (-0.04% to +0.10%) | -0.10% | +0.04% (-0.04% to +0.12%) |
+
+| Field by field (marks nothing) | Burned area | Adjusted burned area | Share observed |
+|---|---|---|---|
+| Africa | -0.06% (-0.16% to +0.06%), 9 of 14 | -0.07% (-0.17% to +0.04%), 7 of 14 | -0.00% (-0.02% to +0.03%), 6 of 14 |
+| South America | -0.47% (-0.77% to -0.15%), 6 of 14 | -0.04% (-0.13% to +0.05%), 7 of 14 | +0.07% (+0.00% to +0.14%), 14 of 14 |
+| Australia | +0.08% (-0.02% to +0.19%), 14 of 14 | +0.26% (-0.53% to +1.25%), 13 of 14 | -0.23% (-2.40% to +1.87%), 9 of 14 |
+| South and Southeast Asia | nothing claimed | -0.01% (-0.03% to +0.01%), 6 of 14 | -0.00% (-0.17% to +0.15%), 12 of 14 |
+| North America | +0.00% (+0.00% to +0.01%), 13 of 14 | +0.02% (-0.00% to +0.04%), 14 of 14 | +0.10% (-0.23% to +0.43%), 14 of 14 |
+| Europe | -0.22% (-0.50% to +0.08%), 0 of 14 | -0.07% (-0.12% to -0.01%), 0 of 14 | +0.01% (-0.05% to +0.06%), 8 of 14 |
+
+- **No outcome passes, together or in any field.** On burned area the drought term changes the forecast error by −0.03%, with an interval from −0.08% to +0.03%. Nothing is taken off the error. The same holds once what the satellite saw is taken out, and for what the satellite saw itself.
+- **The real pairing of years does a little better than the shifted ones** (14 of 14 on burned area, 13 of 14 adjusted), but both sit below zero: the term adds a little error whichever years are paired, and slightly less with the true ones. That is not a gain.
+- **Field by field,** Australia is the only one above zero on both outcomes (+0.08% and +0.26%), with intervals that include zero. Europe is worse than all 14 shifts on both. South America's small patch, the one model the fitting years supported at full size, made the forecast worse (−0.47%, interval below zero).
+- **Leaving 2018 out changes nothing.**
+- **Something the made-up panels did not imitate.** On 2004 to 2018 the simplest baseline that follows a cell's own recent level beats the baseline chosen on the fitting years by 12% of its error on burned area (13% adjusted), in every field (7% to 20%). Inside the fitting years the chosen one was better by 2% to 6%, as it was out of time on every made-up panel. So the record after 2003 does not behave as it did before, and the term was scored against a baseline that had itself gone stale. Two things follow. The registered condition "below each baseline alone" could not have been met by a link smaller than that gap. And how much of a real link this scoring could have heard on these fields is not what the made-up panels measured; it is measured next, on the real fields with a link planted in them.
+- **Guesses, for the record:** burned area passes, 55%: it did not. Share observed passes, 60%: it did not. A link read, a quarter: not read.
+- Machine time about two and a half minutes.
+
+**What this means.** Each place's own drought four to twelve months earlier does not improve the forecast of its burned area in this product beyond the place's own history, on years never read. What the silence can rule out is a link of the kind planted in the made-up panels, **if** the real fields behave as those panels do, and the point above says they do not fully. Burned area's 2004 to 2018 are spent for this driver.
+
+**Limits.** Those above and in the amendment. One product (FireCCILT11), one drought index (SPEI-3, with the evaporation error its makers have acknowledged), leads of four to twelve months only: the same season's drought, which is what fire weather is mostly about, is outside the test by design. Nothing here says drought does not matter to fire.
