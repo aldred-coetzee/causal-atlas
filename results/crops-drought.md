@@ -1,5 +1,7 @@
 # Other crops and drought: where the drought term has helped a record before, does it go on helping, and is that enough to use?
 
+**Outcome (2026-11-10): read once on the real record, at year-end and at mid-year, "a real but small aid": 1.62% of squared error on the claims (0.84% to 2.46%) and 1.01% (0.27% to 1.78%). The section "Result, step 2" has it with its limits.** Everything else in this file stands as it was written before that read.
+
 Rule first, committed before any counted number and before any real yield of these crops is set against drought (rule 9). Authority: decisions 0040 and 0054. Code: `src/causal_atlas/claims.py`, `src/causal_atlas/harvest.py`, `src/causal_atlas/yields.py`, `synth/harvest_panel.py`, `scripts/run_claims.py`, tests in `tests/test_claims.py` and `tests/test_harvest.py`. Seeds: `results/seed-ledger.md`. Rows: `results/crops-drought.jsonl`.
 
 Data, both held and described in `docs/data-sources.md`: yields from FAOSTAT, Crops and livestock products (FAO, CC BY 4.0; file dated 2025-12-31, 1961 to 2024); drought from SPEIbase 2.11.0 (SPEI-3, built from CRU TS 4.09; ODbL 1.0). Nothing new is fetched.
@@ -120,7 +122,7 @@ At the two other levels, reported and deciding nothing: at 1.0 the counts are th
 
 ## Independent check of the rule, and what it changed (2026-11-10)
 
-Before any real yield of these crops was set beside drought, an independent reader with no part in the work read the rule, the code and the made-up results, on the brief in `docs/reviews/2026-11-10-crops-rule-check/SPEC.md` (committed before it started). Its report is `report.md` in that folder, unchanged, with its scripts and logs. It cost 277,966 fresh tokens against an estimate of 350,000. Its verdict: **"May be read after these changes"**, five changes to the words and none to the rule. The project session checked the report's main numbers against the counted rows and the reader's logs before acting on it (`NOTE.md` in the folder lists what was checked; all agreed). The changes are made here and in the sentences marked above. **No condition of the rule, no made-up row and no mark is changed** (decision 0058).
+Before any real yield of these crops was set beside drought, an independent reader with no part in the work read the rule, the code and the made-up results, on the brief in `docs/reviews/2026-11-10-crops-rule-check/SPEC.md` (committed before it started). Its report is `report.md` in that folder, unchanged, with its scripts and logs. It cost 277,966 fresh tokens up to its report against an estimate of 350,000, and 385,587 in all: after reporting it was woken once more when its own background jobs ended and paid to re-read its context (counted from the transcripts at 11:00 UTC; the first figure was written here before that). Its verdict: **"May be read after these changes"**, five changes to the words and none to the rule. The project session checked the report's main numbers against the counted rows and the reader's logs before acting on it (`NOTE.md` in the folder lists what was checked; all agreed). The changes are made here and in the sentences marked above. **No condition of the rule, no made-up row and no mark is changed** (decision 0058).
 
 **What it found sound.**
 
@@ -163,6 +165,55 @@ Before any real yield of these crops was set beside drought, an independent read
 ## Step 2: the real record, once
 
 `run_claims.py real once` (refuses a second run): year-end, then mid-year, both read before either is written. No fitting step comes before it.
+
+## Result, step 2: the real record (2026-11-10, run once at 10:50 UTC)
+
+**Read, at year-end and at mid-year: "a real but small aid".** In the record-years where a crop's own past said the drought term had gone with its yield, adding the term took **1.62% off the squared error** of the yield forecast (interval 0.84% to 2.46%; about 0.8% of a typical error) with the weather known to December of the harvest year, and **1.01%** (0.27% to 1.78%; about 0.5% of a typical error) with the weather known to June. Every condition held under both forms of the driver. It is not a usable aid: the mark for that was 5%.
+
+2,339 records of 47 crops in 139 countries were scored, 75,014 record-years from 1986 to 2024, with the 503 cereal records running beside them unscored. The made-up marks of both variants held, so both readings count as registered.
+
+| At 1.5 standard errors, the registered level | Year-end, as it fell | Year-end, level and line out | Mid-year, as it fell | Mid-year, level and line out |
+|---|---|---|---|---|
+| S on the claims | 1.62% | 2.27% | 1.01% | 1.51% |
+| Interval, countries and years both drawn again | 0.84% to 2.46% | 1.34% to 3.23% | 0.27% to 1.78% | 0.50% to 2.61% |
+| Other-years controls beaten | 62 of 62 (the best, 0.08%) | 62 of 62 (0.10%) | 62 of 62 (0.16%) | 62 of 62 (0.10%) |
+| Without the best year | 1.53% | 2.20% | 0.92% | 1.45% |
+| Below each of the seven baselines alone | yes | yes | yes | yes |
+| Records and countries that claim | 620 in 112 | 650 in 114 | 551 in 114 | 571 in 116 |
+| Record-years claimed | 6,276 | 6,735 | 5,399 | 5,576 |
+
+The size reported is the smaller of the two forms: 1.62% and 1.01%. The mid-year reading clears the 1% line between "too small to forecast with" and "a real but small aid" by a hundredth of a percent; its interval runs from 0.27%.
+
+**At the two other levels, deciding nothing.** At 1.0 standard errors, more record-years and a smaller size: 1.22% year-end (0.64% to 1.85%) and 0.96% mid-year (0.42% to 1.50%), both read, the second "too small to forecast with". At 2.0, fewer and larger: 2.12% (0.95% to 3.33%) and 1.40% (0.36% to 2.53%), both read. The stricter the claim, the larger the gain on what is claimed, as a link that sits in some records and not others would give.
+
+**Over all scored records, as the cereals were read, beside.** 0.31% at year-end (0.05% to 0.57%), which passes that reading; 0.20% at mid-year (0.00% to 0.39%), which does not, falling just under its least size. The cereals gave 1.67%. So across all 47 crops the link is about a fifth as strong as in cereals, and the claims concentrate it about five times: they cover 12% of the squared error that could have been claimed, and on the record-years that could have claimed and did not, the term took 0.24%.
+
+**Where the gain is.**
+
+- **A few crops.** Five crops give half of it at year-end: sugar beet, soya beans, oats, sunflower seed and potatoes; ten give three quarters, the next five being dry peas, groundnuts, chick peas, pumpkins and rye. On their own claims the first five gain 2.7% to 4.3%. Of the 47 crops 37 gain and 10 lose; the eight at the bottom are green peppers, melons, plums, apples, linseed, bananas, lettuce and tomatoes. At mid-year the top is soya beans, oats, sunflower seed, dry peas, tobacco and groundnuts, and the bottom lettuce, tomatoes, cabbages and plums.
+- **A few countries.** Spain alone gives 14% of the year-end gain; then Japan, Italy, Moldova, Austria, Australia, Hungary, Kyrgyzstan, Germany and North Macedonia; those ten give 65%. 69 of the 112 countries that claim gain. The largest losses are in Canada, the United States and Greece.
+- **A minority of the records that claim.** Of the 620 records that claim at year-end, 290 gain and 330 lose a little; the twenty that gain most give 46% of the net, and 73% at mid-year. At the top at both points in the year: soya beans in Uruguay and Argentina, oats in Kyrgyzstan, rye and dry peas in Spain, chick peas in Pakistan. **A claim is not a named link, and most claims are not worth making; the gain is the sum of a few that are large over many that are nothing.**
+
+**Against the made-up ruler.** The real size sits where the worlds with a 20% link in about a quarter of the records sat when they were read (1.2% to 2.3%), and below every world with a 35% link (2.1% to 6.2%). Such a 20% world was read 4 times in 10, so this read was not a likely one beforehand for a link of that kind; a stronger link in fewer records fits as well, and the crops above suggest that. In the shares of error claimed (12%), the gain on what was not claimed (0.24%) and the pooled size (0.31%), the real record sits inside the range of those same worlds.
+
+**Two things the independent check said to watch, on the real record** (looked at after the read; a description, not a second result).
+
+- **The cap.** It did not act at all: the gain with each record's slope and the gain with the term whole agree to the hundredth of a percent. The result is of "choose record-years by the record's past, add the term whole".
+- **A trend shared by drought and yields.** In the made-up worlds built to show that fault, the driver as it fell gained and the driver with its level and line out fell to zero. Here the second gains more than the first, at both points in the year and at all three levels, as it did in 34 of the 35 made-up worlds with a link at year-end and in 20 of the 55 without one. So this read does not have that fault's mark. A trend that curves is not removed by taking out a line, and the real drought series curves about as much as the registered worlds did.
+
+**The guesses, against what came.** Read at year-end, given about 40%: read. Mid-year given year-end, about 50%: read, by a hundredth of a percent on the size line. Size between 1.5% and 5%: 1.62%. "A usable aid", one chance in eight: no. Most of the gain in under ten crops, with roots, pulses and oil crops ahead of vegetables and fruit: ten crops give three quarters, and they are roots, oil crops, pulses and two small grains; vegetables and fruit fill the bottom.
+
+**What it means, by the outcomes written beforehand.** "Read, a real but small aid: the rule carries to other crops; the gain is there and is small." The cereal record, on which the rule was shaped, gave 6.3% on its claims; on records never read it gives 1.6%. Choosing where to use a driver by each record's own past works, on real records, and multiplies a thin link about five times; it does not make drought alone worth forecasting a country's yield with.
+
+**Limits of this result, beside those stated below.**
+
+- **Not rebuilt by a second reader.** The rule and the code were checked by an independent reader before the read; this result's computation was not repeated by anyone else. It follows the registered guess in size and changes no direction, so by the project's own rule a second reader was not started. The stored row gives every record's claims and gain.
+- **Not independent of the cereal result.** Same countries, same weather years, same statistics offices; and oats and rye, small grains close to the six cereals, give 13.5% of the year-end gain and 20% of the mid-year one.
+- **The real record is rougher than any world the rule was tried on** (the table in the check above).
+- **Official yields are not measurements;** some may be made with the help of weather, which would put drought into them by construction.
+- **Year-end is not a forecast with a lead:** the weather is known to December of the harvest year. Mid-year has one, and is the smaller.
+- **These records are now spent for this driver.** `run_claims.py real once` refuses a second run; anything further computed on them is a check or a description.
+- **Not cause, and nothing about any one record, crop or country:** the lists above say where the sum came from, not where a link has been shown.
 
 ## What each outcome would mean
 

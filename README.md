@@ -15,7 +15,8 @@ the narrower question.
 **Where it stands (2026-11-10).** Nothing new about the world has been found.
 What has been shown is that the chain works end to end on links that are already
 known: one inside climate, and since 2026-11-10 one from weather into farm
-statistics, small and independently checked (the paragraphs on harvests below).
+statistics, small and independently checked, and carried the same day to 47
+other crops, where it is smaller still (the paragraphs on harvests below).
 Among 31 decoys, the search named El Niño blind as a driver of drought on
 four continents and stayed silent in Europe. A forecast built from that, fitted
 on 1950 to 1999 and scored once on 2000 to 2024, had about a sixth less error
@@ -122,12 +123,10 @@ reader rebuilt the forecast with its own code and found the same thing a little
 smaller (1.2%), found no leak, and had the wording here corrected; its report is
 in `docs/reviews/2026-11-10-harvest-result-check/`.
 
-The next test is written down and its made-up records are run; no real figure
-has been read (`results/crops-drought.md`). It
-asks whether that small gain is large enough to use in the records where it
+The next test (`results/crops-drought.md`) asked whether that small gain is large enough to use in the records where it
 has shown itself before: each year a record "claims" if, over its own earlier
 years, the drought term has gone with its yield, and only claims are forecast
-with drought. It will be scored once on the 47 other crops in the same FAO
+with drought. It was to be scored once on the 47 other crops in the same FAO
 file (2,339 records, chosen by a count and not by hand), with the cereals
 running beside them unscored. The rule was shaped on the cereal record, which
 is why the cereals cannot test it. On made-up records every mark set
@@ -141,8 +140,25 @@ something that was not there and could not; it had five things said more
 plainly, among them that the real record is rougher than the made-up ones and
 that a trend shared by drought and yields is held off only by the second form
 of the driver, with its level and line removed. No condition of the rule
-changed (`docs/reviews/2026-11-10-crops-rule-check/`). The real record is read
-after that, once.
+changed (`docs/reviews/2026-11-10-crops-rule-check/`). 
+
+**The real record was then read, once (2026-11-10): a real but small aid.** In
+the record-years that claimed, drought took 1.62% off the squared error of the
+yield forecast (interval 0.84% to 2.46%; about 0.8% of a typical error) with
+the weather known to December of the harvest year, and 1.01% (0.27% to 1.78%)
+with it known to June. Every condition set beforehand held, with the driver as
+it fell and with its level and line removed. It is not enough to forecast
+with: the mark for a usable aid was 5%. Over all 2,339 records the gain is
+0.31% (0.05% to 0.57%), about a fifth of the cereals', so choosing where to
+use drought by each record's own past concentrates a thin link about five
+times. Five crops give half of the gain (sugar beet, soya beans, oats,
+sunflower seed, potatoes) and vegetables and fruit give none; Spain gives 14%
+and ten countries 65%; more of the records that claim lose a little than gain.
+The rule had given 6.3% on the cereal record it was shaped on, and gives 1.6%
+on records never read before. This result was not rebuilt by a second reader,
+is not independent of the cereal result (same countries, weather years and
+statistics offices), and does not show cause. These crops' records are now
+spent for this driver.
 
 `STATUS.md` says where things stand in more detail.
 
