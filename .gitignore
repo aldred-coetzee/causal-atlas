@@ -2,3 +2,4 @@ data/raw/
 data/panel/
 .venv/
 __pycache__/
+data/table/

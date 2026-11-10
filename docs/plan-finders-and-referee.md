@@ -1,6 +1,6 @@
 # Plan: many finders, one referee, and the data in one shape
 
-**The plan since 2026-11-10, 11:20 UTC.** It was committed as a draft while the other-crops test was open; that test is closed (`results/crops-drought.md`: read, a real but small aid), and the referee below is written from its rule, from what the independent reader found in it, and from what the real record did. Nothing here is registered as a test: each counted stage gets a results file with its marks, committed before any counted seed. Nothing is built yet.
+**The plan since 2026-11-10, 11:09 UTC.** It was committed as a draft while the other-crops test was open; that test is closed (`results/crops-drought.md`: read, a real but small aid), and the referee below is written from its rule, from what the independent reader found in it, and from what the real record did. Nothing here is registered as a test: each counted stage gets a results file with its marks, committed before any counted seed. Nothing is built yet.
 
 For decisions 0055, 0056 and 0057. A plan for an experiment and a build, not a survey (rules 1, 3, 5). No real series is set beside another under this plan until its last stage, which gets its own registered rule.
 

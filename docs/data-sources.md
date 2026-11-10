@@ -4,6 +4,8 @@ Every source this project has checked, used or not: how to get it, and what its 
 Last updated 2026-11-10. Licences were read at source on 2026-11-05, unless a row says otherwise, and
 can change, so check again before relying on one for something new.
 
+**All held sources in one shape (2026-11-10):** `scripts/build_table.py` brings every source marked used below, and the 25 candidate climate files, into three Parquet tables under the ignored `data/table/` (`series`, `place`, `obs`), one adapter a source in `src/causal_atlas/table.py`; nothing new is fetched for it, and each series carries its source's licence line from the manifest. What each series is like alone: `docs/table-first-count.md`. What has been read against what: `results/spent-ledger.md`.
+
 Versions and checksums are in `data/manifest.toml`. Data is never committed here: run the fetch script,
 from the repo root, with `uv run python scripts/fetch_<name>.py`. Files land in the ignored `data/raw/`.
 
