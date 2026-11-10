@@ -13,7 +13,8 @@ from the repo root, with `uv run python scripts/fetch_<name>.py`. Files land in 
 | [SPEIbase 2.11](#speibase) | Drought | Used | Direct, no login | ODbL 1.0, contents DbCL 1.0 | 1901 to 2024-12 | 0.5 degree, monthly | 383 MB | CSIC, Spain |
 | [NOAA ONI](#noaa-oni) | El Nino state | Used | Direct, no login | Public domain | 1950 to 2026-09 | One global value, monthly | 7 KB | NOAA PSL, USA |
 | [ESA Fire_cci FireCCILT11 v1.1](#esa-fire_cci-fireccilt11) | Burned area | Used, outcome | Direct, no login | ESA CCI terms: any use, with acknowledgement | 1982 to 2018, no 1994 | 0.25 degree, monthly | 7.2 GB | CEDA, United Kingdom |
-| [World Bank Real Time Food Prices](#world-bank-real-time-food-prices) | Market food prices | Fetched, outcome under design | Direct, no login | Open data, citation asked; CC BY 4.0 per the Data Catalog | 2007 to 2026-11 | Market, monthly | 133 MB zipped, 1.2 GB | World Bank, USA |
+| [World Bank Real Time Food Prices](#world-bank-real-time-food-prices) | Market food prices | Fetched, set aside unread (decision 0050) | Direct, no login | Open data, citation asked; CC BY 4.0 per the Data Catalog | 2007 to 2026-11 | Market, monthly | 133 MB zipped, 1.2 GB | World Bank, USA |
+| [FAOSTAT crops](#faostat-crops-and-livestock-products) | Cereal yield by country | Fetched, outcome under design | Direct, no login | CC BY 4.0 | 1961 to 2024 | Country, yearly | 34 MB zipped, 545 MB | FAO, Italy (file host not checked) |
 | [FAO GIEWS FPMA](#fao-giews-fpma) | Market food prices | Checked, not fetched (fallback) | Open API, no login | CC BY 4.0, third-party series excluded | 1987 to 2026 | Market, monthly, no coordinates | 4,938 series | FAO, Italy |
 | [Natural Earth](#natural-earth) | Country borders | Used, grid | Direct, no login | Public domain | Fixed release | 1:10m vector | 5 MB | Natural Earth CDN |
 | [CHIRPS v3](#chirps) | Rainfall | Checked, not used | Direct, no login | Public domain, per page | 1981 to near present, file not opened | 0.05 degree, monthly | 8.3 GiB | UCSB, USA |
@@ -89,6 +90,21 @@ from the repo root, with `uv run python scripts/fetch_<name>.py`. Files land in 
   - **Sparse and short.** 2007-01 onwards. Of 3,229 markets, 571 in 33 countries have one cereal with 120 or more observed months and 272 have 180 or more; Mali, Burkina Faso, Niger and Senegal hold 237 of the 571. 37 markets have no coordinates.
   - **Sources behind it** are WFP, FAO and national statistical offices; columns ending `_fao` are FAO's series. Prices are in local currency per the row's `currency`.
   - **Host:** the World Bank, in the United States. No European source with coordinates and a dated release was found (decision 0049).
+
+## FAOSTAT Crops and livestock products
+
+- **Data:** <https://bulks-faostat.fao.org/production/Production_Crops_Livestock_E_All_Data_(Normalized).zip>, one zip holding one long CSV and four code tables (areas, items, elements, flags). **Page:** <https://www.fao.org/faostat/en/#data/QCL>. **Terms:** <https://www.fao.org/contact-us/terms/db-terms-of-use/en/>. Read 2026-11-10.
+- **Fetch:** `scripts/fetch_faostat.py`, then unpack with `python -I -m zipfile -e data/raw/faostat_qcl.zip data/raw/faostat`. The address carries no release date; the server gave the file's last change as 2025-12-31. Check the checksum in the manifest: a later fetch may be a different file.
+- **Licence requires:** attribution. The terms say: "Unless specified otherwise in their metadata or webpage, all datasets disseminated through FAO corporate statistical databases (see examples in Annex 1) are licensed under the Creative Commons Attribution-4.0 International licence (CC BY 4.0)", as complemented by the terms themselves, which add that no endorsement by FAO is to be implied and that no attempt is made to identify any person or body in the data. **Cite, in FAO's form:** FAO. 2025. FAOSTAT: Crops and livestock products. Accessed on 10 November 2026. <https://www.fao.org/faostat/en/#data/QCL> Licence: CC-BY-4.0.
+- **No account, and none made.** One request fetches the whole domain.
+- **Know before use:**
+  - **Every figure carries a flag:** A official, E estimated, I imputed, X from another organisation, M missing. This project takes official figures only as the thing to be forecast (decision 0051). Estimated and outside figures are often carried forward: 9% and 19% of them equal the year before, against 1% of official ones.
+  - **Yield is not measured.** It is production divided by area harvested (element 5412, kg/ha), so it carries the errors of both, and a national figure is as good as the country's own statistics.
+  - **Long official records, counted on yields alone:** country series with 40 or more official years are maize 89, rice 83, wheat 74, sorghum 61, barley 58, millet 38; 116 countries have at least one. 1961 to 2024.
+  - **The latest years are less official:** for maize, 88 of 163 figures are official in 2024 against 133 of 161 in 2010.
+  - **Countries change.** USSR, Yugoslav SFR, Czechoslovakia, Ethiopia PDR, Sudan (former) and Belgium-Luxembourg end and their successors begin. China appears three times: China, China mainland, and Taiwan. Rows with an area code of 5000 or more are groups of countries, not countries.
+  - **Joining to borders:** the M49 code column has a leading apostrophe. With it removed, 139 of the 149 countries holding a cereal with 30 or more official years match Natural Earth's `UN_A3`; the rest are the dissolved states, the China total, Taiwan and Norway (Natural Earth gives those two no code; match them by `ADM0_A3`) and French Guiana (inside France's shape).
+  - **National and annual.** Nothing here is by place or by month.
 
 ## FAO GIEWS FPMA
 
