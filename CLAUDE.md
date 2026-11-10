@@ -30,6 +30,8 @@ stand until a plan revision and his yes change them.
 
 **And on what the real work is, 2026-11-10** (decision 0055): "the whole point of this is to have many, many data sets across which we find unexpected correlations for prediction. So a big part of this is ensuring we have the right maths and things in place to find those connections. That's going to be the real work. That and collecting the data and making it consumable and comparable." Read by this session as: tests of one driver against one outcome are a means; the work is the search across many series and the data in one comparable shape; more data sets and that shape are no longer "not now" as far as an iteration needs them. His to correct.
 
+**Confirmed and extended by him the same day** (decision 0056): "yes, your understanding of the next steps is correct, but keep in mind that you may need to use various forms of mathematics, not just the typical ones, because some of the correlations will not be evident and they won't be hypothesis based. They'll be emergent. So really think hard about the different kinds of maths we're going to use and how we're going to tie them together." And where it leads: connections that, "when brought together, will perhaps lead us to be able to predict an event which, if you change certain factors, could then be avoided. Or we could ask questions of what factors should we change to end up with a different outcome." He suspects the agentic-swarms work "may also at some point come to play". The sketch of how to tie the kinds together (many finders, one referee) is in decision 0056 and is untested.
+
 Update this statement, with the date, when the owner refines it.
 
 ## Who does what
