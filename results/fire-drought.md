@@ -324,8 +324,8 @@ S is the share of squared forecast error the drought term takes off the chosen b
 | The real fields, nothing planted | -0.03% (-0.08% to +0.03%) | -0.03% (-0.08% to +0.01%) | | |
 
 - **By the reading fixed beforehand, 20% is the smallest size heard.** The silence rules out a link that moves a fifth of the variance in a fifth of the cells, in this easy shape. It does not rule out one half that size, and a link at 5% or 2% scores the same as no link at all.
-- **The registered rule could not have read any of these as a link.** Not one of the 32 pooled readings is below every baseline alone. On the scoring years the baseline chosen on the fitting years is worse than the plain level of a cell's last five years by about 14% and worse than the month's average too, and a drought term worth a third of a percent cannot make that up. So on these fields the rule, as registered, was unable to say "link" whatever the data held.
-- **Every replicate beats all 14 shifted drivers,** down to 2%, where S is below zero. So does the real record. On these fields "beats all 14" is met with nothing behind it; the interval is what carries the reading.
+- **The registered rule could not have read any of these as a link.** Not one of the 32 pooled readings is below every baseline alone. On the scoring years the plain level of a cell's last five years has 13% to 14% less error than the baseline chosen on the fitting years, and the month's average 2% less, and a drought term worth a third of a percent cannot make that up. So on these fields the rule, as registered, was unable to say "link" whatever the data held.
+- **Every replicate beats all 14 shifted drivers,** down to 2%, where S is below zero. The real record beats 14 on burned area and 13 on the adjusted outcome. On these fields "beats all 14" is met with nothing behind it; the interval is what carries the reading.
 - **The search hears little of what is planted.** A link at 20% in a fifth of the cells, found in full, would take about 4% off the pooled error. It takes 0.3%. And the claims are not placed: a fifth of claimed cell-months fall in planted cells, which is the share planted.
 - **Guesses:** heard without the baseline condition, 4, 4, 3, 1 of 4 for 20%, 10%, 5%, 2%: it was 4, 1, 0, 0. Under the full verdict, 1 of 4 at 20%: it was 0. The search hears less than guessed.
 
@@ -336,3 +336,31 @@ S is the share of squared forecast error the drought term takes off the chosen b
 Everything as above, except that the planted squares are the detector's own five-degree blocks. Seeds 21401 to 21404 (20%), 21501 to 21504 (10%), 21601 to 21604 (5%), 21701 to 21704 (2%). Read the same way: a size is heard when both outcomes pass without the baseline condition in at least 3 of 4. The two placements bracket what the silence rules out; the statement made from them names both.
 
 **Guesses.** Heard, of 4: 20%, 4; 10%, 4; 5%, 2; 2%, 0. Pooled S at 20% about 1.5%. Under the full verdict, 0 at every size.
+
+### Result, squares on the detector's blocks (2026-11-10, 04:32 to 04:36 UTC)
+
+16 more rows in the same file (`placement` is `aligned`). Machine time about four minutes.
+
+| Planted, in a fifth of the cells | Squares astride the blocks: pooled S, median | Heard | Squares on the blocks: pooled S, median (range) | Heard | Full amended verdict, either placement |
+|---|---|---|---|---|---|
+| 20% of variance | +0.32% | 4 of 4 | +4.12% (+3.61% to +5.50%) | 4 of 4 | 0 of 8 |
+| 10% | +0.06% | 1 of 4 | +1.69% (+1.31% to +1.95%) | 4 of 4 | 0 of 8 |
+| 5% | +0.01% | 0 of 4 | +0.60% (+0.49% to +0.70%) | **4 of 4** | 0 of 8 |
+| 2% | -0.01% | 0 of 4 | +0.09% (+0.07% to +0.12%) | 2 of 4 | 0 of 8 |
+
+S is for burned area; the adjusted outcome is within 0.4 points of it at every size. "Heard" is both outcomes passing without the baseline condition.
+
+- **Placement moves the answer more than size does.** On the detector's blocks a link is found nearly in full (4.1% at 20%, where 4% is everything) and 5% is heard every time. Astride them the same link scores a thirteenth as much and only 20% is heard. Claims fall in planted cells 41% of the time on the blocks at 20%, against 23% astride them.
+- **Under the full amended verdict nothing passes, 0 of 64 pooled readings,** even a link that takes 4% off the error. The condition "below each baseline alone" fails every time: on the scoring years the plain level has 13% to 14% less error than the chosen baseline.
+- **Guesses:** heard on the blocks 4, 4, 2, 0: it was 4, 4, 4, 2. Pooled S at 20% about 1.5%: it was 4.1%. Full verdict 0 at every size: held.
+
+### What the silence rules out, and what this says about the test
+
+- **Ruled out, in this easy shape:** a link moving 5% or more of the variance of burned area in a fifth of the cells, if it is laid out in areas the detector's five-degree blocks sit inside; 20% or more if it sits in five-degree patches astride them. A real link that covers a region several blocks wide is nearer the first case than the second. Put as a size: the real fields' reading, at most +0.03%, is below what a 2% link on the blocks gave (+0.07% to +0.12%).
+- **Not ruled out:** anything smaller; a link of a real shape, which acts only where something burns, at the same nominal size; the same season's drought; other leads.
+- **The registered rule was broken on these fields.** It could not have returned "link" for any link tried here. The reading "no link" above stands, because S itself, which does not depend on that condition, sits on zero with a narrow interval. But had S been clearly above zero the rule would still have said "no link", and that would have been wrong. The made-up panels did not catch this because their record does not change its behaviour between the fitting and the scoring years.
+- **Three faults in the test, for whatever is built next:**
+  1. A baseline chosen once on the fitting years can go stale. The condition should be that the term improves each baseline it is added to, or the baseline should be re-chosen as the years go by using only the past.
+  2. Slopes shared within fixed blocks lose most of a link that does not sit on them. Blocks at more than one offset, or slopes smoothed across neighbours, would not.
+  3. Made-up panels need a record that changes its behaviour part-way, since the real one did.
+- "Beats all 14 shifted drivers" carries no weight on these fields by itself: it was met at every size, including where S was below zero.

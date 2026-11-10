@@ -73,8 +73,16 @@ was tightened for both and the made-up checks held again. Scored once on 2004
 to 2018, **it found nothing**: the drought term changes the forecast error by
 −0.03% (interval −0.08% to +0.03%) over six continental fields. One thing about
 the data came out of this too: after 2003 the record does not behave as it did
-before, in a way the made-up data did not imitate, so how much of a real link
-the test could have heard on these fields is being measured separately.
+before, in a way the made-up data did not imitate. So a link of known size was
+then added to the real record and scored the same way, to see what the silence
+can rule out. It rules out a link moving 5% or more of the variance in a fifth
+of the places when the link lies in areas the method's five-degree blocks sit
+inside, and only 20% or more when it lies in patches astride them; smaller
+links, and links of a more realistic shape, are not ruled out. It also showed
+that the rule as registered could not have reported a link on this record at
+all, because one of its conditions leans on a baseline that had gone stale.
+The null stands on the measured size, which is zero within a narrow interval;
+the faults are listed in the results file for whatever is built next.
 
 `STATUS.md` says where things stand in more detail.
 
