@@ -186,3 +186,14 @@ Most named series add nothing beyond El Niño: yes. If any passed, the tropical 
 - **Machine time:** under 2 minutes against 5 to 10 estimated.
 - **One step, one run.** The script refuses a second scoring.
 - Nothing passed, so the independent check and the reading against published science that a pass would have had are not run.
+
+## Note added 2026-11-10: the control set used here is lopsided (decision 0046)
+
+An independent reader of the next result (`docs/reviews/2026-11-10-fire-enso-independent-check/`, sections 4 and 5) found that the controls of decision 0044, the copies moved 2 to 48 years, do not judge the real alignment and the copies on equal terms: each copy keeps its own neighbours a year either side among the copies, and the real alignment does not, so the real alignment comes out on top more often than chance. On a 50-year null the reader measured any alarm in 4.9% of runs with this set against 2.5% with all 49 copies (81 runs, too few to size it); on shorter and trending fields the gap is much larger.
+
+What that changes here:
+
+- **Step 1 stands as measured.** N2 and N3 are counts on nulls (a decoy named in 3 of 100, anything with the years mixed in 5 of 100, against 8 allowed). A raised floor makes those harder to hold, and they held.
+- **The sixteen pairs named** were named by a search that alarms more easily than this file assumed. All sixteen failed step 2, so nothing rests on them.
+- **"The corrected search is the one to use with many real candidates", said of this result in `STATUS.md` and in other words in `README.md`, is withdrawn.** The search is set aside until its controls are made alike for every alignment and its false alarms are measured on nulls built from the field (decision 0046).
+- Nothing here is rerun.

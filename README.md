@@ -46,17 +46,23 @@ seeds, the search passed every check and named 16 series-and-region pairs beyond
 El Niño. Scored once on 2000 to 2024, none of them improves the forecast four or
 more months ahead once each region's own history and El Niño are in it
 (`results/real-indices-2.md`). So among these climate series El Niño is the only
-usable lead found, and the search can now be trusted with many real candidates,
-for large links only.
+usable lead found. An independent reader has since found that the corrected
+controls are themselves lopsided and let the search raise false alarms more often
+than was assumed, so the search is set aside until that is put right and measured
+(`docs/decisions/0046-the-corrected-controls-are-lopsided.md`). The step that
+used it named nothing that survived, so no claim rests on it.
 
 The first step outside climate was burned area from satellites, 1982 to 2018, with
 a link others have published (El Niño leading fire) to rediscover first. It missed
 (`results/fire-enso.md`): on twenty fitting years the search named El Niño nowhere,
-and its own false-alarm checks failed, partly because they were set tighter than a
-record that short allows. The forecast step was not run. Two things came out of it:
-this search needs more years than a satellite record has, and in this product El
-Niño shows more clearly in how much land the satellite could see than in what it
-reports as burned.
+and its own false-alarm checks failed. The forecast step was not run. An
+independent reader confirmed the miss and corrected the explanation first given
+for it: the false alarms come mostly from the lopsided controls, not only from the
+short record, and the product does not show 1997, the year the published link is
+best known for, as a large fire year in equatorial Asia, so the known answer may
+not have been there to find. One thing about the data came out of it: in this
+product El Niño shows more clearly in how much land the satellite could see than
+in what it reports as burned.
 
 `STATUS.md` says where things stand in more detail.
 
