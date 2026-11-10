@@ -1,0 +1,7 @@
+cer50 26030 20 year_end {"kind":"link","share":0.2,"rainfed":0.0,"crops":18,"sure":6,"share":0.5}
+cer50shared 26034 20 year_end {"kind":"link","share":0.2,"rainfed":0.0,"crops":18,"sure":6,"share":0.5,"shared_k":1.5,"own_k":0.5,"crops":10}
+cer50 26031 20 year_end {"kind":"link","share":0.2,"rainfed":0.0,"crops":18,"sure":6,"share":0.5}
+cer50shared 26035 20 year_end {"kind":"link","share":0.2,"rainfed":0.0,"crops":18,"sure":6,"share":0.5,"shared_k":1.5,"own_k":0.5,"crops":10}
+cer50shared_mid 26036 20 mid_year {"kind":"link","share":0.2,"rainfed":0.0,"crops":18,"sure":6,"share":0.5,"shared_k":1.5,"own_k":0.5,"crops":10}
+cer50 26032 20 year_end {"kind":"link","share":0.2,"rainfed":0.0,"crops":18,"sure":6,"share":0.5}
+cer50shared 26037 20 year_end {"kind":"link","share":0.2,"rainfed":0.0,"crops":18,"sure":6,"share":0.5,"shared_k":1.5,"own_k":0.5,"crops":10}

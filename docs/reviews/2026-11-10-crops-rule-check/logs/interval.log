@@ -1,0 +1,5 @@
+seed 26060 countries 15 records/country (1, 4) country spread 1.0: lower end above zero in 2/300 (0.007); mean S -0.0139, median -0.0034
+seed 26061 countries 15 records/country (2, 3) country spread 0.0: lower end above zero in 1/300 (0.003); mean S -0.0028, median -0.0028
+seed 26062 countries 40 records/country (1, 6) country spread 1.0: lower end above zero in 4/300 (0.013); mean S +0.0004, median +0.0006
+seed 26063 countries 100 records/country (1, 6) country spread 1.0: lower end above zero in 2/300 (0.007); mean S -0.0007, median +0.0017
+seed 26064 countries 15 records/country (1, 4) country spread 2.0: lower end above zero in 7/300 (0.023); mean S -0.0002, median +0.0115

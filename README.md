@@ -135,9 +135,14 @@ beforehand held: of 75 runs on 55 worlds where only the cereal-like crops are
 linked, or nothing is, none was read; a link taking 35% of the year-to-year
 departures in about a quarter of the records was read in 15 of 15 worlds at
 year-end and 9 of 10 at mid-year; a 20% link in 4 of 10, and a 35% link in a
-tenth of the records in 5 of 10. So a silence on the real record would rule out
-only a strong and fairly widespread link. An independent reader sees the rule,
-the code and these results before the real record is read, once.
+tenth of the records in 5 of 10 (5 of the 8 worlds that had a linked record). So a silence on the real record would rule out
+only a strong and fairly widespread link. An independent reader then tried to make the rule read
+something that was not there and could not; it had five things said more
+plainly, among them that the real record is rougher than the made-up ones and
+that a trend shared by drought and yields is held off only by the second form
+of the driver, with its level and line removed. No condition of the rule
+changed (`docs/reviews/2026-11-10-crops-rule-check/`). The real record is read
+after that, once.
 
 `STATUS.md` says where things stand in more detail.
 

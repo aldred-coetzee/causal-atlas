@@ -1,0 +1,8 @@
+drift3 26010 20 year_end {"kind":"link","share":0.2,"rainfed":0.0,"crops":18,"sure":6,"shape":"drift","drift_x":3.0,"drift_y":0.75}
+step1y 26014 20 year_end {"kind":"link","share":0.2,"rainfed":0.0,"crops":18,"sure":6,"shape":"step","step_x":2.5,"step_y":[0.4,0.6],"one_step":45}
+persist 26018 20 year_end {"kind":"link","share":0.2,"rainfed":0.0,"crops":18,"sure":6,"momentum":0.8,"swing_phi":0.995,"swing_k":1.5}
+rough 26022 20 year_end {"kind":"link","share":0.2,"rainfed":0.0,"crops":18,"sure":6,"rough_p":0.05,"rough_k":[6,10]}
+drift3 26011 20 year_end {"kind":"link","share":0.2,"rainfed":0.0,"crops":18,"sure":6,"shape":"drift","drift_x":3.0,"drift_y":0.75}
+step1y 26015 20 year_end {"kind":"link","share":0.2,"rainfed":0.0,"crops":18,"sure":6,"shape":"step","step_x":2.5,"step_y":[0.4,0.6],"one_step":45}
+persist 26019 20 year_end {"kind":"link","share":0.2,"rainfed":0.0,"crops":18,"sure":6,"momentum":0.8,"swing_phi":0.995,"swing_k":1.5}
+rough 26023 20 year_end {"kind":"link","share":0.2,"rainfed":0.0,"crops":18,"sure":6,"rough_p":0.05,"rough_k":[6,10]}

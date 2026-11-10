@@ -1,0 +1,23 @@
+== real: scored records 2339, beside 503, countries 139
+  countries with no cereal-like record: 5 ; their scored records: 23
+  scored records per country: median 14.0 max 45 min 1
+  official scored years per record: median 36.0 p10 23.0 share of records with <20: 0.066
+  share of present figures 1986-2024 that are not official: 0.113
+  share of year-on-year changes exactly zero (repeated figures): 0.012
+  per-record SD of log change: median 0.156 p90 0.332 p99 0.657 max 1.099
+  pooled standardised change: kurtosis 6.0, share beyond 4 SD 0.0039
+  lag-1 autocorrelation of log change: median -0.32, share above 0: 0.09
+  records whose last figure is before 2020: 64
+  records by crop: min 27 max 105 crops 47
+  roughest crops (median SD of log change): [(np.str_('Lentils, dry'), 0.301), (np.str_('Linseed'), 0.249), (np.str_('Plums and sloes'), 0.222), (np.str_('Millet'), 0.215), (np.str_('Peas, dry'), 0.215), (np.str_('Peas, green'), 0.211)] smoothest: [(np.str_('Carrots and turnips'), 0.117), (np.str_('Pumpkins, squash and gourds'), 0.115), (np.str_('Sugar cane'), 0.115), (np.str_('Rice'), 0.114)]
+  cereals median SD 0.172 others 0.156
+== made-up full size (leak, seed 26050): scored records 2811, beside 481, countries 141
+  countries with no cereal-like record: 1 ; their scored records: 17
+  scored records per country: median 20.0 max 29 min 12
+  official scored years per record: median 37.0 p10 29.0 share of records with <20: 0.002
+  share of present figures 1986-2024 that are not official: 0.08
+  share of year-on-year changes exactly zero (repeated figures): 0.009
+  per-record SD of log change: median 0.182 p90 0.380 p99 0.681 max 1.066
+  pooled standardised change: kurtosis 3.1, share beyond 4 SD 0.0001
+  lag-1 autocorrelation of log change: median -0.34, share above 0: 0.02
+  records whose last figure is before 2020: 0

@@ -1,0 +1,3 @@
+real: cereal-other median 0.095 mean 0.117 | other-other median 0.076 mean 0.089 | pairs 9444 28046
+registered leak : cereal-other median 0.248 mean 0.239 | other-other median 0.256 mean 0.246 | pairs 2161 1172
+shared_k 1.5 own_k 0.5 : cereal-other median 0.747 mean 0.728 | other-other median 0.777 mean 0.762 | pairs 2161 1172

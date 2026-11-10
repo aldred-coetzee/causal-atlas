@@ -1,0 +1,147 @@
+"""Made-up national harvests: yield by country, cereal and year, with a monthly moisture series for each country, for a known-answer check of causal_atlas.harvest. Nothing here is imported from, or shares a line with, the detector."""
+import numpy as np
+
+CEREALS = 6
+WANDER = (0.15, 0.7)  # how far a record's level wanders each year, as a share of its year-to-year spread: lowest and highest
+EARTH = 6371.0
+
+
+def apart(lat, lon):
+    """Great-circle distance in km between every pair of points."""
+    a, o = np.radians(lat), np.radians(lon)
+    c = np.sin(a)[:, None] * np.sin(a) + np.cos(a)[:, None] * np.cos(a) * np.cos(o[:, None] - o)
+    return EARTH * np.arccos(np.clip(c, -1, 1))
+
+
+def near(rng, dist, reach, shape):
+    """Noise that neighbours share: correlation falls off with distance over the reach given, in km."""
+    vals, vecs = np.linalg.eigh(np.exp(-dist / reach))
+    root = (vecs * np.sqrt(np.maximum(vals, 0))) @ vecs.T
+    return np.einsum("ij,j...->i...", root, rng.standard_normal((len(dist),) + shape))
+
+
+def make(seed, kind="link", share=0.2, countries=141, years=64, linked=0.5, crops=None, rainfed=0.5, sure=0, shape=None, sure_share=None, drift_x=1.2, drift_y=0.25, step_x=1.2, step_y=(0.15, 0.3), swing_phi=0.93, swing_k=0.5, own_k=0.8, shared_k=0.55, momentum=0.0, rough_k=(1.8, 3.0), rough_p=0.3, year_x=0.0, one_step=None):
+    """One world. kind: "link" (moisture in a growing season moves the yield, in about the fraction `linked` of countries, taking `share` of the variance of a linked series' year-to-year departures), "none" (no link), "drift" (no link; a slow drying or wetting that speeds up, and a yield path bending the same way in the same places), "step" (no link from year to year; in patches of countries the climate turns drier for good in one year, and yields there fall to a lower path in the same year). In every kind most countries dry a little over the record, as the real drought file's country means do. With `crops`, that many crops and not six: the first `sure` of them are grown as often as the six cereals and are linked wherever their country is; each of the others is grown in a tenth to two thirds of countries and is rain-fed, so linked where its country is, with chance `rainfed`. With `shape` "drift" or "step", a link world also carries that drift or step. With `crops`, how widely each crop is grown and when it is harvested are drawn.
+
+    Returns log yield (units by years, NaN where no figure), which figures are official, each unit's country and cereal, the monthly moisture by country starting twelve months before the first year, each country's latitude and longitude, and the truth: which units are linked and each unit's season as (first month, length), months counted from January of the harvest year, negative for the year before."""
+    rng = np.random.default_rng(seed)
+    months = 12 * (years + 1)
+
+    # Where: clusters of countries, so that neighbours exist.
+    hubs = np.column_stack([rng.uniform(-35, 55, 9), rng.uniform(-180, 180, 9)])
+    hub = rng.integers(9, size=countries)
+    lat = np.clip(hubs[hub, 0] + rng.normal(0, 9, countries), -50, 65)
+    lon = (hubs[hub, 1] + rng.normal(0, 14, countries) + 180) % 360 - 180
+    dist = apart(lat, lon)
+
+    # Moisture by month: weather neighbours share, a slow swing the whole world feels with a sign that depends on place, and a memory of a few months.
+    raw = near(rng, dist, 1200.0, (months,))
+    swing = np.zeros(months)
+    for m in range(1, months):
+        swing[m] = swing_phi * swing[m - 1] + rng.standard_normal()
+    swing /= swing.std()
+    raw += near(rng, dist, 4000.0, ())[:, None] * swing_k * swing
+    wet = raw.copy()
+    wet[:, 1:] += 0.5 * raw[:, :-1]
+    wet[:, 2:] += 0.25 * raw[:, :-2]
+    bend = near(rng, dist, 3000.0, ())  # where the drift goes, if there is one
+    clock = np.linspace(0, 1, months)
+    wet += rng.normal(-0.5, 0.45, countries)[:, None] * clock * wet.std()
+    if "drift" in (kind, shape):
+        wet += drift_x * bend[:, None] * clock**2 * wet.std()
+    stepped = bend > np.quantile(bend, 0.65)  # where the step falls, if there is one
+    peak = np.argmax(np.where(stepped[None, :] & (dist < 2000.0), bend[None, :], -np.inf), axis=1)  # the strongest stepped country within reach: a patch takes its year from it
+    when = np.where(stepped, (15 + (np.abs(bend) * 1000).astype(int) % 30)[peak], 0)
+    if one_step is not None:
+        when = np.where(stepped, one_step, 0)
+    if "step" in (kind, shape):
+        wet -= step_x * wet.std() * stepped[:, None] * (np.arange(months)[None, :] >= 12 * (when[:, None] + 1))
+    wet = (wet - wet.mean(axis=1, keepdims=True)) / wet.std(axis=1, keepdims=True)
+    width = rng.uniform(0.6, 1.05, countries)  # a wide country's mean moves less
+    moisture = wet * width[:, None]
+
+    # Which cereals a country grows.
+    often = np.array([0.70, 0.83, 0.67, 0.56, 0.49, 0.32])
+    if crops:
+        often = np.concatenate([often[:sure], rng.uniform(0.1, 0.65, crops)[sure:]])
+    grows = rng.random((countries, crops or CEREALS)) < often
+    grows[~grows.any(axis=1), 1] = True
+    country, cereal = np.nonzero(grows)
+    units = len(country)
+
+    # Each unit's season: where the months are counted from January of the harvest year.
+    late = (rng.integers(4, 10, crops) if crops else np.array([5, 7, 8, 5, 8, 8]))[cereal] + rng.integers(-1, 2, units)  # the season's last month, in the north
+    south = lat[country] < -15
+    tropic = np.abs(lat[country]) <= 15
+    late = np.where(south, late - 6, late)
+    late = np.where(tropic, rng.integers(-2, 11, countries)[country] + rng.integers(-1, 2, units), late)
+    length = rng.integers(2, 5, units)
+    start = late - length + 1
+
+    # Who is linked: rain-fed places, in patches.
+    patch = near(rng, dist, 2500.0, ()) + 0.5 * rng.standard_normal(countries)
+    is_linked = (patch > np.quantile(patch, 1 - linked))[country] if kind == "link" else np.zeros(units, dtype=bool)
+    if crops:
+        is_linked &= ((rng.random(crops) < rainfed) | (np.arange(crops) < sure))[cereal]
+
+    # The yield's own path: a level, growth that changes once or twice, a memory, shocks neighbours share, a level that wanders and does not come back, and noise in the figure.
+    t = np.arange(years)
+    growth = rng.uniform(0.0, 0.025, units)
+    path = np.zeros((units, years))
+    for u in range(units):
+        rate = np.full(years, growth[u])
+        for b in rng.integers(8, years - 5, rng.integers(0, 3)):
+            rate[b:] = rng.uniform(-0.01, 0.03)
+        path[u] = np.cumsum(rate)
+    if "drift" in (kind, shape):
+        path -= drift_y * bend[country][:, None] * (t / years)[None, :] ** 2
+    if "step" in (kind, shape):
+        path -= rng.uniform(*step_y, units)[:, None] * stepped[country][:, None] * (t[None, :] >= when[country][:, None])
+    spread = rng.lognormal(np.log(0.14), 0.55, units)  # how much a unit's yield moves from year to year
+    own = np.zeros((units, years))
+    phi = rng.uniform(0.1, 0.6, units)
+    for y in range(years):
+        own[:, y] = (phi * own[:, y - 1] if y else 0) + np.sqrt(1 - phi**2) * rng.standard_normal(units)
+    shared = near(rng, dist, 1500.0, (years,))[country] * 0.6 + rng.standard_normal((countries, years))[country] * 0.5
+    rough = np.ones((units, years))  # a stretch in which a record behaves differently
+    for u in np.flatnonzero(rng.random(units) < rough_p):
+        a = rng.integers(5, years - 8)
+        rough[u, a : a + rng.integers(4, 15)] = rng.uniform(*rough_k)
+    depart = (own_k * own + shared_k * shared) * rough
+    depart /= depart.std(axis=1, keepdims=True)
+    steps_ = rng.standard_normal((units, years))
+    if momentum:
+        for y_ in range(1, years):
+            steps_[:, y_] = momentum * steps_[:, y_ - 1] + np.sqrt(1 - momentum**2) * steps_[:, y_]
+    wander = np.cumsum(steps_, axis=1) * rng.uniform(*WANDER, units)[:, None]  # a level that does not come back
+
+    # The season's moisture: a dry season costs more than a wet one gives.
+    season = np.zeros((units, years))
+    for u in range(units):
+        cols = 12 * (t[:, None] + 1) + start[u] + np.arange(length[u])[None, :]
+        v = moisture[country[u]][cols].mean(axis=1)
+        season[u] = np.where(v < 0, v, 0.35 * v)
+    season = (season - season.mean(axis=1, keepdims=True)) / season.std(axis=1, keepdims=True)
+    effect = np.sqrt(share / (1 - share)) * season * is_linked[:, None] if share else np.zeros((units, years))
+    if sure_share is not None and crops:
+        effect = np.where((cereal < sure)[:, None], np.sqrt(sure_share / (1 - sure_share)) * season * is_linked[:, None], effect)
+    logy = rng.normal(7.5, 0.6, units)[:, None] + path + spread[:, None] * (wander + depart + effect)
+
+    # The record as kept: late starters, gaps, and stretches of figures that are not official, some of them last year's carried forward.
+    official = np.ones((units, years), dtype=bool)
+    begins = np.where(rng.random(countries) < 0.12, 31, 0)[country]
+    for u in range(units):
+        for _ in range(rng.integers(0, 4) if rng.random() < 0.55 else 0):
+            a = rng.integers(1, years - 2)
+            b = min(years, a + rng.integers(1, 9))
+            official[u, a:b] = False
+            if rng.random() < 0.15:
+                logy[u, a:b] = logy[u, a - 1]
+            else:
+                logy[u, a:b] += spread[u] * 0.5 * rng.standard_normal(b - a)
+        official[u, -3:] &= rng.random(3) < 0.7
+        logy[u, : begins[u]] = np.nan
+        gone = rng.random(years) < 0.01
+        logy[u, gone] = np.nan
+    official &= np.isfinite(logy)
+    return {"logy": logy, "official": official, "country": country, "cereal": cereal, "x": moisture, "lat": lat, "lon": lon, "linked": is_linked, "season": np.column_stack([start, length])}
