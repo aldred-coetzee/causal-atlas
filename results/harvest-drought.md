@@ -171,3 +171,50 @@ The reader's report, scripts and logs are in `docs/reviews/2026-11-10-harvest-ru
 **Not done, and why:** no drift record was added with a mark, because the flat driver stopped every drift the reader tried and the change above covers the size. The made-up driver was not blurred and run again, because that would only move the ruler, which is now said to be the best case.
 
 What the reader did not check is listed in its report: the mid-year variant on its own records, published effect sizes, FAO's revisions, crop calendars.
+
+## Result, step 2: the real record (scored once, 2026-11-10, 06:52 UTC, at commit 55db33f)
+
+`run_harvest.py real once` was run once. Both variants were read before either was written; the rows are the two of kind `real` in `results/harvest-drought.jsonl`. The script now refuses a second run: the harvest record 1986 to 2024 is spent for this driver.
+
+**Read as a link, year-end and mid-year.** 503 records in 141 countries, 16,763 official figures forecast, each from the years before it.
+
+| | Year-end (the result) | Mid-year (weather to June only) |
+|---|---|---|
+| **Size reported** (the smaller of the two below) | **1.67%** | **1.11%** |
+| S, the share of the baseline's error removed | 1.67% (interval 0.97% to 2.35%) | 1.11% (0.49% to 1.73%) |
+| S with the flat driver (each country's trend and season taken out) | 2.24% (1.47% to 2.97%) | 1.48% (0.81% to 2.14%) |
+| Other-year controls beaten (the weather of 62 other years) | 62 of 62; their mean −0.05%, their largest +0.01% | 62 of 62; mean −0.05%, largest +0.01% |
+| Excess over the mean control | 1.71% (1.02% to 2.39%) | 1.16% (0.54% to 1.77%) |
+| The same with the flat driver | 62 of 62; excess 2.28% (1.51% to 3.02%) | 62 of 62; excess 1.53% (0.86% to 2.18%) |
+| Error below each of the seven baselines used alone | all seven | all seven |
+| S without its best year | 1.51% | 0.95% |
+| Years in which the drought term helped | 32 of 39 | 26 of 39 |
+| S, 1986 to 2004 / 2005 to 2024 | 1.77% / 1.56% | 1.13% / 1.09% |
+| The third of records where it had helped most before 2005, scored 2005 to 2024 (136 of 408 ranked) | 5.32% (3.90% to 6.73%), 62 of 62 | 3.88% (2.73% to 5.06%), 62 of 62 |
+
+All six conditions of the verdict hold in both variants. By the size words fixed beforehand, 1% to 5% is **a real but small aid**.
+
+**In plain terms:**
+
+- Knowing how dry each country was in the months to its harvest takes about one part in sixty off the error of a forecast of its official cereal yield, on years the forecast was never fitted to. The honest range is one part in a hundred to one part in forty. With the weather known only to June it is about one part in ninety.
+- The weather of any other year does nothing: 62 wrong years each change the error by a hundredth of a percent or less. So the gain belongs to the right year's weather, not to having six more numbers to fit.
+- It does not rest on a trend: with each country's trend and season removed from the drought index the gain is larger, not smaller. It does not rest on one year, or on one half of the record.
+- It is uneven. By cereal, year-end: millet 2.35%, maize 2.12%, wheat 1.94%, barley 1.76%, sorghum 1.48%, rice 0.32%. Mid-year: barley 1.94%, wheat 1.84%, sorghum 1.20%, maize 0.82%, millet 0.71%, rice 0.04%. Rice, mostly irrigated or flooded, shows next to nothing; the cereals harvested by midsummer keep their gain when the weather stops at June, and those harvested in autumn lose most of it. These fit what is known about crops, and they were not tested: no interval was computed by cereal.
+- Where the term had helped in the past it went on helping, about three times as much as on the whole panel: 5.3% (3.9% to 6.7%) in 2005 to 2024 for the third of records chosen on the years before 2005 alone. That third is 136 records in 76 countries. This reading was registered as reported beside the result, not as the result.
+- Record by record (488 records with 20 or more scored years) the term helped in 56% and hurt in 44%; the middle record gains 0.7%; a quarter gain more than 5% and an eighth lose more than 5%. Largest gains, year-end: Australia wheat +28% and barley +24%, Hungary millet +24%, North Macedonia maize +22%, Argentina maize +22% and sorghum +21%, Slovenia maize +20%, Kyrgyzstan maize +19%, Republic of Korea rice +19%, Zimbabwe maize +19%. Largest losses: China wheat −27%, Democratic Republic of the Congo rice −21%, China rice −19%, India barley −17%, Indonesia rice −16%, Côte d'Ivoire maize −16%. Each of these is one noisy number with no interval and names nothing by itself. A guess, not tested: the losses are large countries whose mean says little about their cropland, and irrigated crops.
+- Against the made-up ruler: the real size is larger than any made-up record with a link taking 20% of a linked record's year-to-year variance in half the countries (0.4% to 1.1%). The ruler was not run above 20%, and it is the best case for the method, so the real link in the index is at least that strong and how much stronger is not measured.
+
+**The guesses, against what came:** read as a link year-end, about 60%: it was. Mid-year given year-end, about 70%: it was. S between 0.5% and 3%: 1.67%. 5% or more, one chance in ten: no. The top third about twice the whole panel's: about three times.
+
+**What this is and is not.**
+
+- It is the first time in this project that a series from one domain (weather) has improved a forecast in another (official farm statistics) under the project's own rules: the rule written first, made-up records with and without a link, controls, every year forecast from the years before it, and one scoring.
+- It is a link everyone knew. Nothing new about the world is claimed. What was not given to the method is which months matter for which crop, in which countries, and with which sign.
+- It does not show cause. Heat, and rain tied to El Niño, move with the index and are not separated. A cause shared by the index and the yield would be read as a link every time (the independent check measured this on made-up records).
+- It is a country's mean over all its land, not its cropland, and a calendar year, not a season.
+- The lead is short and partly notional. Year-end uses weather to December of the harvest year, after most harvests; mid-year, to June, is ahead of the harvest in most of the north and behind it in much of the south. What the term is ahead of is the official figure, which FAO publishes more than a year later.
+- Official yields may themselves be estimated with the help of the weather in some countries. If so, part of this is the index forecasting a statistician's model and not a harvest. This is not measured.
+- It is small. One part in sixty is no use for a single country's planning. The 5% in the chosen third is nearer to useful and is the thing to test next, on its own rule.
+- The drought file carries the error its makers have acknowledged, and FAO revises past figures; the file read is the one fetched and entered in the manifest.
+
+**Not yet a finding.** As registered, it gets an independent reader first. What that reader is asked: to rebuild the score from the words above without this code's forecast step, to look for a leak on the real path, to see whether a few countries or a few years carry it, and to say what else could produce it.

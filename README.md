@@ -13,8 +13,10 @@ still an open question. His words are in
 the narrower question.
 
 **Where it stands (2026-11-10).** Nothing new about the world has been found.
-What has been shown is that the chain works end to end on a link that is already
-known. Among 31 decoys, the search named El Niño blind as a driver of drought on
+What has been shown is that the chain works end to end on links that are already
+known: one inside climate, and since 2026-11-10 one from weather into farm
+statistics, small and not yet independently checked (the last section below).
+Among 31 decoys, the search named El Niño blind as a driver of drought on
 four continents and stayed silent in Europe. A forecast built from that, fitted
 on 1950 to 1999 and scored once on 2000 to 2024, had about a sixth less error
 (17%, between 12% and 22%) than a forecast from each region's own history, on the
@@ -27,8 +29,7 @@ Africa missed and is published as a miss. The result, its limits, an independent
 check and an audit are in `results/real-enso-continents.md`; the independent
 reader's report and code are in `docs/reviews/`.
 
-This is a climate-to-climate link. No claim about conflict, or about any link
-between domains, follows from it, and the question below is still open. One limit
+This is a climate-to-climate link. No claim about conflict follows from it. One limit
 touches every number here: the drought file used carries an error its makers have
 acknowledged (small, they say, and largest in dry regions), and a corrected file
 is not yet out.
@@ -92,8 +93,28 @@ months back already carries most of what a dry season will do to it. A month
 ahead it could be heard, at a fraction of one percent of the forecast error,
 which is no use to anyone. So **no real price was set against drought**, and the
 prices are still unread (`docs/decisions/0050-the-price-test-is-set-aside-before-any-real-fit.md`).
-What is looked at next is national harvests, where a record's own past says
-little about next year's weather.
+National harvests came next: FAO's cereal yields by country and year, 503 records
+in 141 countries, where a record's own past says little about next year's
+weather. Each year from 1986 to 2024 was forecast from the years before it, with
+and without each country's drought index at six fixed months. The rule was
+committed first, checked on made-up records with a link and with none (no false
+link in 140 no-link readings), and read by an independent reader before any real
+yield was touched. Scored once, **it read a link** (`results/harvest-drought.md`):
+the drought index takes 1.67% off the forecast error (interval 0.97% to 2.35%),
+and 1.11% (0.49% to 1.73%) with the weather known only to June. The weather of 62
+other years, tried the same way, does nothing. In the third of records where it
+had helped most before 2005, it went on to take 5.3% off (3.9% to 6.7%) in 2005
+to 2024.
+
+What that is: the first time here that a series from one domain has improved a
+forecast in another under these rules. What it is not: new, large, or proof of
+cause. Everyone knows drought cuts harvests; what the method was not told is
+which months, crops, countries or sign. One part in sixty is too small to plan
+by. Heat and El Niño move with the index and are not separated, and anything
+that drives both the index and the yield would be read the same way. The index
+is a country's mean over all its land, not its cropland. Some official yields
+may themselves be estimated with the help of weather. And an independent reader
+has not yet seen the result, so it is not yet called a finding.
 
 `STATUS.md` says where things stand in more detail.
 
