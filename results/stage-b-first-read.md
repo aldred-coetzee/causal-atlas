@@ -39,7 +39,7 @@ Counted before this rule, each series alone: about 437 series pass the first cou
 
 **A row may name only series outside its outcome's set.** The aim is relationships between separate data sets, and series inside one set are tied by how they are made (area, yield and production of a crop; the World Bank's demographic figures from one model). Every series that differs by place is an outcome in turn.
 
-World Bank series whose source the Bank gives as the Food and Agriculture Organization are FAO's figures passed on. A pass between one of those and a crops series is read as a near copy and said so, never as a result. Which those are is read from the Bank's series file when the result is written.
+**And not a World Bank series made from another set's figures, with that set** (decision 0064, before any run). World Bank series whose source the Bank gives as the Food and Agriculture Organization are FAO's figures passed on: a row may not name one of them with a crops series. World Bank series that are an exchange rate, or a value turned into dollars at the year's rate ("current US$" or "LCU per US$" in the Bank's name for the series), may not be named with an exchange-rate series. As first written such rows were let through and only called near copies afterwards, and the second kind was not named at all; with forty rows sent under one bar they could have taken the places of everything else. The counts are under "Made exact".
 
 ## Shared movements in the baseline
 
@@ -97,7 +97,7 @@ Each row that passed is then read alone on **2015 to 2024**, by the same referee
 - **Moving together:** passed and labelled. A lead is not shown.
 - **Passed, not confirmed:** said so; not a result.
 - **A known answer:** the country's drought index against a crop's yield was read in two earlier tests (cereals, and 47 other crops, 1986 to 2024). Such a row is reported as a known answer, never as new.
-- **A near copy:** as above.
+- **A near copy:** a passed row whose series are one figure under two names in a way the rule above did not catch. Looked for by hand in whatever passes, with the Bank's own description of the series, and said so; never a result.
 - **Silence:** no lead. Reported quietly with what the known-answer runs say it rules out.
 
 A pass says a series helps predict. It does not say that changing it would change the outcome.
@@ -137,6 +137,8 @@ Written with `scripts/run_stage_b.py` and before any placebo, planted run or rea
 **The panel, by the count rule** (`run_stage_b.py panel`; each series alone): **461 series in 166 places**, 64 years. World Bank 341, crops 91, exchange rates 2, drought by country 1: 435 series that differ by place, each an outcome in turn. Common to all places: El Niño and the 25 other climate series, 26. A series that differs by place has between 60 and 166 places, middle 99; about a third of its place-years (34.5%) are missing. 3,025,236 values: 1,609,813 in 1961 to 1995, 930,744 in 1996 to 2014, 484,679 in 2015 to 2024.
 
 **Seventeen groups of places:** Caribbean 14, Central America 11, Eastern Africa 16, Eastern Asia 7, Melanesia 5, Middle Africa 9, Northern Africa 6, Northern Europe 8, Oceania other 6 (pooled), South America 12, South-Eastern Asia 11, Southern Africa 5, Southern Asia 9, Southern Europe 10, Western Africa 16, Western Asia 14, Western Europe 7. The made-up tables had groups of five places, 24 to 96 of them; these are fewer and larger, and the referee's bar draws groups again, so it is wider here.
+
+**Ties between sets a row may not name** (read from the Bank's list of its series, `WDISeries.csv`, each series alone). Of the 341 World Bank series, 22 give the Food and Agriculture Organization as source (land, fertiliser, cereal yield and production, the production indices, fisheries, fresh water, population density) and may not be named with any of the 91 crops series; 54 are a rate or in current dollars (52 "current US$", 2 "LCU per US$") and may not be named with either exchange-rate series. That is 2,110 of the 43,613 pairs of series in different sets. Series in constant dollars, in local currency or as a share are left in. The planted links draw their inputs under the same rule.
 
 **Years are moved round within 1961 to 2014 only.** The rule as first written moved the common series "by 10 to 54 years", which over sixty-four years would have carried values of 2015 to 2024 into the years the finders and the referee see. Nothing of the last ten years enters a placebo or a planted run: the common series move by 10 to 44 years of the fifty-four, and in the years-moved placebo the sets stand at least ten years apart round the fifty-four.
 

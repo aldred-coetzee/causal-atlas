@@ -9,6 +9,7 @@
 
 What knows a planted truth or how a table was rearranged is here, not in the finders or the referee.
 """
+import csv
 import json
 import os
 import sys
@@ -29,6 +30,8 @@ FIRST, LAST = 35, 54  # the finders see the years before FIRST (1961 to 1995); t
 NEED = ((1961, 1995, 25), (1996, 2014, 15), (2015, 2024, 8))  # values a place needs in each stretch to count for a series
 PLACES, THIRD, MIDDLE, SMALL = 60, 1 / 3, 30, 5
 SETS = {"faostat_qcl": "crops", "wdi": "world bank", "faostat_pe": "exchange rates"}  # everything else read here is climate
+TIED = {"crops": lambda r: "Food and Agriculture Organization" in r["Source"],  # the Bank's series that are FAO's figures passed on
+        "exchange rates": lambda r: "current US$" in r["Indicator Name"] or "LCU per US$" in r["Indicator Name"]}  # a rate, or a value turned into dollars at the year's rate
 SEEDS = {"places": range(58001, 58021), "years": range(58101, 58109), "planted": range(58201, 58207)}
 MOST = {"places": 2, "years": 1}  # runs with any pass, at most
 REAL, CONFIRM = 58900, 58901  # the referee's draws for the real read and for the last ten years
@@ -110,9 +113,20 @@ def build():
 def panel():
     z = np.load(HOLD / "panel.npz")
     p = {k: z[k] for k in z.files}
-    p["allowed"] = p["sets"][:, None] != p["sets"][None, :]
+    p["allowed"] = (p["sets"][:, None] != p["sets"][None, :]) & ~tied(p)
     p["outcomes"] = np.flatnonzero(~p["common"])
     return p
+
+
+def tied(p):
+    """Pairs a row may not name though they are in different sets: a World Bank series made from another set's figures, with any series of that set. Read from the Bank's own list of its series, each alone."""
+    with open(ROOT / "data" / "raw" / "wdi" / "WDISeries.csv", encoding="utf-8-sig", newline="") as f:
+        bank = {"wdi:" + r["Series Code"]: r for r in csv.DictReader(f)}
+    no = np.zeros((len(p["ids"]),) * 2, bool)
+    for other, made in TIED.items():
+        mine = np.array([s == "world bank" and made(bank[i]) for i, s in zip(p["ids"], p["sets"])])
+        no |= mine[:, None] & (p["sets"] == other)[None, :]
+    return no | no.T
 
 
 def describe(p):
@@ -120,6 +134,10 @@ def describe(p):
     print(f"{len(v)} series, {v.shape[1]} places, {len(YEARS)} years, {len(p['groups'])} groups of places; {int(np.isfinite(v[~p['common']]).sum()):,} values that differ by place")
     for k in sorted(set(sets)):
         print(f"   {k}: {int((sets == k).sum())} series, {int(((sets == k) & p['common']).sum())} of them common to all places")
+    no = tied(p)
+    for other in TIED:
+        print(f"   World Bank series a row may not name with {other}: {int(no[:, sets == other].any(axis=1).sum())}")
+    print(f"   pairs of series in different sets: {int((sets[:, None] != sets[None, :]).sum()) // 2:,}; of them a row may not name: {int(no.sum()) // 2:,}")
     here = np.isfinite(v[~p["common"]]).any(axis=2).sum(axis=1)
     print(f"   places a series that differs by place has: least {here.min()}, middle {int(np.median(here))}, most {here.max()}")
     print("   groups: " + ", ".join(f"{g} {int((p['group'] == i).sum())}" for i, g in enumerate(p["groups"])))
