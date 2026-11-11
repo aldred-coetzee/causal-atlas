@@ -30,7 +30,8 @@ FIRST, LAST = 35, 54  # the finders see the years before FIRST (1961 to 1995); t
 NEED = ((1961, 1995, 25), (1996, 2014, 15), (2015, 2024, 8))  # values a place needs in each stretch to count for a series
 PLACES, THIRD, MIDDLE, SMALL = 60, 1 / 3, 30, 5
 SETS = {"faostat_qcl": "crops", "wdi": "world bank", "faostat_pe": "exchange rates"}  # everything else read here is climate
-TIED = {"crops": lambda r: "Food and Agriculture Organization" in r["Source"],  # the Bank's series that are FAO's figures passed on
+FARMED = {"EN.GHG.CH4.AG.MT.CE.AR5", "EN.GHG.N2O.AG.MT.CE.AR5", "EN.GHG.CO2.AG.MT.CE.AR5", "EN.GHG.CH4.MT.CE.AR5", "EN.GHG.N2O.MT.CE.AR5", "EN.GHG.ALL.MT.CE.AR5", "EN.GHG.ALL.PC.CE.AR5"}  # emissions from agriculture, worked out from FAO's crop and animal figures, and the totals they are a large part of
+TIED = {"crops": lambda r: "Food and Agriculture Organization" in r["Source"] or r["Series Code"] in FARMED,  # the Bank's series that are FAO's figures passed on, or made from them
         "exchange rates": lambda r: "current US$" in r["Indicator Name"] or "LCU per US$" in r["Indicator Name"]}  # a rate, or a value turned into dollars at the year's rate
 SEEDS = {"places": range(58001, 58021), "years": range(58101, 58109), "planted": range(58201, 58207)}
 MOST = {"places": 2, "years": 1}  # runs with any pass, at most
@@ -235,13 +236,27 @@ def keep(r):
     os.close(f)
 
 
+def refuse(when, why):
+    """Stop here. Not an assert: those can be switched off."""
+    if when:
+        sys.exit("refused: " + why)
+
+
+def once(rs):
+    """Every placebo and planted run kept is of a registered seed and kept once."""
+    for step, seeds in SEEDS.items():
+        got = [r["seed"] for r in rs if r["step"] == step]
+        refuse(len(got) != len(set(got)) or not set(got) <= set(seeds), f"{step}: a seed kept twice or not registered: {sorted(got)}")
+
+
 def marks(rs):
-    """For each placebo: runs done, runs with any pass, and whether the mark holds (None until every run is in)."""
+    """For each placebo: registered seeds run, runs with any pass, and whether the mark holds (None until every seed is in)."""
+    once(rs)
     out = {}
     for step in MOST:
         m = [r for r in rs if r["step"] == step]
         bad = sum(r["board"]["passed"] > 0 for r in m)
-        out[step] = (len(m), bad, None if len(m) < len(SEEDS[step]) else bad <= MOST[step])
+        out[step] = (len(m), bad, None if {r["seed"] for r in m} != set(SEEDS[step]) else bad <= MOST[step])
     return out
 
 
@@ -267,6 +282,9 @@ def table():
         for share in SIZES:
             ls = [x for r in m for x in r["links"] if x["share"] == share]
             print(f"   {share:.0%}: {len(ls)} links; sent {sum(x['sent'] for x in ls)}; heard from the board {sum(x['heard'] for x in ls)}; answer passed when handed over {sum(x['answer'] for x in ls)}; size given, middle {np.median([x['answer_size'] for x in ls if x['answer_size'] is not None] or [np.nan]):.3f}; rank on its outcome's board, middle {np.median([x['rank'] for x in ls if x['rank'] is not None] or [np.nan]):.0f} ({sum(x['rank'] is None for x in ls)} not posted)")
+        for name, long in (("under a half", False), ("a half or more", True)):
+            ls = [x for r in m for x in r["links"] if x["memory"] == x["memory"] and (x["memory"] >= 0.5) == long]
+            print(f"   input's one year goes with the next at {name}: {len(ls)} links, heard from the board {sum(x['heard'] for x in ls)}, when handed over {sum(x['answer'] for x in ls)}")
         print(f"   runs with a pass that names no planted link: {sum(any(x['passes'] and not any(l['outcome'] == x['outcome'] and x['names'] == [l['input']] for l in r['links']) for x in r['board']['rows']) for r in m)}")
     for r in rs:
         if r["step"] == "real":
@@ -284,7 +302,7 @@ def rehearse(kind, seeds):
     sys.path.insert(0, str(ROOT / "synth"))
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     import run_finders as rn
-    assert all(s in SMOKE for s in seeds), "smoke seeds only"
+    refuse(not all(s in SMOKE for s in seeds), "smoke seeds only")
     how = {"kind": kind, **rn.rr.HOW.get(kind, {}), "share": 0.35, "places": 240}
     for seed in seeds:
         w = rn.made(how, None, seed)
@@ -309,29 +327,32 @@ if __name__ == "__main__":
     elif cmd == "table":
         table()
     elif cmd in SEEDS:
-        p, done = panel(), {(r["step"], r["seed"]) for r in rows()}
+        p, done = panel(), lambda: {(r["step"], r["seed"]) for r in rows()}
         for seed in [int(s) for s in sys.argv[2:]] or SEEDS[cmd]:
-            assert seed in SEEDS[cmd], "registered seeds only"
-            if (cmd, seed) in done:
+            refuse(seed not in SEEDS[cmd], "registered seeds only")
+            if (cmd, seed) in done():
                 continue
             v = moved(p, "places" if cmd == "planted" else cmd, seed)
             v, truth = plant(p, v, seed) if cmd == "planted" else (v, None)
             r = {"step": cmd, **run(p, v, seed, truth)}
+            if (cmd, seed) in done():  # another process ran the same seed meanwhile: the first kept stands
+                continue
             keep(r)
             print(f"{cmd} seed {seed}: {r['posted']} posted, {r['board']['sent']} sent, bar {fmt(r['board']['bar'])}, {r['board']['passed']} passed" + (f"; heard {sum(x['heard'] for x in r['links'])} of {len(r['links'])}" if truth else "") + f", {r['seconds']}s", flush=True)
     elif cmd == "real" and sys.argv[2:] == ["once"]:
         rs = rows()
-        assert not any(r["step"] == "real" for r in rs), "the real read has been made"
-        assert all(ok for _, _, ok in marks(rs).values()), f"the placebo marks do not all hold: {marks(rs)}"
+        refuse(any(r["step"] == "real" for r in rs), "the real read has been made")
+        refuse(not all(ok for _, _, ok in marks(rs).values()), f"the placebo marks do not all hold: {marks(rs)}")
+        refuse({r["seed"] for r in rs if r["step"] == "planted"} != set(SEEDS["planted"]), "the planted runs are not all in: a silence could not be read")
         p = panel()
         r = {"step": "real", **run(p, p["values"], REAL)}
         keep(r)
         table()
     elif cmd == "confirm" and sys.argv[2:] == ["once"]:
         rs = rows()
-        assert not any(r["step"] == "confirm" for r in rs), "the last ten years have been read"
+        refuse(any(r["step"] == "confirm" for r in rs), "the last ten years have been read")
         real = [r for r in rs if r["step"] == "real"]
-        assert len(real) == 1, "no real read to confirm"
+        refuse(len(real) != 1, "no real read to confirm")
         p, out = panel(), []
         for x in real[0]["board"]["rows"]:
             if not x["passes"]:

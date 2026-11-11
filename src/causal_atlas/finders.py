@@ -269,7 +269,8 @@ def gathered(v, o, board):
     ok = v["allowed"]
     if ok is not None:
         stand[~ok[o]] = -np.inf
-    most = len(z) - 1 if ok is None else int(ok[o].sum()) - int(ok[o, o])  # the outcome itself is never gathered
+        stand[~np.isfinite(stand)] = -np.inf  # a series with no standing sorts with those that may not be named, never ahead of them
+    most = len(z) - 1 if ok is None else int(np.isfinite(stand).sum(axis=0).min())  # the outcome itself is never gathered; with a cut, only series that may be named and have a standing at every alignment
     rs = np.stack([r] + [np.roll(r, k, axis=1) for k in v["shifts"]])
     rows = []
     for m in sorted({min(m, most) for m in GATHER} - {0}):

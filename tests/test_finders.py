@@ -243,3 +243,12 @@ def test_the_swarm_runs_without_the_every_pair_member():
     assert gone == {"every pair"}
     assert same([r for r in full if r["round"] == 1 and r["member"] not in gone], [r for r in less if r["round"] == 1])
     assert any(r["member"] == "pairs from the board" for r in less)
+
+
+def test_a_gathered_row_never_names_what_it_may_not_when_a_series_has_no_standing():
+    v = world(11, "steady")
+    ok = np.zeros((8, 8), bool)
+    ok[0, 2:7] = True  # outcome 0 may name series 2 to 6
+    v[6] = np.nan  # and one of them has no values at all: it must not let the outcome or a barred series into its place
+    rows = fd.gathered(fd.view(v, GROUP, FIRST, [0], allowed=ok), 0, [])
+    assert rows and all(r["names"] <= {2, 3, 4, 5} for r in rows)
