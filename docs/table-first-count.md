@@ -1,6 +1,6 @@
 # The held data in one shape: first count, each series alone
 
-Written by `scripts/count_table.py` from `data/table/` (not committed; `scripts/build_table.py` makes it). 510 series, 218 places, 1,794,760 observations. Nothing in this page sets one series beside another: every number is about a series on its own, or about a group of series counted, never related.
+Written by `scripts/count_table.py` from `data/table/` (not committed; `scripts/build_table.py` makes it). 1119 series, 235 places, 7,177,365 observations. Nothing in this page sets one series beside another: every number is about a series on its own, or about a group of series counted, never related.
 
 ## By domain
 
@@ -9,8 +9,17 @@ Written by `scripts/count_table.py` from `data/table/` (not committed; `scripts/
 | climate | 27 | 185 | 1749-01 | 2026-10 | 178,672 | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% | 100.0% |
 | conflict | 2 | 135 | 1989-01 | 2025-12 | 32,086 | 59.7% | 0.0% | 0.0% | 0.0% | 0.0% | 100.0% |
 | crops | 474 | 209 | 1961 | 2024 | 1,485,063 | 0.4% | 58.9% | 29.7% | 8.1% | 3.3% | 0.0% |
+| economy | 242 | 215 | 1960 | 2025 | 1,886,488 | 1.4% | 0.0% | 0.0% | 0.0% | 0.0% | 100.0% |
+| education | 21 | 211 | 1970 | 2025 | 162,670 | 16.5% | 0.0% | 0.0% | 0.0% | 0.0% | 100.0% |
+| environment | 107 | 215 | 1960 | 2025 | 980,646 | 0.3% | 0.0% | 0.0% | 0.0% | 0.0% | 100.0% |
+| finance | 20 | 213 | 1960 | 2025 | 182,822 | 0.8% | 0.0% | 0.0% | 0.0% | 0.0% | 100.0% |
 | fire | 1 | 188 | 1982-01 | 2018-12 | 81,216 | 2.7% | 0.0% | 0.0% | 0.0% | 0.0% | 100.0% |
+| health | 108 | 215 | 1960 | 2025 | 1,302,097 | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% | 100.0% |
+| infrastructure | 9 | 213 | 1960 | 2025 | 79,777 | 9.0% | 0.0% | 0.0% | 0.0% | 0.0% | 100.0% |
 | prices | 6 | 35 | 2007-01 | 2026-10 | 17,723 | 3.4% | 0.0% | 0.0% | 0.0% | 0.0% | 100.0% |
+| public sector | 2 | 174 | 1985 | 2020 | 10,380 | 5.6% | 0.0% | 0.0% | 0.0% | 0.0% | 100.0% |
+| social | 52 | 215 | 1960 | 2025 | 349,225 | 0.4% | 0.0% | 0.0% | 0.0% | 0.0% | 100.0% |
+| trade | 48 | 211 | 1960 | 2025 | 428,500 | 7.2% | 0.0% | 0.0% | 0.0% | 0.0% | 100.0% |
 
 ## By source
 
@@ -23,6 +32,7 @@ Written by `scripts/count_table.py` from `data/table/` (not committed; `scripts/
 | rtfp | 6 | 35 | 2007-01 | 2026-10 | 17,723 | 3.4% | 0.0% | 0.0% | 0.0% | 0.0% | 100.0% |
 | spei | 1 | 184 | 1960-01 | 2024-12 | 143,520 | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% | 100.0% |
 | ucdp_ged | 2 | 135 | 1989-01 | 2025-12 | 32,086 | 59.7% | 0.0% | 0.0% | 0.0% | 0.0% | 100.0% |
+| wdi | 609 | 215 | 1960 | 2025 | 5,382,605 | 1.9% | 0.0% | 0.0% | 0.0% | 0.0% | 100.0% |
 
 The span is each place's own, first to last period it has a value. For the conflict counts a missing month means no recorded event (the source lists events, not their absence). Flags exist only in the crop source; everything else reads `none`. Places are those with at least one value in the group; `world` is one place. The 26 climate files (the ONI and the 25 others) are one source line, `candidates` holding the 25; each is listed alone in `data/table/series_description.csv`.
 
@@ -35,8 +45,17 @@ The correlation of a place's series with itself one period before (a year for ye
 | climate | 210 | 0.68 | 0.72 | 0.76 |
 | conflict | 268 | 0.14 | 0.50 | 0.77 |
 | crops | 27715 | 0.77 | 0.91 | 0.96 |
+| economy | 39024 | 0.76 | 0.94 | 0.99 |
+| education | 2933 | 0.88 | 0.96 | 0.99 |
+| environment | 18323 | 0.89 | 0.96 | 0.99 |
+| finance | 3522 | 0.63 | 0.94 | 0.99 |
 | fire | 166 | 0.54 | 0.63 | 0.72 |
+| health | 21562 | 0.98 | 0.99 | 1.00 |
+| infrastructure | 1680 | 0.91 | 0.98 | 0.99 |
 | prices | 87 | 0.92 | 0.97 | 0.99 |
+| public sector | 325 | 0.73 | 0.85 | 0.93 |
+| social | 9652 | 0.88 | 0.95 | 0.99 |
+| trade | 8690 | 0.67 | 0.84 | 0.94 |
 
 ## Memory by source
 
@@ -51,6 +70,7 @@ The correlation of a place's series with itself one period before (a year for ye
 | rtfp | 87 | 0.92 | 0.97 | 0.99 |
 | spei | 184 | 0.69 | 0.72 | 0.75 |
 | ucdp_ged | 268 | 0.14 | 0.50 | 0.77 |
+| wdi | 105711 | 0.85 | 0.97 | 0.99 |
 
 Memory of a level that trends is high because of the trend alone; this is a description of each series, not a measure of anything predictable. For the conflict counts the months with no row are taken as zero for this one number.
 
@@ -61,8 +81,17 @@ Memory of a level that trends is high because of the trend alone; this is a desc
 | climate | 0 | 0 | 134 | 178,672 |
 | conflict | 0 | 0 | 587 | 32,086 |
 | crops | 85 | 475,447 | 41,218 | 1,485,063 |
+| economy | 0 | 525,390 | 37,863 | 1,886,488 |
+| education | 0 | 61,784 | 1,023 | 162,670 |
+| environment | 0 | 214,137 | 60,325 | 980,646 |
+| finance | 0 | 31,341 | 36 | 182,822 |
 | fire | 0 | 0 | 23,224 | 81,216 |
+| health | 0 | 226,427 | 924 | 1,302,097 |
+| infrastructure | 0 | 0 | 8,872 | 79,777 |
 | prices | 0 | 17,723 | 0 | 17,723 |
+| public sector | 0 | 0 | 27 | 10,380 |
+| social | 0 | 12,801 | 552 | 349,225 |
+| trade | 0 | 40,613 | 7,004 | 428,500 |
 
 A value at or below zero in a series whose transform is `log` is left out of the memory number and nowhere else.
 
@@ -91,6 +120,38 @@ A value at or below zero in a series whose transform is `log` is left out of the
  "indices": {},
  "prices": {
   "ISO3 codes with no Natural Earth match (set aside)": []
+ },
+ "wdi": {
+  "aggregate and unclassified codes in the data file (dropped)": 48,
+  "country codes with no Natural Earth match (set aside)": [
+   "CHI",
+   "XKX"
+  ],
+  "dropped by licence (not CC BY-4.0 in the series file)": 9,
+  "dropped by the count rule after the licence": 880,
+  "dropped by the count rule alone (100 countries with 30 yearly values; any licence)": 885,
+  "indicators in the series file": 1498,
+  "indicators kept": 609,
+  "kept by domain": {
+   "economy": 242,
+   "education": 21,
+   "environment": 107,
+   "finance": 20,
+   "health": 108,
+   "infrastructure": 9,
+   "public sector": 2,
+   "social": 52,
+   "trade": 48
+  },
+  "kept by kind and transform": {
+   "index/none": 9,
+   "level/log": 122,
+   "level/log1p": 99,
+   "level/none": 77,
+   "rate/none": 302
+  },
+  "values in those codes (dropped)": 1539985,
+  "values in those codes (set aside)": 23771
  }
 }
 ```
@@ -106,4 +167,9 @@ A value at or below zero in a series whose transform is `log` is left out of the
 - **Conflict: 0.9% of events fall outside every country shape** and are set aside; a country-month with no event has no row.
 - **The climate files run well beyond the years the earlier tests used** (the sunspot series from 1749, the ocean indices from 1870, most to 2026); the table keeps every month the file holds. The manifest's "1950 to 2024" describes the window those tests used.
 - **Prices**: 35 of the file's 37 countries have a staple price as collected. Values are in each country's own currency, so levels are not comparable between countries until they are brought to each series' own past.
+- **World Development Indicators (added 2026-11-11): 609 of 1,498 indicators kept, by a count rule.** Kept: licence `CC BY-4.0` in the series file (9 dropped: 6 SIPRI terms, 3 CC BY 3.0 IGO) and at least 100 countries (of those that map to the table's places) each with at least 30 yearly values (880 of the 1,489 licensed indicators dropped; 885 fail the count rule whatever their licence). 215 places carry values; 217 country rows in the Bank's country file, of which the Channel Islands and Kosovo have no Natural Earth match and are set aside (23,771 values); 48 regional and income aggregates (1,539,985 values) are dropped; the file's `INX` code has no values.
+- **WDI domains follow the first part of the Bank's topic, as the brief said.** Thirteen first parts became nine domains (economic policy and debt is economy, private sector and trade and trade are trade, gender and social protection are social, policy and institutions is public sector; none of the kept indicators has a topic that fits no domain). So **population is not a domain**: the 64 kept indicators whose topic names population sit under health, and the 23 under energy production and use sit under environment.
+- **WDI kind and transform follow the name and unit text and the lowest value**: shares, rates and ratios (a percent sign, "per 1,000", rate, growth, ratio, share) are `rate`, `none`; indices and scores are `index`, `none`; the rest are quantities, `level` with `log` if every value is above zero, `log1p` if the lowest is zero, `none` if any is negative (302 rate, 9 index, 122 log, 99 log1p, 77 none). None is `count`: this page fills the months with no row with zero for count series only, and a missing year in a World Development Indicator is not a zero. The unit is the bracket that ends the name, else the series file's unit of measure; the bracket is sometimes not a unit ("GPI", "GDP").
+- **WDI figures carry no flag here**, though many are estimates or gap-filled by the Bank or UN agencies; the file's footnotes are not used. The newest years are thin: 100,646 values in 2023, 89,512 in 2024, 57,622 in 2025, among the kept series. Education (16.5%), trade (7.2%) and infrastructure (9.0%) have the most missing inside their spans.
+- **The memory of the World Development Indicators is that of trending levels** (median 0.97, lower quartile 0.85): a description of each series, not a measure of anything predictable.
 - **Values at or below zero under a `log` transform** are the 85 zero yields; area and production, which hold many zeros, carry `log1p`.

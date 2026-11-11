@@ -27,6 +27,11 @@ FAO_YIELD, FAO_AREA, FAO_PRODUCTION = "5412", "5312", "5510"
 FAO_ELEMENTS = {FAO_YIELD: ("yield", "kg/ha", "log", "harvested production per hectare harvested"), FAO_AREA: ("area_harvested", "ha", "log1p", "area harvested"), FAO_PRODUCTION: ("production", "t", "log1p", "production")}
 FAO_FLAGS = {"A": "official", "E": "estimated", "I": "imputed"}  # M never carries a value; X and anything else is "other"
 STAPLES = ("maize", "millet", "rice", "sorghum", "wheat", "wheat_flour")  # the plain price columns of prices.py: prices as collected
+WDI_LICENCE, WDI_COUNTRIES, WDI_YEARS = "CC BY-4.0", 100, 30  # the series file's own spelling; an indicator is kept with this many countries each holding this many yearly values
+WDI_DOMAINS = {"economic policy & debt": "economy", "health": "health", "social protection & labor": "social", "education": "education", "private sector & trade": "trade", "environment": "environment",
+               "public sector": "public sector", "financial sector": "finance", "infrastructure": "infrastructure", "poverty": "poverty", "trade": "trade", "gender": "social", "policy & institutions": "public sector"}
+WDI_RATE = re.compile(r"%|percent|\bper [\d,]+|\bratio\b|\brate\b|\bgrowth\b|\bshare\b|\bproportion\b")  # per capita, per hectare and the like are quantities, not rates
+WDI_INDEX = re.compile(r"\bindex\b|\bscore\b|\bscale\b|\brating\b|\bdistance to frontier\b")
 CLIMATE_UNITS = {"qbo.50mb.data": "m/s", "qbo.data": "m/s", "sunspot.long.data": "count", "tornado.us.mon.data": "count"}
 
 
@@ -269,6 +274,64 @@ def prices(csv, countries):
     series = [series_row(f"rtfp:{s}:median_market", "rtfp", "prices", f"Price of {s.replace('_', ' ')} as collected: the median over the country's markets with a price that month", "local currency per unit as collected (currency differs by country)", "level", "log", "country", "month", licence(m, "rtfp")) for s in STAPLES]
     tables = [obs_table(f"rtfp:{s}:median_market", [iso[r[0]] for r in got if r[1] == s], [r[2] for r in got if r[1] == s], [r[3] for r in got if r[1] == s]) for s in STAPLES]
     return Part(series, pa.concat_tables(tables), {}, {"ISO3 codes with no Natural Earth match (set aside)": unmapped})
+
+
+def wdi_unit(name, measure):
+    """An indicator's unit: the bracket that ends its name, else the series file's unit of measure, else 'as published'."""
+    m = re.search(r"\(([^()]*)\)\s*$", name)
+    return m.group(1) if m else (measure or "as published")
+
+
+def wdi_shape(name, unit, lowest):
+    """(kind, transform) of an indicator from its name and unit text and its lowest value: rates and shares and indices are taken as they are (`none`); a quantity is `log` if every value is above zero, `log1p` if none is below zero, else `none`. Never `count`: a missing year is not a zero."""
+    text = f"{name} {unit}".lower()
+    if WDI_INDEX.search(text):
+        return "index", "none"
+    if WDI_RATE.search(text):
+        return "rate", "none"
+    return "level", "log" if lowest > 0 else "log1p" if lowest == 0 else "none"
+
+
+def wdi(data_csv, series_csv, country_csv, countries, min_countries=WDI_COUNTRIES, min_years=WDI_YEARS):
+    """World Development Indicators by country and year: countries only (the country file gives a region to countries and none to aggregates), ISO3 matched to Natural Earth's codes. An indicator is kept if its licence is CC BY-4.0 in the series file and `min_countries` mapped countries each have `min_years` yearly values; the counts kept and dropped by each condition go in the notes."""
+    iso = {i: c for c, d in countries.items() for i in d["iso"]}
+    con = duckdb.connect()
+    con.execute("set threads=3")
+    for name, path in (("cn", country_csv), ("sr", series_csv), ("d", data_csv)):
+        con.execute(f"create view {name} as select * from read_csv('{path}', header=true, all_varchar=true)")
+    con.register("isomap", pa.table({"code": list(iso), "m49": [iso[k] for k in iso]}))
+    years = [r[0] for r in con.execute("select column_name from (describe d) where regexp_matches(column_name, '^[0-9]{4}$') order by 1").fetchall()]
+    con.execute("create table c as select \"Country Code\" as code, \"Short Name\" as name from cn where coalesce(Region, '') <> ''")
+    cast = ", ".join(f'try_cast("{y}" as double) as "{y}"' for y in years)
+    con.execute(f"""create table va as select ind, cc, cast(year as int) as year, v from (unpivot (select "Indicator Code" as ind, "Country Code" as cc, {cast} from d)
+        on {", ".join(f'"{y}"' for y in years)} into name year value v) where v is not null""")
+    con.execute("create table v as select va.ind, m.m49 as place, va.year, va.v from va join c on c.code = va.cc join isomap m on m.code = va.cc")
+    con.execute("create table meta as select \"Series Code\" as ind, \"Indicator Name\" as name, Topic as topic, \"Unit of measure\" as measure, \"License Type\" as lic from sr")
+    con.execute(f"""create table enough as select ind from (select ind, place from v group by 1, 2 having count(*) >= {min_years}) group by 1 having count(*) >= {min_countries}""")
+    con.execute(f"create table kept as select m.*, (select min(v) from v where v.ind = m.ind) as lowest from meta m where lic = '{WDI_LICENCE}' and ind in (select ind from enough) order by ind")
+    one = lambda q: con.execute(q).fetchone()[0]
+    unmapped = sorted(r[0] for r in con.execute("select code from c where code not in (select code from isomap)").fetchall())
+    series, kinds, domains = [], {}, {}
+    m = manifest()
+    for ind, name, topic, measure, lowest in con.execute("select ind, name, topic, measure, lowest from kept").fetchall():
+        first = (topic or "").split(":")[0].strip().lower()
+        domain = WDI_DOMAINS.get(first) or slug(first) or "other"
+        unit = wdi_unit(name, measure)
+        kind, transform = wdi_shape(name, unit, lowest)
+        kinds[f"{kind}/{transform}"] = kinds.get(f"{kind}/{transform}", 0) + 1
+        domains[domain] = domains.get(domain, 0) + 1
+        series.append(series_row(f"wdi:{ind}", "wdi", domain, name, unit, kind, transform, "country", "year", licence(m, "wdi")))
+    obs = con.sql("select 'wdi:' || ind as series_id, place as place_id, cast(year as varchar) as period, v as value, null as flag from v where ind in (select ind from kept) order by series_id, place_id, period").to_arrow_table()
+    notes = {"indicators in the series file": one("select count(*) from meta"),
+             "dropped by licence (not CC BY-4.0 in the series file)": one(f"select count(*) from meta where coalesce(lic, '') <> '{WDI_LICENCE}'"),
+             f"dropped by the count rule alone ({min_countries} countries with {min_years} yearly values; any licence)": one("select count(*) from meta where ind not in (select ind from enough)"),
+             "dropped by the count rule after the licence": one(f"select count(*) from meta where lic = '{WDI_LICENCE}' and ind not in (select ind from enough)"),
+             "indicators kept": one("select count(*) from kept"), "kept by domain": dict(sorted(domains.items())), "kept by kind and transform": dict(sorted(kinds.items())),
+             "aggregate and unclassified codes in the data file (dropped)": one("select count(distinct cc) from va where cc not in (select code from c)"),
+             "values in those codes (dropped)": one("select count(*) from va where cc not in (select code from c)"),
+             "country codes with no Natural Earth match (set aside)": unmapped, "values in those codes (set aside)": one("select count(*) from va where cc in (select code from c where code not in (select code from isomap))")}
+    names = dict(con.execute("select m.m49, c.name from c join isomap m on m.code = c.code order by 1").fetchall())
+    return Part(series, obs.cast(OBS_SCHEMA), names, notes)
 
 
 def write_part(name, part):

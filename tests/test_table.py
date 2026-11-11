@@ -144,3 +144,71 @@ def test_series_ids_are_stable_names_of_source_what_and_detail(tmp_path):
     ids = sorted(s["series_id"] for s in table.faostat(tmp_path / "f.csv").series)
     assert ids == sorted(ids) and all(i.count(":") == 2 for i in ids)
     assert pa.types.is_floating(table.OBS_SCHEMA.field("value").type)
+
+
+WDI_YEARS = ("2000", "2001", "2002", "2003")
+
+
+def wdi_files(tmp_path):
+    """A tiny World Development Indicators set: two mapped countries, one with no Natural Earth match, one aggregate; six indicators."""
+    row = lambda cc, code, vals: f'"{cc} name","{cc}","{code} name","{code}",' + ",".join(f'"{v}"' if v != "" else "" for v in vals)
+    data = [",".join(['"Country Name"', '"Country Code"', '"Indicator Name"', '"Indicator Code"'] + list(WDI_YEARS))]
+    for cc in ("AAA", "BBB", "CCC", "WLD"):
+        data += [row(cc, "X.LVL", (1, 2, 3, 4)), row(cc, "X.RAT", ("", 5, 6, 7)), row(cc, "X.ZERO", (0, 2, 3, "")), row(cc, "X.NEG", (-1, 2, 3, 4))]
+        data.append(row(cc, "X.FEW", (1, 2, 3, 4) if cc == "AAA" else ("", "", "", "")))
+        data.append(row(cc, "X.LIC", (1, 2, 3, 4)))
+    (tmp_path / "d.csv").write_text("\n".join(data) + "\n")
+    head = "Series Code,Topic,Indicator Name,Unit of measure,License Type"
+    series = [("X.LVL", "Economic Policy & Debt: National accounts", "GDP (current US$)", "Current US$", "CC BY-4.0"), ("X.RAT", "Health: Mortality", "Mortality (per 1,000 people)", "", "CC BY-4.0"),
+              ("X.ZERO", "Environment: Energy", "Wells (number)", "Number", "CC BY-4.0"), ("X.NEG", "Poverty", "Balance of things", "", "CC BY-4.0"),
+              ("X.FEW", "Trade", "Few", "", "CC BY-4.0"), ("X.LIC", "Trade", "Licensed otherwise", "", "SIPRI terms and conditions")]
+    (tmp_path / "s.csv").write_text(head + "\n" + "\n".join(",".join(f'"{c}"' for c in r) for r in series) + "\n")
+    (tmp_path / "c.csv").write_text("Country Code,Short Name,Region\nAAA,Alpha,Europe\nBBB,Beta,Asia\nCCC,Gamma,Asia\nWLD,World,\n")
+    return tmp_path / "d.csv", tmp_path / "s.csv", tmp_path / "c.csv"
+
+
+@pytest.fixture
+def wdi_part(tmp_path, monkeypatch):
+    monkeypatch.setattr(table, "manifest", lambda: {"wdi": {"licence": "CC BY 4.0"}})
+    d, s, c = wdi_files(tmp_path)
+    return table.wdi(d, s, c, COUNTRIES, min_countries=2, min_years=3)
+
+
+def test_wdi_gives_country_rows_only_and_drops_aggregates_and_unmatched_codes(wdi_part):
+    got = table_of(wdi_part)
+    assert {k[1] for k in got} == {"001", "002"}
+    assert got[("wdi:X.LVL", "001", "2002")] == (3.0, None) and ("wdi:X.RAT", "001", "2000") not in got
+    n = wdi_part.notes
+    assert n["country codes with no Natural Earth match (set aside)"] == ["CCC"] and n["aggregate and unclassified codes in the data file (dropped)"] == 1
+    assert wdi_part.names == {"001": "Alpha", "002": "Beta"}
+
+
+def test_wdi_count_rule_and_licence_are_applied_and_counted(wdi_part):
+    assert [s["series_id"] for s in wdi_part.series] == ["wdi:X.LVL", "wdi:X.NEG", "wdi:X.RAT", "wdi:X.ZERO"]
+    n = wdi_part.notes
+    assert n["indicators in the series file"] == 6 and n["dropped by licence (not CC BY-4.0 in the series file)"] == 1 and n["indicators kept"] == 4
+    assert n["dropped by the count rule after the licence"] == 1  # X.FEW: one country with enough values
+    assert n["dropped by the count rule alone (2 countries with 3 yearly values; any licence)"] == 1
+
+
+def test_wdi_series_rows_take_domain_unit_kind_and_transform_by_rule(wdi_part):
+    by_id = {s["series_id"]: s for s in wdi_part.series}
+    row = lambda i: (by_id[i]["domain"], by_id[i]["unit"], by_id[i]["kind"], by_id[i]["transform"], by_id[i]["place_level"], by_id[i]["period"])
+    assert row("wdi:X.LVL") == ("economy", "current US$", "level", "log", "country", "year")
+    assert row("wdi:X.RAT") == ("health", "per 1,000 people", "rate", "none", "country", "year")
+    assert row("wdi:X.ZERO") == ("environment", "number", "level", "log1p", "country", "year")
+    assert row("wdi:X.NEG") == ("poverty", "as published", "level", "none", "country", "year")
+    assert by_id["wdi:X.LVL"]["measures"] == "GDP (current US$)" and all(s["source"] == "wdi" and s["licence"] == "CC BY 4.0" for s in by_id.values())
+    assert set(wdi_part.obs["flag"].to_pylist()) == {None}
+
+
+def test_a_second_wdi_build_gives_identical_tables(tmp_path, monkeypatch):
+    monkeypatch.setattr(table, "manifest", lambda: {"wdi": {"licence": "L"}})
+    monkeypatch.setattr(table, "PARTS", tmp_path / "parts")
+    d, s, c = wdi_files(tmp_path)
+    for out in ("one", "two"):
+        table.write_part("wdi", table.wdi(d, s, c, COUNTRIES, min_countries=2, min_years=3))
+        table.assemble(table.PARTS, tmp_path / out, COUNTRIES)
+    for t in ("series", "place", "obs"):
+        assert pq.read_table(tmp_path / "one" / f"{t}.parquet").equals(pq.read_table(tmp_path / "two" / f"{t}.parquet"))
+    assert pq.read_table(tmp_path / "one" / "obs.parquet").num_rows == 2 * (4 + 3 + 3 + 4)
