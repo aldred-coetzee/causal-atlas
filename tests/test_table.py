@@ -212,3 +212,74 @@ def test_a_second_wdi_build_gives_identical_tables(tmp_path, monkeypatch):
     for t in ("series", "place", "obs"):
         assert pq.read_table(tmp_path / "one" / f"{t}.parquet").equals(pq.read_table(tmp_path / "two" / f"{t}.parquet"))
     assert pq.read_table(tmp_path / "one" / "obs.parquet").num_rows == 2 * (4 + 3 + 3 + 4)
+
+
+CP_HEAD = '"Area Code","Area Code (M49)","Area","Item Code","Item","Element Code","Element","Months Code","Months","Year Code","Year","Unit","Value","Flag","Note"'
+PE_HEAD = '"Area Code","Area Code (M49)","Area","Element Code","Element","ISO Currency Code","Currency","Year Code","Year","Months Code","Months","Unit","Value","Flag"'
+
+
+def cp_file(path):
+    rows = [  # area code, m49, area, item code, item, element, months code, year, unit, value, flag
+        (1, "'001", "Alpha", 23012, "Consumer Prices, General Indices (2015 = 100)", 6125, 7001, 2000, "", "100.5", "A"), (1, "'001", "Alpha", 23012, "Consumer Prices, General Indices (2015 = 100)", 6125, 7012, 2000, "", "104", "E"),
+        (1, "'001", "Alpha", 23012, "Consumer Prices, General Indices (2015 = 100)", 6125, 7021, 2000, "", "102", "I"), (1, "'001", "Alpha", 23012, "Consumer Prices, General Indices (2015 = 100)", 6125, 7002, 2000, "", "", "L"),
+        (3, "'002", "Beta", 23014, "Food price inflation", 6121, 7003, 2001, "%", "-2.5", "E"), (3, "'002", "Beta", 23012, "Consumer Prices, General Indices (2015 = 100)", 6125, 7003, 2001, "", "50", "X"),
+        (5200, "'002", "Americas", 23012, "Consumer Prices, General Indices (2015 = 100)", 6125, 7001, 2000, "", "9", "A"),  # a group, with a country's code
+        (5200, "'002", "Americas", 230122, "Consumer Prices, General Indices (2015 = 100), median", 6125, 7001, 2000, "", "9", "A"),
+        (77, "'999", "Nowhere", 23012, "Consumer Prices, General Indices (2015 = 100)", 6125, 7001, 2000, "", "7", "A")]
+    path.write_text(CP_HEAD + "\n" + "\n".join(f'{a},"{m}","{n}",{ic},"{it}",{e},"Value",{mc},"x",{y},{y},"{u}",{v},{f},' for a, m, n, ic, it, e, mc, y, u, v, f in rows) + "\n", encoding="utf-8")
+
+
+def pe_file(path):
+    rows = [  # area code, m49, area, element, currency, year, months code, value, flag
+        (1, "'001", "Alpha", "LCU", "AAA", 2000, 7001, "10", "X"), (1, "'001", "Alpha", "LCU", "AAA", 2000, 7002, "", "L"), (1, "'001", "Alpha", "LCU", "AAA", 2000, 7021, "11", "A"),
+        (1, "'001", "Alpha", "SLC", "AAB", 2000, 7021, "0.011", "X"), (3, "'002", "Beta", "LCU", "BBA", 1992, 7021, "1000", "X"), (3, "'002", "Beta", "LCU", "BBB", 1992, 7021, "1", "X"),
+        (3, "'002", "Beta", "LCU", "BBB", 1993, 7021, "1.5", "X"), (77, "'999", "Nowhere", "LCU", "NNN", 2000, 7001, "3", "X")]
+    path.write_text(PE_HEAD + "\n" + "\n".join(f'{a},"{m}","{n}","{e}","x","{c}","x",{y},{y},{mc},"x","",{v},{f}' for a, m, n, e, c, y, mc, v, f in rows) + "\n", encoding="utf-8")
+
+
+@pytest.fixture
+def price_parts(tmp_path, monkeypatch):
+    monkeypatch.setattr(table, "manifest", lambda: {"faostat_cp": {"licence": "LC"}, "faostat_pe": {"licence": "LE"}})
+    cp_file(tmp_path / "cp.csv")
+    pe_file(tmp_path / "pe.csv")
+    return table.faostat_cp(tmp_path / "cp.csv", COUNTRIES), table.faostat_pe(tmp_path / "pe.csv", COUNTRIES)
+
+
+def test_faostat_cp_puts_months_and_the_year_in_their_own_series_and_keeps_the_flag(price_parts):
+    cp = price_parts[0]
+    g = "faostat_cp:consumer_prices_general_indices"
+    assert table_of(cp) == {(g, "001", "2000-01"): (100.5, "official"), (g, "001", "2000-12"): (104.0, "estimated"), (g + ":year", "001", "2000"): (102.0, "imputed"),
+                            (g, "002", "2001-03"): (50.0, "other"), ("faostat_cp:food_price_inflation", "002", "2001-03"): (-2.5, "estimated")}
+    by_id = {s["series_id"]: s for s in cp.series}
+    assert sorted(by_id) == [g, g + ":year", "faostat_cp:food_price_inflation"]
+    assert [by_id[g][k] for k in ("domain", "unit", "kind", "transform", "period", "licence")] == ["prices", "index (2015 = 100)", "level", "log", "month", "LC"]
+    assert by_id[g + ":year"]["period"] == "year" and by_id["faostat_cp:food_price_inflation"]["transform"] == "none" and by_id["faostat_cp:food_price_inflation"]["kind"] == "rate"
+
+
+def test_faostat_cp_drops_groups_sets_aside_unmatched_areas_and_counts_them(price_parts):
+    cp = price_parts[0]
+    assert {k[1] for k in table_of(cp)} == {"001", "002"} and cp.names == {"001": "Alpha", "002": "Beta"}
+    n = cp.notes
+    assert n["rows of groups of countries (area code 5000 or more; dropped)"] == 2 and n["rows with no value (flagged L)"] == 1
+    assert n["areas with no Natural Earth match (set aside; rows)"] == {"Nowhere": 1} and n["rows in the file"] == 9
+
+
+def test_faostat_pe_gives_months_and_years_by_element_and_sets_aside_two_currencies(price_parts):
+    pe = price_parts[1]
+    assert table_of(pe) == {("faostat_pe:lcu", "001", "2000-01"): (10.0, "other"), ("faostat_pe:lcu:year", "001", "2000"): (11.0, "official"), ("faostat_pe:slc:year", "001", "2000"): (0.011, "other"),
+                            ("faostat_pe:lcu:year", "002", "1993"): (1.5, "other")}
+    by_id = {s["series_id"]: s for s in pe.series}
+    assert all(s["domain"] == "finance" and s["kind"] == "level" and s["transform"] == "log" for s in by_id.values()) and by_id["faostat_pe:lcu"]["period"] == "month"
+    assert pe.notes["rows in two currencies for one country and period (set aside)"] == 2 and pe.notes["rows with no value (flagged L)"] == 1
+    assert pe.notes["areas with no Natural Earth match (set aside; rows)"] == {"Nowhere": 1}
+
+
+def test_a_second_faostat_prices_build_gives_identical_tables(tmp_path, monkeypatch, price_parts):  # price_parts writes the files and sets the licences
+    monkeypatch.setattr(table, "PARTS", tmp_path / "parts")
+    for out in ("one", "two"):
+        table.write_part("faostat_cp", table.faostat_cp(tmp_path / "cp.csv", COUNTRIES))
+        table.write_part("faostat_pe", table.faostat_pe(tmp_path / "pe.csv", COUNTRIES))
+        table.assemble(table.PARTS, tmp_path / out, COUNTRIES)
+    for t in ("series", "place", "obs"):
+        assert pq.read_table(tmp_path / "one" / f"{t}.parquet").equals(pq.read_table(tmp_path / "two" / f"{t}.parquet"))
+    assert pq.read_table(tmp_path / "one" / "obs.parquet").num_rows == 9

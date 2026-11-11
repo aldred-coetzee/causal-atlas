@@ -139,6 +139,70 @@ def faostat(csv, countries_unused=None):
     return Part(series, t.cast(OBS_SCHEMA), names, notes)
 
 
+def fao_price_rows(csv, countries, key, extra=""):
+    """The rows of one FAOSTAT price file (consumer prices, or exchange rates) as a DuckDB table `r` (series key, M49 code, area, year, months code, value, flag, plus `extra` columns) with the rows set aside counted: no value, groups of countries (area code 5000 or more, or no Natural Earth match), the China total, a months code that is neither a month nor the year. `key` is the SQL for the series key. Returns (con, notes)."""
+    con = duckdb.connect()
+    con.execute("set threads=3")
+    con.execute(f"create view f as select * from read_csv('{csv}', header=true, all_varchar=true, encoding='utf-8')")
+    con.execute(f"""create table a as select {key} as k, replace("Area Code (M49)", '''', '') as m49, try_cast("Area Code" as int) as code, Area as area, Year as y, "Months Code" as mc,
+        try_cast(Value as double) as v, Flag as flag{extra} from f""")
+    con.register("ne", pa.table({"m49": sorted(countries)}))
+    totals = ", ".join(f"'{t}'" for t in TOTALS)
+    one = lambda q: con.execute(q).fetchone()[0]
+    notes = {"rows in the file": one("select count(*) from a"), "rows with no value (flagged L)": one("select count(*) from a where v is null")}
+    con.execute("create table b as select * from a where v is not null")
+    notes["rows of groups of countries (area code 5000 or more; dropped)"] = one("select count(*) from b where code >= 5000")
+    con.execute(f"create table c as select * from b where code < 5000 and m49 not in ({totals})")
+    notes["rows of the China total (dropped)"] = one(f"select count(*) from b where code < 5000 and m49 in ({totals})")
+    unmatched = con.execute("select area, count(*) from c where m49 not in (select m49 from ne) group by 1 order by 1").fetchall()
+    notes["areas with no Natural Earth match (set aside; rows)"] = dict(unmatched)
+    con.execute("create table d as select * from c where m49 in (select m49 from ne)")
+    notes["rows with a months code that is neither a month nor the year (set aside)"] = one("select count(*) from d where mc not in ('7021') and try_cast(mc as int) not between 7001 and 7012")
+    con.execute("create table r as select * from d where mc = '7021' or try_cast(mc as int) between 7001 and 7012")
+    return con, notes
+
+
+def fao_price_part(con, notes, source, domain, describe):
+    """A Part from the table `r` of fao_price_rows: one series for each series key with rows for named months (period `YYYY-MM`) and one `:year` series for the same key if the file has rows marked as the year's value. `describe` gives (slug, measures text, unit, kind, transform) for a key."""
+    m = manifest()
+    keys = [r[0] for r in con.execute("select distinct k from r order by 1").fetchall()]
+    info = {k: describe(k) for k in keys}
+    con.register("km", pa.table({"k": keys, "slug": [info[k][0] for k in keys]}))
+    steps = con.execute("select k, mc = '7021' as yearly, count(*) from r group by 1, 2 order by 1, 2").fetchall()
+    series = [series_row(f"{source}:{info[k][0]}{':year' if yearly else ''}", source, domain, info[k][1] + (", the year's value" if yearly else ", by month"), *info[k][2:], "country", "year" if yearly else "month", licence(m, source)) for k, yearly, _ in steps]
+    flags = "case " + " ".join(f"when flag = '{k}' then '{v}'" for k, v in FAO_FLAGS.items()) + " else 'other' end"
+    period = "case when mc = '7021' then y else y || '-' || lpad(cast(cast(mc as int) - 7000 as varchar), 2, '0') end"
+    t = con.sql(f"""select '{source}:' || km.slug || case when mc = '7021' then ':year' else '' end as series_id, m49 as place_id, {period} as period, v as value, {flags} as flag
+        from r join km using (k) order by series_id, place_id, period""").to_arrow_table()
+    names = dict(con.execute("select m49, min(area) from r group by 1 order by 1").fetchall())
+    return Part(series, t.cast(OBS_SCHEMA), names, notes)
+
+
+def faostat_cp(csv, countries):
+    """FAOSTAT consumer price indices and food price inflation by country and month (and by year if the file has the year's value), for the items that have country rows; the base year (2015) is in the unit text and the whole series is rescaled when FAO changes it."""
+    con, notes = fao_price_rows(csv, countries, '"Item Code"', ', Item as item, Unit as unit')
+    names = {k: (i, u) for k, i, u in con.execute("select k, any_value(item), any_value(unit) from r group by 1").fetchall()}
+
+    def describe(k):
+        item, unit = names[k]
+        base = re.search(r"\(([^()]*)\)", item)
+        rate = "inflation" in item.lower() or unit == "%"
+        return (slug(re.sub(r"\([^()]*\)", "", item)), f"{item} (FAOSTAT item {k})", "percent" if rate else f"index ({base.group(1)})" if base else "as published", "rate" if rate else "level", "none" if rate else "log")
+
+    return fao_price_part(con, notes, "faostat_cp", "prices", describe)
+
+
+def faostat_pe(csv, countries):
+    """FAOSTAT official exchange rates by country and month (and by year): local currency units per US dollar (`lcu`, as the country's currency was that month) and standard local currency units (`slc`, restated in the current currency; the file has it by year only). A country-element-period with rows in two currencies is ambiguous and is set aside and counted."""
+    con, notes = fao_price_rows(csv, countries, '"Element Code"', ', "ISO Currency Code" as cur')
+    con.execute("create table two as select k, m49, y, mc from r group by all having count(distinct cur) > 1")
+    notes["rows in two currencies for one country and period (set aside)"] = con.execute("select count(*) from r join two using (k, m49, y, mc)").fetchone()[0]
+    con.execute("create or replace table r as select * from r where (k, m49, y, mc) not in (select (k, m49, y, mc) from two)")
+    text = {"LCU": ("lcu", "Official exchange rate: local currency units per US dollar, in the currency of the period"), "SLC": ("slc", "Official exchange rate: standard local currency units per US dollar, restated in the country's current currency")}
+    unit = {"LCU": "local currency units per US dollar", "SLC": "standard local currency units per US dollar"}
+    return fao_price_part(con, notes, "faostat_pe", "finance", lambda k: (text[k][0], f"{text[k][1]} (FAOSTAT element {k})", unit[k], "level", "log"))
+
+
 def drought_obs(x, codes, first_year):
     """Observations of the drought series from the array yields.drought gives (countries by months from January of first_year): every finite value, with the country's code."""
     ps, pl, pr, vs = [], [], [], []

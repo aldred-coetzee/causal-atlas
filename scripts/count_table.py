@@ -26,6 +26,8 @@ NOTES = """## What the first count showed
 - **WDI kind and transform follow the name and unit text and the lowest value**: shares, rates and ratios (a percent sign, "per 1,000", rate, growth, ratio, share) are `rate`, `none`; indices and scores are `index`, `none`; the rest are quantities, `level` with `log` if every value is above zero, `log1p` if the lowest is zero, `none` if any is negative (302 rate, 9 index, 122 log, 99 log1p, 77 none). None is `count`: this page fills the months with no row with zero for count series only, and a missing year in a World Development Indicator is not a zero. The unit is the bracket that ends the name, else the series file's unit of measure; the bracket is sometimes not a unit ("GPI", "GDP").
 - **WDI figures carry no flag here**, though many are estimates or gap-filled by the Bank or UN agencies; the file's footnotes are not used. The newest years are thin: 100,646 values in 2023, 89,512 in 2024, 57,622 in 2025, among the kept series. Education (16.5%), trade (7.2%) and infrastructure (9.0%) have the most missing inside their spans.
 - **The memory of the World Development Indicators is that of trending levels** (median 0.97, lower quartile 0.85): a description of each series, not a measure of anything predictable.
+- **FAOSTAT consumer prices and exchange rates (added 2026-11-11): six series, 332,489 values, by month.** `faostat_cp` holds the general and the food consumer price index (2015 = 100) and the food price inflation (percent), months only (the file has no year's-value rows), 2000-01 to 2026-06 (inflation from 2001), in 202 places; the file's weighted-average and median items are for groups of countries only and give no series. `faostat_pe` holds the official exchange rate in local currency units per US dollar by month (1970-01 to 2026-07) and by year, and the standard local currency element by year only (the restatement of old years in the current currency), in 221 places. Dropped or set aside, all counted in the notes above: 73,476 group rows in the price file (area codes 5000 and over), 111 rows with no value (flag L), the places with no Natural Earth match (Sub-Saharan Africa, a group with a low code, and French Guiana, Guadeloupe, Martinique, Mayotte, Netherlands Antilles, Reunion, the ended Czechoslovakia, Sudan (former) and Yugoslav SFR), and 1,342 exchange-rate rows where a country has two currencies in one period (a changeover; the level in local units is ambiguous there).
+- **FAOSTAT price flags: X is most of the values.** In the consumer price file 54% are X (from an outside organisation, kept as `other`), 32% E and 9% I, 5% official; every food inflation value is flagged E. In the exchange rate file 99.9% are X. Base year 2015 is in the unit text; FAO rescales the whole index if it changes. The two price indices and the exchange rates are levels that trend or jump at a redenomination, so their memory is near 1.00 (inflation 0.96, a description of each series and not of anything predictable). Values in the price index run from 0.67 to 2.9 trillion (the log keeps them usable), and inflation from -67% to 372,000%.
 - **Values at or below zero under a `log` transform** are the 85 zero yields; area and production, which hold many zeros, carry `log1p`.
 """
 FLAGS = ("official", "estimated", "imputed", "other", "none")
@@ -86,6 +88,15 @@ def per_series(con):
         (select median(r) from acf a where a.series_id = s.series_id) as memory from series s join sp using (series_id) group by all order by 1""").fetchall()
 
 
+def prices_alone(con):
+    """One line for each series of the two FAOSTAT price files: places, places with at least 120 monthly values, first and last period, values, share missing inside the place spans, shares of values by flag, and the median memory over its places."""
+    sources = "('faostat_cp', 'faostat_pe')"
+    rows = con.execute(f"""select s.series_id, s.period, count(*), count(*) filter (where sp.present >= 120 and s.period = 'month'), s."first", s."last", sum(sp.present), 1 - sum(sp.present) / sum(sp.expected),
+        (select median(r) from acf a where a.series_id = s.series_id) from series s join sp using (series_id) where s.source in {sources} group by all order by 1""").fetchall()
+    shares = {r[0]: r[1:] for r in con.execute(f"select series_id, {', '.join(f"avg((flag = '{f}')::int)" for f in FLAGS[:4])} from o where source in {sources} group by 1").fetchall()}
+    return [(*r[:-1], *shares[r[0]], r[-1]) for r in rows]
+
+
 def pct(x):
     return "" if x is None else f"{100 * x:.1f}%"
 
@@ -111,11 +122,13 @@ def main():
         n = places_by(con, key)
         rows = [(r[0], r[1], n[r[0]], r[2], r[3], f"{r[4]:,}", pct(r[5]), *[pct(x) for x in r[6:]]) for r in by(con, key)]
         out.append(f"## By {key}\n\n" + md((key, "series", "places", "first", "last", "values", "missing inside span", *[f"flag {f}" for f in FLAGS]), rows) + "\n")
-    out.append("The span is each place's own, first to last period it has a value. For the conflict counts a missing month means no recorded event (the source lists events, not their absence). Flags exist only in the crop source; everything else reads `none`. Places are those with at least one value in the group; `world` is one place. The 26 climate files (the ONI and the 25 others) are one source line, `candidates` holding the 25; each is listed alone in `data/table/series_description.csv`.\n")
+    out.append("The span is each place's own, first to last period it has a value. For the conflict counts a missing month means no recorded event (the source lists events, not their absence). Flags exist in the crop source and the two FAOSTAT price sources (`faostat_cp`, `faostat_pe`); everything else reads `none`. Places are those with at least one value in the group; `world` is one place. The 26 climate files (the ONI and the 25 others) are one source line, `candidates` holding the 25; each is listed alone in `data/table/series_description.csv`.\n")
     for key in ("domain", "source"):
         rows = [(r[0], r[1], num(r[2]), num(r[3]), num(r[4])) for r in memory_by(con, key)]
         out.append(f"## Memory by {key}\n\nThe correlation of a place's series with itself one period before (a year for yearly series, a month for monthly), after the log the series table names; lower quartile, median and upper quartile over the series-and-place units that have at least {LEAST_PAIRS} consecutive pairs.\n\n" + md((key, "units", "lower quartile", "median", "upper quartile"), rows) + "\n")
     out.append("Memory of a level that trends is high because of the trend alone; this is a description of each series, not a measure of anything predictable. For the conflict counts the months with no row are taken as zero for this one number.\n")
+    rows = [(r[0], r[1], r[2], r[3], r[4], r[5], f"{r[6]:,}", pct(r[7]), *[pct(x) for x in r[8:12]], num(r[12])) for r in prices_alone(con)]
+    out.append("## FAOSTAT consumer prices and exchange rates, each series alone\n\n" + md(("series", "step", "places", "places with 120+ monthly values", "first", "last", "values", "missing inside span", "flag official", "flag estimated", "flag imputed", "flag other", "memory (median over places)"), rows) + "\n\nFlag `other` is FAOSTAT's X, a figure from an outside organisation. Memory is the correlation of each place's series with itself one period before, after the log the series table names, as above.\n")
     out.append("## Values the log cannot take\n\n" + md(("domain", "log-series values at or below zero", "values of log series", "values equal to zero", "all values"), [(r[0], f"{r[1]:,}", f"{r[2]:,}", f"{r[3]:,}", f"{r[4]:,}") for r in zero]) + "\n\nA value at or below zero in a series whose transform is `log` is left out of the memory number and nowhere else.\n")
     out.append("## What the build set aside\n\n```\n" + json.dumps(notes, indent=1, sort_keys=True) + "\n```\n")
     out.append(NOTES)

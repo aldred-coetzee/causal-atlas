@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from causal_atlas import table  # noqa: E402
 from causal_atlas.panel import RAW  # noqa: E402
 
-ORDER = ("faostat", "drought", "indices", "fire", "ged", "prices", "wdi")
+ORDER = ("faostat", "drought", "indices", "fire", "ged", "prices", "wdi", "faostat_cp", "faostat_pe")
 
 
 def run(name, countries):
@@ -29,6 +29,10 @@ def run(name, countries):
         return table.prices(RAW / "rtfp" / "WLD_RTFP_mkt_2026-11-02.csv", countries)
     if name == "wdi":
         return table.wdi(RAW / "wdi" / "WDICSV.csv", RAW / "wdi" / "WDISeries.csv", RAW / "wdi" / "WDICountry.csv", countries)
+    if name == "faostat_cp":
+        return table.faostat_cp(RAW / "faostat_prices" / "cp" / "ConsumerPriceIndices_E_All_Data_(Normalized).csv", countries)
+    if name == "faostat_pe":
+        return table.faostat_pe(RAW / "faostat_prices" / "pe" / "Exchange_rate_E_All_Data_(Normalized).csv", countries)
     raise SystemExit(f"unknown source {name}; choose from {ORDER}")
 
 
