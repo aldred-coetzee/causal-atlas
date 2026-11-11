@@ -157,4 +157,31 @@ None yet.
 
 ## Result
 
+### The placebos and the known answer (all 34 runs in, 2026-11-11, 20:16 UTC)
+
+One row a run in `results/stage-b-first-read.jsonl`, each seed once; printed by `scripts/run_stage_b.py table`. Every run posted about 70,220 rows to the board, sent forty to the referee, and took six to seven minutes.
+
+| Links broken by | Runs | With any pass | Mark | Bar over forty rows: lowest, middle, highest |
+|---|---|---|---|---|
+| Places moved round | 20 | 0 | at most 2: **holds** | 3.60, 4.08, 5.24 |
+| Years moved round | 8 | 0 | at most 1: **holds** | 3.50, 3.92, 4.87 |
+
+Both marks hold, so the real read goes ahead as the rule says. What holding them shows is what the rule said beforehand and no more: a false-pass rate of a half would have been caught, a rate of one in ten would usually not have been, and the runs are rearrangements of one table.
+
+**What stopped the rows, which was not only the bar.** Of the 1,120 rows sent in the 28 placebo runs, 9 stood above the bar both ways they were read: 5 rows in 4 of the 20 runs with places moved, 4 rows in 2 of the 8 runs with years moved. None passed, because each applied in fewer than five groups or fewer than five of the scored years. Eight of the nine applied in one group in one year, where the score is a division by almost nothing (scores of 10 to the 15th and more) and means nothing. So on this table the bar by itself would have missed the first mark (4 runs against at most 2); the condition that a row applies widely is what held it. In 180 of the 1,120 rows one of the two scores could not be worked out at all, and such a row cannot pass. The referee warned of these divisions while it ran (`referee.py` lines 222 and 230, in the runs' error files); the warnings fall alike on placebo, planted and real runs, and the referee is not changed for them.
+
+**The planted links: none heard.** Six runs, nine links each, 54 links in 42 to 64 places each.
+
+| Size planted (share of the outcome's year-to-year movement) | Links | Sent to the referee by the board | Heard from the board | Passed when the answer was handed over | Size the referee gave: lowest, middle, highest | Lower of its two scores: middle, highest |
+|---|---|---|---|---|---|---|
+| 35% | 18 | 1 | 0 | 0 | -0.053, 0.050, 0.132 | 1.75, 3.00 |
+| 20% | 18 | 2 | 0 | 0 | -0.047, 0.031, 0.132 | 1.46, 2.67 |
+| 10% | 18 | 0 | 0 | 0 | -0.104, 0.002, 0.117 | 0.73, 3.18 |
+
+The bar when the answers were handed over stood between 3.87 and 5.13 in the six runs. No run had a pass that named no planted link. Every one of the 54 inputs keeps its level: one year goes with the next at 0.64 to 1.00, middle 0.90, so the count for inputs with short memory that the rule asked for is of nothing: there were none.
+
+**What this says a silence rules out: nothing of these kinds.** A steady link one year ahead, in a quarter of the places, from an input that keeps its level for years, at up to 35% of the outcome's year-to-year movement, was not heard on this table, from the board or when handed over. The referee gave the largest links a size of 5% in the middle (the share taken off the baseline's error) and scores of about half the bar. Why is not shown by these runs. The likeliest reading, not tested here, is that a place's own history already carries most of a slowly moving addition, so little is left for the input to add; a design brief on made-up tables only has been started to find out and to say what reading would hear such a link (`docs/specs/2026-11-11-parallel-helpers-fourth-wave.md`). Until then a quiet real read is a quiet read by an instrument that is known to be hard of hearing on this table, and is reported as that.
+
+### The real read
+
 Not yet read.
