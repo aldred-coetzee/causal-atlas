@@ -26,6 +26,10 @@ from the repo root, with `uv run python scripts/fetch_<name>.py`. Files land in 
 | [Mass Mobilization](#mass-mobilization-protest-data) | Protests against governments | Fetched and shaped; joins the table after the first read across it | Direct, no login | CC0 1.0 | 1990 to March 2020 | Event; kept by country and month | 15 MB | Harvard Dataverse, United States |
 | [OpenDengue](#opendengue) | Dengue cases | Fetched and shaped; joins the table after the first read across it; licence stated two ways | Direct, no login | CC BY 4.0 on the release, CC BY-SA in the makers' paper | 1955 to 2025, months from 1993 | Country, month or year | 0.3 MB (and 55 MB held) | figshare, United Kingdom; makers at LSHTM |
 | [Eurostat monthly tables](#eurostat-monthly-tables) | Unemployed persons, industrial production, retail turnover, electricity, tourist nights, air passengers, first-time asylum applicants, live births | Fetched and shaped; joins the table after the first read across it | Open API, no login | Reuse authorised with the source acknowledged | 1960 to 2026, by table | Country, month | 17 MB | Eurostat, Luxembourg |
+| [UNHCR refugee statistics](#unhcr-refugee-statistics) | Refugees and asylum seekers, by country of origin and of asylum | Fetched and shaped; joins the table after the first read across it | Open API, no key | CC BY 4.0, read in an archived copy of the terms | 1951 to 2025, thin before 1990 | Country, year | 4 MB | UNHCR |
+| [IBTrACS tropical cyclones](#ibtracs-tropical-cyclones) | Tropical cyclones: storms and strongest wind | Fetched and shaped; joins the table after the first read across it | Open download | Full and open access; public domain in the United States | 1980-01 to 2026-10 | Track point; kept by country and month | 146 MB | NOAA NCEI, United States |
+| [Ember electricity data](#ember-electricity-data) | Electricity generation, total and by six sources | Fetched and shaped; joins the table after the first read across it | Open download | CC BY 4.0 | By month 1998-12 to 2026-10 (87 places); by year 1985 to 2025 (204 places) | Country, month and year | 47 MB | Ember, United Kingdom |
+| [World Bank commodity prices](#world-bank-commodity-prices) | 70 world commodity prices | Fetched and shaped; joins the table after the first read across it; nothing from it published | Open download | CC BY 4.0 unless a price's own terms say otherwise: not settled | 1960-01 to 2026-10 | World, month | 4 MB | World Bank, United States |
 | [FAO GIEWS FPMA](#fao-giews-fpma) | Market food prices | Checked, not fetched (fallback) | Open API, no login | CC BY 4.0, third-party series excluded | 1987 to 2026 | Market, monthly, no coordinates | 4,938 series | FAO, Italy |
 | [Natural Earth](#natural-earth) | Country borders | Used, grid | Direct, no login | Public domain | Fixed release | 1:10m vector | 5 MB | Natural Earth CDN |
 | [CHIRPS v3](#chirps) | Rainfall | Checked, not used | Direct, no login | Public domain, per page | 1981 to near present, file not opened | 0.05 degree, monthly | 8.3 GiB | UCSB, USA |
@@ -219,6 +223,63 @@ from the repo root, with `uv run python scripts/fetch_<name>.py`. Files land in 
 - **No account, no key.**
 - **What is kept:** one series a table, by a rule written before any file was opened (`docs/specs/2026-11-11-parallel-helpers-second-wave.md`): the total over every breakdown; counts as counted, not seasonally adjusted; an index only where no count exists. Where the rule did not settle a choice, the cut with the most country-months: base year 2021 for the two indices, retail by value and not volume, electricity and not gas, air passengers on board and not carried. 33 to 48 places a table; the earliest begins 1960 (births), the latest 2008 (electricity, asylum).
 - **Know before use:** Europe and its neighbours only. A month with no row is nothing, not a zero. The United Kingdom stops in 2019 or 2020 in every table. Industry and retail are indices, and retail is an index of value, so prices move it. Air passengers on board count a domestic passenger at both ends and are comparable over time only from 2003. Asylum figures are rounded to the nearest 5 and their definition changed in 2014, 2021 and 2026. Germany's unadjusted unemployment begins in 2007. France's births begin in 1994 (the longer record is metropolitan France alone). Births by month overlap the Human Fertility Database's; a steward must bar the two from naming each other. Nothing here has been read against anything.
+
+## UNHCR refugee statistics
+
+- **Data:** the population endpoint of UNHCR's Refugee Population Statistics Database, <https://api.unhcr.org/population/v1/population/>, called once by country of origin and once by country of asylum, every year from 1951.
+- **Fetch:** `scripts/fetch_world_kinds.py unhcr` (the same script fetches the three sources below).
+- **Licence requires:** attribution to "UNHCR Refugee Population Statistics Database", and the address of the terms with anything shared. The datasets are "licensed under a Creative Commons Attribution International License 4.0", "Except where otherwise provided" (<https://www.unhcr.org/terms-use-datasets>). That page refuses a script, so it was read in the Internet Archive's copy of 2024-04-24; a later change would not have been seen.
+- **No account, no key.**
+- **What is kept:** four series by year, figures at the end of each year: refugees under UNHCR's mandate and asylum seekers with a case pending, each by country of origin and by country of asylum.
+- **Know before use:**
+  - **A missing year is not a zero.** The source has a row only where some figure is not zero and does not say whether a missing country-year is none or not reported. It is written as nothing.
+  - **The number of places changes with time.** Refugees by origin: 30 places in 1970, 93 in 1990, 180 in 2000. Anything read across the early years reads who reported as much as who fled.
+  - **Asylum seekers begin in 1993.** Every earlier figure is "0" in both files, read as not collected.
+  - **The same people twice.** By origin and by asylum are two cuts of one count; the World Bank's refugee indicators already held are these figures republished; Eurostat's asylum applicants become UNHCR's pending cases.
+  - **Nothing here has been read against anything.** Detail and counts: `docs/reading/sources-world-kinds.md`.
+
+## IBTrACS tropical cyclones
+
+- **Data:** NOAA's International Best Track Archive, version v04r01, the file of storms since 1980, <https://www.ncei.noaa.gov/products/international-best-track-archive>, with its technical document and column list.
+- **Fetch:** `scripts/fetch_world_kinds.py ibtracs`. The file is refreshed in place, so a later fetch will not match the checksum.
+- **Licence requires:** nothing; two citations are asked for (Knapp et al. 2010; Gahtan et al. 2024, in the manifest). "The IBTrACS data usage policy follows the World Data Center for Meteorology (WDC), which provides full and open access to the data." The page names the World Meteorological Organization's Resolution 40 as "the guide for commercial use".
+- **No account, no key.** The page offers a voluntary registration; it was not used. On United States government infrastructure; the file is held on this box.
+- **What is kept:** by country and month, the number of storms of tropical-storm strength (34 knots at their strongest) with a position inside the country, and the strongest wind at such a position; for the world, the number of such storms anywhere. Every country-month of the count is written, zero where none passed.
+- **Know before use:**
+  - **Why 1980.** The archive's own document calls it the modern era, when satellites saw nearly the whole globe; positions are less sure before.
+  - **Counting storms is not clean.** The document warns that counts "may lead to inflated or wrong numbers": agencies differ in what weak storms they record and in how they average wind. One column, the US agencies' 1-minute wind, is used everywhere.
+  - **Most of a storm's life is at sea.** 85% of positions are in no country and count only for the world. A storm that does its damage from offshore is not in a country's count.
+  - **137 of 234 places never have a storm:** series that never move.
+  - **Recent tracks are provisional** and flagged.
+  - **Nothing here has been read against anything.** Detail and counts: `docs/reading/sources-world-kinds.md`.
+
+## Ember electricity data
+
+- **Data:** Ember's monthly and yearly electricity data, <https://ember-energy.org/data/monthly-electricity-data/>; two CSV files and the methodology.
+- **Fetch:** `scripts/fetch_world_kinds.py ember`.
+- **Licence requires:** credit to Ember. "Ember content is released under a Creative Commons Attribution Licence (CC-BY-4.0)" (<https://ember-energy.org/creative-commons/>). No set form of credit is given.
+- **No account, no key.** A European source.
+- **What is kept:** generation in TWh by country: total, coal, gas, wind, solar, hydro and nuclear, by month and by year. The yearly series are kept beside the monthly because they reach back to 1985 and cover 204 places against 87. No shares, nothing per head.
+- **Know before use:**
+  - **The monthly record is thin before about 2015:** 4 places in 2000, 40 in 2015, 83 in 2019.
+  - **Months do not sum to the year,** Ember says so; monthly figures may leave out power plants that serve one factory.
+  - **Not independent of what is held.** Ember gathers from national sources, Eurostat and others; the World Bank's electricity shares and Eurostat's monthly electricity table are built from the same national statistics.
+  - **Recent months are revised;** 2025 is not yet complete.
+  - **Nothing here has been read against anything.** Detail and counts: `docs/reading/sources-world-kinds.md`.
+
+## World Bank commodity prices
+
+- **Data:** the World Bank's commodity price data (the "Pink Sheet"), <https://www.worldbank.org/en/research/commodity-markets>; the monthly and the annual workbook.
+- **Fetch:** `scripts/fetch_world_kinds.py pink`.
+- **Licence requires:** attribution in the form "The World Bank: Dataset name: Data source (if known)". The terms give CC BY 4.0 "Unless indicated otherwise in the data or indicator metadata" (<https://data.worldbank.org/summary-terms-of-use>). **Not settled:** the workbook names Bloomberg, S&P Global and Datastream among its sources, and the catalogue record that would say whether any price carries their terms could not be read. Until it is, the files are read on this box and nothing made from them is published.
+- **No account, no key.**
+- **What is kept:** 70 prices by month in nominal US dollars, each one series for the world, from 1960; one (DAP fertiliser) also by year, because its yearly record begins earlier. The one index column is left out.
+- **Know before use:**
+  - **A quote at one port or exchange,** not a price paid in any country. The local food prices already held are a different thing.
+  - **Some columns join two quotes** where the place or grade changes (beef, lamb, groundnut oil, chicken, potassium chloride, 2020 to 2024).
+  - **Two averages hold their own parts:** crude oil with Brent, Dubai and WTI; tea with its three auctions.
+  - **World series only:** one value a month for everywhere, so a link from one of them is a link to the calendar unless it differs by place.
+  - **Nothing here has been read against anything.** Detail and counts: `docs/reading/sources-world-kinds.md`.
 
 ## FAO GIEWS FPMA
 
