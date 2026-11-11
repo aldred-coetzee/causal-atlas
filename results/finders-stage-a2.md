@@ -1,6 +1,6 @@
 # The finders and the board counted: told nothing of where, what does the swarm get the referee to hear, and what does it pass falsely?
 
-**Outcome: not yet counted.**
+**Outcome (2026-11-11, counted once): every mark holds at every size of table. Where nothing predicts, 2 of 450 worlds had any pass (0.1% to 1.6%), none at 120 or 240 places. Told nothing of where, the board gets the referee to hear nearly every planted link of seven kinds at 240 places and more (52 to 60 of 60), and a third to all of them at 120. Mark 4 is not tested: the swarm rarely sends a shared path that passes. The condition for the first read across the real table is met.**
 
 Rule first, committed before any counted seed (rule 9). Stage A2 of `docs/plan-finders-and-referee.md`. Authority: decisions 0040, 0055 to 0057, 0059 to 0062. Code: `src/causal_atlas/finders.py` (the swarm and the steward), `src/causal_atlas/referee.py` (unchanged since the label's count), `scripts/run_finders.py` (which uses `scripts/run_referee.py` and `scripts/run_referee_b.py`), `synth/table_panel.py`, `synth/shared_paths.py`; tests in `tests/test_finders.py`. Seeds: `results/seed-ledger.md`. Rows: `results/finders-stage-a2.jsonl`, one a world.
 
@@ -102,4 +102,48 @@ An independent reader went through this registration, decision 0062 and the code
 
 ## Result
 
-Not yet counted.
+Counted once, 2026-11-11, 16:06 to 18:24 UTC: 1,166 worlds, each (panel, seed) read once, six processes; rows in `results/finders-stage-a2.jsonl`; `scripts/run_finders.py table` prints every table below and the ones left out here. **Every mark holds at every size. Mark 4 is not tested at any size.** The condition for Stage B is met.
+
+**Mark 1, where nothing predicts: holds.** Worlds with any pass: 0 of 180 at 120 places (0.0% to 2.0%), 0 of 180 at 240 (0.0% to 2.0%), 2 of 90 at 480 (0.3% to 7.8%); limits 15, 15 and 9. Together 2 of 450 (0.1% to 1.6%). Both passes at 480 places are single rows of the extremes family (a low tail in the series to a low event in the outcome, lifts 3.45 and 3.15), in the worlds with gaps and with a same-year tie.
+
+**Mark 2, a pass names what was planted: holds, and holds on the strictest reading.** Linked and path worlds with a pass naming nothing planted: 1 of 285 (0.0% to 1.9%), 2 of 285 (0.1% to 2.5%), 1 of 146 (0.0% to 3.8%); limits 22, 22 and 13. Three of those four passes are again tail-to-event rows; the fourth is a main component in a path world with regimes. As the reading asked, passes of a part are looked at: counting as false every world with a part pass that has under a third of its weight on the planted series gives 2, 7 and 3 worlds (1.0% to 5.0% at 240 places); counting every one with under a half gives 14, 15 and 11 (3.0% to 8.5% at 240; 3.8% to 13.1% at 480), still inside each limit. Those part passes are nearly all gathered rows in steady-link worlds: five series, one of them the planted input, which carries the row (weight 0.2). So a gathered row that passes says "something among these predicts", not that each of them does. A pair that passes with one planted series (weight 0.5) is the same case.
+
+**Mark 3, links heard from the board alone, told nothing of where: holds for every marked kind at every size.**
+
+| Kind | 120 places, of 60 | 240 places, of 60 | 480 places (share 20%), of 30 | The answer, told where: 120, 240, 480 |
+|---|---|---|---|---|
+| steady | 60 (45) | 60 (45) | 30 (25) | 60, 60, 30 |
+| threshold | 23 (20) | 58 (30) | 28 (15) | 46, 60, 30 |
+| extremes | 30 (20) | 58 (30) | 29 (15) | 36, 60, 30 |
+| two together | 27 (20) | 54 (30) | 28 (15) | 42, 58, 30 |
+| sign by place | 39 (20) | 60 (30) | 30 (15) | 60, 60, 30 |
+| many weak | 22 (20) | 52 (30) | 29 (15) | 46, 60, 30 |
+| hidden mover | 46 (20) | 59 (30) | 30 (15) | 60, 60, 30 |
+| sign that turns on a state, no mark | 5 | 23 | 9 | 3, 11, 6 |
+| from a series common to all places, no mark | 21 | 33 | 9 | 45, 46, 23 |
+
+The mark is in brackets. At 240 places and more the board hears nearly everything the referee hears when told where; at 120 places it hears a third to two thirds of threshold, extremes, pairs, sign-by-place and many-weak links, and there the finder, not the referee, is the limit (the answer passes far more often). In Stage A1 the referee told nothing of where heard 4 of 1,620. A sign that turns on a state is heard a little (more often by the board than by its own answer), and a link from a series common to all places in a third to a half of cases, with the referee able to hear three quarters: the finder is the limit there too. Threshold at 120 places (23 against 20) and many weak (22 against 20) are near the line, as said beforehand.
+
+**Mark 4: within its limit, and not tested.** Path worlds with a path's pass left unlabelled: 2 of 105, 2 of 105 and 0 of 56 (limits 10, 10, 6). A path's pair passed at all in 2, 7 and 3 worlds, under 11 at each size, so by the rule written before the count this says the swarm rarely sends a shared path that passes, and nothing about the label. Of 12 path passes, 8 carried the label; the 4 that did not are 2 at 120 places (boom, wander) and 2 at 240 (regimes). A real table's shared movements must be carried by Stage B's own baseline, as its rule has it.
+
+**Each family earns its place** by the plan's rule (best or second best for some kind at some size): slope, shape, extremes, pairs and modes are all kept. Pairs alone hears two together, shape alone the sign by place, modes alone many weak series. The second round added nothing over the first: a link was heard in round one alone as often as from the whole board, or once or twice more (fewer rows sent, a lower bar). So the board's second round is not what gets links heard here, which the plan said would be the finding if so. It matters at Stage B: the member that tries every pair is in round one and cannot run at the real table's width, so two together must be heard there through the second round's pairs, and the rehearsal says whether it is.
+
+**Beside the marks, as the reading asked.**
+
+| Worlds | Bar where rows were sent: middle (least to most) | Worlds with a bar under 2 | Rows above the bar both ways that did not pass | Sent rows' middle scored t, lift 3 to 4 / 4 to 5 / above 5 |
+|---|---|---|---|---|
+| nothing, 120 | 1.79 (0.28 to 2.77) | 119 of 180 | 4 | -0.03 / -0.09 / 0.19 |
+| nothing, 240 | 1.92 (0.50 to 3.01) | 102 of 180 | 5 | -0.04 / -0.11 / -0.08 |
+| nothing, 480 | 2.07 (1.33 to 2.86) | 37 of 90 | 5 | 0.10 / 0.26 / -0.15 |
+| path, 120 | 1.82 (0.49 to 2.79) | 69 of 105 | 6 | 0.01 / 0.01 / -0.16 |
+| path, 240 | 2.01 (1.21 to 2.94) | 50 of 105 | 9 | 0.09 / 0.25 / 0.05 |
+| path, 480 | 2.08 (1.55 to 3.03) | 24 of 56 | 12 | 0.04 / 0.08 / -0.61 |
+| link, 120 | 2.54 (1.30 to 3.32) | 7 of 180 | 68 | 0.34 / 1.19 / 2.93 |
+| link, 240 | 2.68 (1.89 to 3.22) | 3 of 180 | 69 | 0.52 / 1.50 / 3.81 |
+| link, 480 | 2.65 (2.20 to 3.16) | 0 of 90 | 38 | 0.49 / 1.21 / 3.75 |
+
+The bar is as low as the reading measured: under 2 in more than half the worlds where nothing predicts at 120 and 240 places. What kept chance out there was the rules beside the bar: 14 rows in 450 such worlds stood above the bar on both reads and were stopped, most by the check on the recent years. Where nothing predicts, a high lift on the early years says nothing about the scored years (middle t near zero in every band); where links are planted it does (near 3 to 4 above a lift of 5). Rows sent: 2 to 5 in the middle where nothing predicts, 6 to 22 with links. Near-copy passes: 25, 32 and 28, none in the worlds with a link from a common series. Of the places a heard row applies to, the middle share where the link acts is 1.00, 0.80 and 0.68: at larger tables the scan takes in places beyond the link's.
+
+**What this says, and does not.** On made-up tables of this one family, the swarm with its steward and the referee pass something false in about 1 world in 200 where nothing predicts (at most 1.6 in 100) and hear links of a fifth to a third of what an outcome's history leaves, of seven kinds, without being told where. It does not say the same of a real table (other gaps, other shared movements, groups of other sizes), nor of links of a few per cent, which is the size of every real link this project has measured. Stage B's placebos and planted links on the real series are what measure those.
+
+**Deviations.** None from the registration. The count was started in the order 240, 480, then 120 places instead of 120, 240, 480; each world is read alone under its own seed, so the order changes nothing counted. Disclosed.

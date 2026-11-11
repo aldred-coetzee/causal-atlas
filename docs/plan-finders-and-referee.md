@@ -124,6 +124,8 @@ A finder is kept if, for some kind at 20% or 35%, it is the best or second best 
 
 Not planned here. It needs Stage A's table, the data layer's counts and its own rule, committed first: which years the finders see, which the referee keeps, what is already spent, and what a silence would rule out. An independent reader before the referee's years are opened.
 
+*Since 2026-11-11:* the rule is `results/stage-b-first-read.md` (decisions 0063, 0064), the script `scripts/run_stage_b.py`, the reader's brief `docs/reviews/2026-11-11-stage-b-rule-check/brief.md`. Stage A2's condition for it is met.
+
 ## What to change, later
 
 A passed proposal says a series helps predict. Before anything is called a factor that could be changed, it needs one of: the same link holding across places and periods that differ in other ways; a natural experiment; a known mechanism. Every result carries the label of which it has. Stage A plants the hidden mover so that this difference is measured from the start: how often each finder proposes a link that predicts and would not respond to change.
@@ -140,7 +142,7 @@ The finders are one, of plain-code members, from the start (decision 0057, the o
 | A1 | made-up tables, the proposal form, the referee, the answer, tests of the test | 1M to 1.5M |
 | A1, second count | the shared-curve hole closed (decision 0060), a helper's shapes of shared path, the referee counted again | not estimated beforehand; counted and reported with its result |
 | The label | a pass marked "may be moving together" when the same proposal also stands turned round, at a lower mark, or is as strong read in the same year; not charged in the bar (decision 0061); registered in `results/finders-stage-a1c.md` and counted on fresh worlds at 120, 240 and 480 places. *Counted (2026-11-10):* both marks hold at every size; 1,669 of 1,686 shared-path passes labelled, 20 of 2,298 lead passes labelled; a lead with a path in its own pair is heard half the time and then mostly labelled | not estimated; counted and reported with its result |
-| A2 | five finders, the registered rule, the counted run, an independent reader | 1.5M to 2.5M |
+| A2 | five finders, the registered rule, the counted run, an independent reader. *Counted (2026-11-11):* every mark holds at every size; 2 of 450 worlds where nothing predicts had a pass; the board hears 52 to 60 of 60 links of each marked kind at 240 places, told nothing of where (`results/finders-stage-a2.md`) | 1.5M to 2.5M |
 | B | its own plan | not estimated |
 
 Estimates here have run low before. Tokens are counted and reported beside each result.
