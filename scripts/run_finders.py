@@ -78,6 +78,28 @@ def stands(row, w):
     return "other", None, None
 
 
+def on(row, w, i):
+    """The share of a row's weight that sits on the series of planted link i: one when it names only them, small when a wide term happens to hold one of them."""
+    if i is None:
+        return None
+    wt = np.ones(len(row["inputs"])) if row.get("weights") is None else np.asarray(row["weights"]) ** 2
+    mine = planted(w["truth"][i])
+    return round(float(sum(x for (s, _), x in zip(row["inputs"], wt) if s in mine) / wt.sum()), 3)
+
+
+def stopped(q, bar):
+    """What kept a row from passing, of the rules beside the bar: None when it passed or did not stand above the bar both ways; else the rules it failed (the check, how widely it applies, a gain, the gain without its best year)."""
+    two = [q[f] for f in rf.READS]
+    if q["passes"] or any(r["t"] is None or r["t"] <= bar for r in two):
+        return None
+    c = q[rf.CHECKS[0]]
+    why = [] if c["ok"] else ["check"]
+    why += ["wide"] if any(r["groups"] < rf.GROUPS or r["years"] < rf.YEARS for r in two) else []
+    why += ["gain"] if any(not r["s"] > 0 for r in two) else []
+    why += ["best"] if any(not r["without_best"] > 0 for r in two) else []
+    return why
+
+
 def read(w, rows, seed, answers=False):
     """One reading by the referee: the rows, with the planted links' own answers in their own places put first when `answers`, and the rows cut to keep SENT in all."""
     told = [rr.answer(t, "true") for t in w["truth"]] if answers else []
@@ -87,7 +109,8 @@ def read(w, rows, seed, answers=False):
     for r, q in zip(rows, res["proposals"][len(told):]):
         rel, link, inside = stands(r, w)
         out.append({"family": r["family"], "member": r["member"], "form": r["form"], "event": r["event"], "chosen": r["chosen"], "agree": len(r["families"]), "lift": round(r["lift"], 2), "rel": rel, "link": link,
-                    "inside": inside, "places": "all" if isinstance(r["where"], str) else int(r["where"].sum()), "passes": q["passes"], "size": q["size"], "label": q["label"]["together"] if q["label"] else None, "back": bool(q["label"]["back"]) if q["label"] else None, "same": q["label"]["same"] if q["label"] else None})
+                    "inside": inside, "on": on(r, w, link), "named": len(r["names"]), "t": [q[f]["t"] and round(q[f]["t"], 2) for f in rf.READS], "check": q[rf.CHECKS[0]]["t"] and round(q[rf.CHECKS[0]]["t"], 2), "stopped": stopped(q, res["bar"]),
+                    "places": "all" if isinstance(r["where"], str) else int(r["where"].sum()), "passes": q["passes"], "size": q["size"], "label": q["label"]["together"] if q["label"] else None, "back": bool(q["label"]["back"]) if q["label"] else None, "same": q["label"]["same"] if q["label"] else None})
     return {"bar": res["bar"], "sent": res["sent"], "passed": res["passed"], "answers": [{"link": i, "passes": q["passes"], "label": q["label"]["together"] if q["label"] else None} for i, q in enumerate(res["proposals"][: len(told)])], "rows": out}
 
 
@@ -160,6 +183,28 @@ def table():
             full = [x for r in m for x in passed(r, "full")]
             print(f"| {name} | {len(m)} | {len(links)} | {sum(bool(heard(r['board'], i)) for r, i in links)} | {sum(bool(heard(r['first'], i)) for r, i in links)} | {sum(a['passes'] for r in m for a in r['told']['answers'])} | " + ", ".join(f"{f} {n}" for f, n in fam.items() if n)
                   + f" | {sum(bool(passed(r, 'other')) for r in m)} | {sum(len(passed(r, 'copy')) for r in m)} | {sum(len(passed(r, 'part')) for r in m)} | {sum(x['label'] for x in full)} of {len(full)} | {mid([r['board']['sent'] for r in m]):.0f} | {mid([r['board']['bar'] for r in m if r['board']['sent']]):.2f} | {mid([r['seconds'] for r in m]):.0f} |")
+    print("\nBeside the marks, asked for by the independent reading before the count\n\n| Places | Worlds | Bar where rows were sent: middle (least to most) | Worlds with a bar under 2 | Rows above the bar both ways that did not pass | stopped by the check | by how widely it applies | by no gain | by its best year | Sent rows' middle scored t, lift 3 to 4 | 4 to 5 | above 5 |\n|---|---|---|---|---|---|---|---|---|---|---|---|")
+    for what in ("nothing", "path", "link"):
+        for places, _ in SIZES:
+            m = [r for n in of(what, places) for r in mine[n]]
+            bars = [r["board"]["bar"] for r in m if r["board"]["sent"]]
+            xs = [x for r in m for x in r["board"]["rows"]]
+            held = [x for x in xs if x["stopped"] is not None]
+            low = lambda x: min(x["t"]) if None not in x["t"] else float("nan")
+            band = lambda a, b: mid([low(x) for x in xs if a <= x["lift"] < b and None not in x["t"]])
+            if m:
+                print(f"| {what}, {places} | {len(m)} | {mid(bars):.2f} ({min(bars, default=float('nan')):.2f} to {max(bars, default=float('nan')):.2f}) | {sum(b < 2 for b in bars)} | {len(held)} | " + " | ".join(str(sum(k in x["stopped"] for x in held)) for k in ("check", "wide", "gain", "best")) + f" | {band(3, 4):.2f} | {band(4, 5):.2f} | {band(5, 1e9):.2f} |")
+    print("\nPasses that name a planted link in part, by family: how many, and the middle share of the row's weight on the link's series\n")
+    for places, _ in SIZES:
+        part = [x for n in of("link", places) for r in mine[n] for x in passed(r, "part")]
+        print(f"   {places} places: " + (", ".join(f"{f} {sum(x['family'] == f for x in part)} (share {mid([x['on'] for x in part if x['family'] == f]):.2f})" for f in fd.ORDER if any(x["family"] == f for x in part)) or "none"))
+        m = mine[f"shared_{places}"]
+        print(f"   {places} places: passes of a near copy, where the link is from a series common to all places: {sum(len(passed(r, 'copy')) for r in m)} in {sum(bool(passed(r, 'copy')) for r in m)} of {len(m)} worlds; in the other kinds: {sum(len(passed(r, 'copy')) for n in of('link', places) if n != f'shared_{places}' for r in mine[n])}")
+        full = [x["inside"] for n in of("link", places) for r in mine[n] for x in passed(r, "full") if x["inside"] is not None]
+        print(f"   {places} places: of the places a heard row applies to, the middle share where the link acts: {mid(full):.2f} over {len(full)} rows; under a half in {sum(x < 0.5 for x in full)}")
+        paths = [r for n in of("path", places) for r in mine[n]]
+        got = sum(bool(passed(r, "path")) for r in paths)
+        print(f"   {places} places: path worlds in which a path's pair passed at all: {got} of {len(paths)}" + ("; under 11, so mark 4 here says the swarm rarely sends a path that passes and does not test the label" if got < 11 else ""))
     print()
     for places, _ in SIZES:
         for label, names, got in ((f"Mark 1, worlds where nothing predicts with any pass, {places} places", of("nothing", places), lambda r: r["board"]["passed"] > 0),
