@@ -1,0 +1,113 @@
+# Tied series among the new sources and the held ones
+
+Written 2026-11-11 for the first read across the table. A tie is one quantity twice, a sum and its parts, an index and its components, a rate and the level it is made from, or one source republished by another. A read that sets two tied series beside each other reports an identity as a discovery, so each group below is to be barred from naming its other members.
+
+**How this was made.** From the series' own descriptions (name, unit, kind, step, source) in the series table, and from the sources' notes in `docs/data-sources.md` and `docs/reading/sources-*.md`. No value of any series was read and nothing was set beside anything. Where a tie cannot be told from the descriptions it says so, and it was not tested on data. Each line gives the series ids and one reason.
+
+**Scope.** The 126 new series (sources `bis_*`, `hfd_stff`, `eurostat_*`, `usgs_quakes`, `mass_mobilization`, `opendengue`, `unhcr`, `ibtracs`, `ember`, `pink_sheet`) against each other and against the held ones (`wdi`, `faostat_qcl`, `faostat_cp`, `faostat_pe`, `rtfp`, `spei`, `firecci`, `ucdp_ged`, `oni`, `candidates.*`). Ties among held series only are not listed, except where a held series is needed to make a group whole. The 609 World Bank series have many ties among themselves (a level with its share of GDP, its growth, its per-person form, its constant and current prices); that is a separate listing, not made here.
+
+**Strength.** *Certain* means the descriptions or the notes say it. *Probable* means it follows from what the series measure. *Cannot be told from descriptions* means the formula or the source is not stated; it is listed so that someone can decide, and it is not barred or cleared here.
+
+## 1. One series at two steps (month and year)
+
+The yearly series is made from the monthly source or sits beside it, so it is the same quantity twice. Certain unless said.
+
+1. `ember:generation_total:country_total` and `ember:generation_total:country_total:year`. Same for the other six: `generation_coal`, `generation_gas`, `generation_hydro`, `generation_nuclear`, `generation_solar`, `generation_wind`. Seven pairs. The notes say months do not sum to the year, so they are close, not identical; still one quantity.
+2. `opendengue:cases:country_total` and `opendengue:cases:country_total:year`. The year is the source's year row, or the sum of twelve written months.
+3. `bis_long_cpi:cpi_index` and `bis_long_cpi:cpi_index:year`. Same index at two steps. How the year's value is made from the months is not stated.
+4. `pink_sheet:dap:world` and `pink_sheet:dap:world:year`. The notes already name it.
+5. `faostat_pe:lcu` and `faostat_pe:lcu:year`. Same exchange rate by month and by year. How the year is made is not stated.
+
+## 2. The same people or the same quantity counted twice, or one source republished by another
+
+1. **UNHCR, by origin and by asylum.** `unhcr:refugees:country_of_origin` with `unhcr:refugees:country_of_asylum`, and `unhcr:asylum_seekers:country_of_origin` with `unhcr:asylum_seekers:country_of_asylum`. Two cuts of one count: the world total of each pair is the same people, and a country that hosts refugees from another appears on both sides. Certain (the notes).
+2. **UNHCR refugees republished by the World Bank.** `unhcr:refugees:country_of_origin` with `wdi:SM.POP.RHCR.EO`; `unhcr:refugees:country_of_asylum` with `wdi:SM.POP.RHCR.EA`. The World Bank's indicators are UNHCR's figures. Certain (the notes). Cross pairs (origin with the other side's WDI series) are tied through group 2.1.
+3. **Eurostat asylum applicants into UNHCR pending cases.** `eurostat_asylum:first_time_applicants` (monthly flow) with `unhcr:asylum_seekers:country_of_asylum` (year-end stock), in the same countries. Applicants become pending cases. Certain on the link (the notes); a flow and a stock, so not equal.
+4. **Ember and Eurostat electricity.** `ember:generation_total:country_total` with `eurostat_electricity:available_internal_market`. Ember's monthly data are built partly from Eurostat's table (the notes say so). They are different quantities (generation against electricity available to the market after trade and use), from one national source. Probable, certain on the source.
+5. **Ember and the World Bank's electricity shares.** `ember:generation_*:country_total:year` with `wdi:EG.ELC.COAL.ZS`, `EG.ELC.NGAS.ZS`, `EG.ELC.HYRO.ZS`, `EG.ELC.NUCL.ZS`, `EG.ELC.PETR.ZS`, `EG.ELC.FOSL.ZS`, `EG.ELC.RNEW.ZS`, `EG.ELC.RNWX.ZS`, `EG.ELC.RNWX.KH`. Built from the same national electricity statistics (the notes). See also group 5.4. Certain on the source.
+6. **Births, three sources.** `hfd_stff:births` (also `hfd_stff:births_adjusted`) with `eurostat_births:live_births`: the same monthly births of the same countries; the Eurostat note says the two overlap. Certain. With `wdi:SP.DYN.CBRT.IN` (crude birth rate), a yearly rate over population from the same national records or the UN's estimates of them; probable, and whether the World Bank's figure is from national registers or modelled cannot be told from descriptions.
+7. **Fertility rates, two sources.** `hfd_stff:tfr` and `hfd_stff:tfr_adjusted` with `wdi:SP.DYN.TFRT.IN` (yearly total fertility rate) and, for part of it, `wdi:SP.ADO.TFRT`. Same quantity at a different step; the World Bank's source is not stated in the descriptions. Probable.
+8. **Deaths.** `eurostat_deaths:deaths` with `wdi:SP.DYN.CDRT.IN`. A monthly count and a yearly rate over population. Probable; the World Bank's rate may be modelled and not the register's count, which cannot be told from descriptions.
+9. **Unemployment.** `eurostat_unemployment:unemployed` (thousand persons, unadjusted) with `wdi:SL.UEM.TOTL.ZS` (percent of the labour force, modelled estimate). The same condition counted by two bodies; the rate is the count over the labour force, but the sources differ. Probable.
+10. **Air passengers.** `eurostat_air:passengers_on_board` with `wdi:IS.AIR.PSGR` (passengers carried by registered carriers). The same traffic from different sources and definitions; the notes say a domestic passenger is counted at both ends. Probable; cannot be told from descriptions how far they agree.
+11. **Electricity consumption.** `eurostat_electricity:available_internal_market` with `wdi:EG.USE.ELEC.KH.PC` (kWh per head, yearly). Same use of electricity, different source and step. Probable.
+12. **Consumer prices, three sources.** `bis_long_cpi:cpi_index` and its yearly form with `faostat_cp:consumer_prices_general_indices` (2015 = 100; the notes say the IMF is its first source) and with `wdi:FP.CPI.TOTL` (2010 = 100, yearly). One price index for one country, on different base years. Certain on the quantity (the notes bar it); the exact source of each cannot be told from descriptions. `wdi:FP.CPI.TOTL.ZG` (yearly growth) is made from the World Bank's index and so is tied to all of these as well.
+13. **Official exchange rate, two sources.** `faostat_pe:lcu:year` with `wdi:PA.NUS.FCRF` (local currency per US dollar, period average). Same rate; the FAO's source was not read (the notes say so), so equal figures are expected but cannot be told from descriptions.
+14. **Credit to the private sector, other source.** `bis_tc:private_nonfinancial_banks` and `bis_tc:private_nonfinancial` with `wdi:FS.AST.PRVT.GD.ZS`, `wdi:FD.AST.PRVT.GD.ZS` and `wdi:FM.AST.PRVT.GD.ZS`. All measure credit to the private sector as a share of GDP, from different bodies and with different coverage (the World Bank's three differ in whether they count banks, the monetary sector or all sources). Probable that they track one another closely; not republished. Cannot be told from descriptions which BIS series each World Bank one is nearest.
+
+## 3. A sum and its parts
+
+1. **Ember.** Each of `ember:generation_total:country_total` and the `:year` form is the sum of the six kept sources plus the sources not kept (oil, bioenergy and others). So the total is tied to `generation_coal`, `generation_gas`, `generation_hydro`, `generation_nuclear`, `generation_solar`, `generation_wind`, at the same step, but is not their sum. Certain on the tie.
+2. **Credit.** `bis_tc:private_nonfinancial` is `bis_tc:households` plus `bis_tc:nonfinancial_corporations` (all sources of credit, same basis, per cent of GDP). `bis_tc:private_nonfinancial_banks` is the part of that total lent by domestic banks, so it sits inside `private_nonfinancial` but is not a part of households or corporations alone. `bis_tc:government_nominal` is a different sector and valued at nominal, not market, value; it is not a part of the private group. Certain for the first two, Probable for the third.
+3. **Commodity averages.** `pink_sheet:crude_oil_average:world` is the mean of `pink_sheet:crude_oil_brent:world`, `pink_sheet:crude_oil_dubai:world` and `pink_sheet:crude_oil_wti:world`. `pink_sheet:tea_avg_3_auctions:world` is the mean of `pink_sheet:tea_colombo:world`, `pink_sheet:tea_kolkata:world` and `pink_sheet:tea_mombasa:world`. Certain (the notes).
+4. **Earthquakes, world and country.** `usgs_quakes:events:world` holds every country's events and the events at sea, so it is tied to every `usgs_quakes:events:country_total` of the same month. Certain.
+5. **Storms, world and country.** `ibtracs:storms:world` is tied to every `ibtracs:storms:country_total` of the same month: each storm in the world count is also counted in each country it enters, so a country count cannot exceed the world count and a storm can be counted in several countries. Certain.
+6. **Protests and their subsets.** `mass_mobilization:protests:country_total` contains `mass_mobilization:protests_violent:country_total` and `mass_mobilization:protests_met_with_force:country_total`, which are each a count of some of the same protests. The two subsets overlap each other too (a violent protest is often met with force). Certain.
+7. **Cereals and their crops.** `wdi:AG.PRD.CREL.MT` (cereal production) is the sum of the production of the cereal crops, so it is tied to `faostat_qcl:production:15` (wheat), `:27` (rice), `:44` (barley), `:56` (maize), `:71` (rye), `:75` (oats), `:79` (millet), `:83` (sorghum), `:89` (buckwheat), `:92` (quinoa), `:94` (fonio), `:97` (triticale), `:103` (mixed grain), `:108` (cereals not elsewhere classified), and the same crops in `area_harvested` with `wdi:AG.LND.CREL.HA`. Probable on the tie; exactly which items the World Bank counts as cereals, and whether quinoa, canary seed (`:101`) and fonio count, cannot be told from descriptions. `wdi:AG.YLD.CREL.KG` is the ratio of the two (see group 5).
+8. **Index of crop and food production.** `wdi:AG.PRD.CROP.XD` and `wdi:AG.PRD.FOOD.XD` are weighted sums of crop quantities that are the FAOSTAT production series, so they are tied to the `faostat_qcl:production:*` series. Probable; the weights and the crop list cannot be told from descriptions. `wdi:AG.PRD.LVSK.XD` has no part in the table (the crops file holds no livestock).
+9. **Deaths and events (ucdp).** `ucdp_ged:deaths_best:country_total` is the sum of deaths over the events counted in `ucdp_ged:events:country_total`, and each event has at least one death. So the two come from the same rows and deaths cannot be below events. Certain.
+
+## 4. An index and its components
+
+1. **Effective exchange rates.** `bis_eer:nominal_broad`, `nominal_narrow`, `real_broad`, `real_narrow` are four cuts of one construction. The narrow basket's partners are a subset of the broad's, so nominal broad and nominal narrow share most of their weights; the real ones are the nominal ones deflated by relative consumer prices. So `real_broad` with `nominal_broad` and `real_narrow` with `nominal_narrow` are one quantity and a price adjustment. Certain on the tie (the notes).
+2. **Real effective rate and consumer prices.** `bis_eer:real_broad` and `real_narrow` use the country's consumer prices and its partners', so they are tied to `bis_long_cpi:cpi_index`, `faostat_cp:consumer_prices_general_indices` and `wdi:FP.CPI.TOTL` of the same country (and, less directly, of partner countries). Probable; the price series the BIS used for the real rate cannot be told from descriptions.
+3. **Nominal effective rate and bilateral rates.** `bis_eer:nominal_broad` and `nominal_narrow` are weighted averages of a country's bilateral rates, one of which is its rate against the US dollar: `faostat_pe:lcu`, `faostat_pe:lcu:year`, `wdi:PA.NUS.FCRF`. A partial tie (one component of many, with a large weight for countries that trade mostly in dollars). Probable; weights cannot be told from descriptions.
+4. **Food and general consumer prices.** `faostat_cp:consumer_prices_food_indices` is a component of `faostat_cp:consumer_prices_general_indices` (food is part of the consumer basket). Certain on the tie, a partial one. The food index is also a component of `bis_long_cpi:cpi_index` and `wdi:FP.CPI.TOTL` in the same way.
+5. **Industry production and industry value added.** `eurostat_industry:production_index` with `wdi:NV.IND.TOTL.KD` and `wdi:NV.IND.TOTL.KD.ZG`: a volume index of industry and the volume of industry's value added. Related, close in meaning, not the same series; Probable. Cannot be told from descriptions how close (the Eurostat index covers mining, manufacturing and energy supply; the World Bank's includes construction).
+6. **Energy sources.** `wdi:EG.ELC.RNWX.KH` (non-hydro renewable electricity) contains `ember:generation_wind:country_total:year` and `ember:generation_solar:country_total:year`, plus renewables Ember does not keep. `wdi:EG.ELC.FOSL.ZS` contains coal, gas and oil: `ember:generation_coal`, `ember:generation_gas`. Probable.
+
+## 5. A rate and the level it is made from
+
+1. **Yield, production and area in the crops file.** For every item, `faostat_qcl:yield:N` is `faostat_qcl:production:N` over `faostat_qcl:area_harvested:N` (units: kg/ha, t, ha). 158 items, so 158 groups of three (474 series). Certain.
+2. **Fertility rate and births.** `hfd_stff:tfr` is made from births and the women of each age, so it is tied to `hfd_stff:births` (and to `eurostat_births:live_births` through group 2.6); `hfd_stff:tfr_adjusted` with `hfd_stff:births_adjusted`. The crude and adjusted pairs of each (`births` with `births_adjusted`, `tfr` with `tfr_adjusted`) are the same quantity before and after the database's seasonal and calendar adjustment. Certain on the tie; the women's side of the rate is not in the table, so a rate is not just births over a constant.
+3. **Food price inflation and the food index.** `faostat_cp:food_price_inflation` is the rate of change of `faostat_cp:consumer_prices_food_indices`. Probable. How inflation is calculated was not checked (the notes say so), so whether it is year on year or month on month, and whether it is exact from the index, cannot be told from descriptions. `wdi:FP.CPI.TOTL.ZG` and `wdi:FP.CPI.TOTL` stand in the same relation (held pair; the second is from the first).
+4. **Electricity shares and generation.** Each `wdi:EG.ELC.*.ZS` share is a source's generation over total generation, so tied to the matching pair `ember:generation_<source>:country_total:year` over `ember:generation_total:country_total:year` (coal, gas, hydro, nuclear; oil has no Ember series). Probable on the arithmetic; the notes say both come from the same national statistics, so the equality is expected but its exactness cannot be told from descriptions.
+5. **Standard and plain local currency.** `faostat_pe:slc:year` restates `faostat_pe:lcu:year` in the current currency of the country, so it differs by a constant only where a currency was redenominated, and is the same series elsewhere. Certain on the tie.
+6. **Unemployed count and rate.** `eurostat_unemployment:unemployed` with `wdi:SL.UEM.TOTL.ZS`, `wdi:SL.UEM.TOTL.MA.ZS`, `wdi:SL.UEM.TOTL.FE.ZS`, `wdi:SL.UEM.1524.ZS`: count against rate over labour force (see 2.9). Probable.
+
+## 6. Series made from the same event rows
+
+1. **Earthquakes.** `usgs_quakes:events:country_total` and `usgs_quakes:moment:country_total` come from the same earthquakes; moment is a function of each event's magnitude, so where the count is zero the moment is zero, and the largest event dominates the moment. The world count has no moment series. Certain.
+2. **Storms.** `ibtracs:max_wind:country_total` is written only where `ibtracs:storms:country_total` is at least one in the same country and month, so the two share their pattern of missing values. Certain (the notes).
+3. **Protests.** See group 3.6.
+4. **Conflict.** See group 3.9. `ucdp_ged:*` is held; no new conflict series is added, so there is no tie with the new sources.
+
+## 7. Near relatives among the climate indices (the held candidates)
+
+These are the pairs the notes or the makers' descriptions place close together. They are built from the same field, a component of the other, or two views of one pattern. They are listed to be barred; how close they are is not tested.
+
+1. `candidates:dmi.had.long.data:monthly` with `candidates:dmieast.had.long.data:monthly`. The east box is one end of the Indian Ocean dipole, which is the western minus the eastern box. A component of an index. Certain.
+2. `candidates:qbo.data:monthly` with `candidates:qbo.50mb.data:monthly`. The same stratospheric wind at 30 and 50 mb. One record at two levels. Certain.
+3. `candidates:pmm.data:monthly` with `candidates:pmmwind.data:monthly`. The temperature and wind parts of one mode of Pacific variability. Probable.
+4. `candidates:tna.data:monthly`, `candidates:tsa.data:monthly`, `candidates:amm.data:monthly`, `candidates:whwp.data:monthly`. Atlantic sea-surface temperature indices drawn from the same field (HadISST) and overlapping regions; the notes give tna with amm as the closest. The AMM is built from the sea-surface-temperature gradient across the equator, so tna and tsa are likely components; the exact construction cannot be told from descriptions.
+5. `candidates:nao_ice.long.data:monthly` with `candidates:gbi.mon.data:monthly`. Iceland pressure and Greenland blocking: the notes give them as close relatives. A relation of physics, not a definition. Probable.
+6. `candidates:nao_gib.long.data:monthly` with `candidates:nao_ice.long.data:monthly`. The two pressure series from which the North Atlantic Oscillation is formed; not a tie by themselves, but both are parts of one index, and either with the AO (`candidates:ao.long.data:monthly`) is a near relative. Cannot be told from descriptions whether the AO is made from them.
+7. `candidates:ao.long.data:monthly`, `candidates:ea.data:monthly`, `candidates:pna.data:monthly`, `candidates:scand.data:monthly`, `candidates:wp.data:monthly`. Five patterns from one analysis of the same pressure field (Climate Prediction Center). Built to be separate patterns, so a tie only through a shared method and data. Cannot be told from descriptions.
+8. `oni:oni:nino34_3month` with `candidates:tni.long.data:monthly`. The trans-Nino index is formed from sea-surface temperature in other Nino boxes (not Nino 3.4), and the notes kept it because it is not "El Nino by another name". A shared field, not a component. Cannot be told from descriptions how close.
+9. `candidates:pdo.timeseries.sstens.data:monthly`, `candidates:npgo.data:monthly`, `candidates:np.long.data:monthly`. North Pacific sea-surface temperature, sea-surface height and pressure patterns; they share a region and some data (the notes say HadISST feeds one input to the PDO). Cannot be told from descriptions.
+
+## 8. Not ties, from the brief's list or looked at
+
+1. **Commodity indices against their parts.** The Pink Sheet's index columns were left out of the table (the notes), so there is no index to tie to its parts. The only means kept are the two in group 3.3.
+2. **Food prices held and the commodity file's maize, rice and wheat.** `rtfp:maize:median_market`, `rtfp:rice:median_market`, `rtfp:wheat:median_market`, `rtfp:wheat_flour:median_market` are local market prices in local money; `pink_sheet:maize:world`, `rice_*`, `wheat_us_hrw`, `wheat_us_srw` are quotes at one port or exchange in dollars. Not the same quotes and neither is made from the other; the notes decided they are not barred. Related through the exchange rate and the world market, which is the kind of link a read may look for, so not listed as a tie. `rtfp:sorghum` with `pink_sheet:sorghum:world` and `rtfp:wheat` with `rtfp:wheat_flour` stand the same (the second pair is flour made from wheat, a held pair).
+3. **Rice grades, sugar quotes, rubber grades, wheat grades, crude oils (apart from the average), gas, coal.** `rice_thai_5`, `rice_thai_25`, `rice_thai_a_1`, `rice_viet_namese_5`; `sugar_eu`, `sugar_us`, `sugar_world`; `rubber_rss3`, `rubber_tsr20`; `wheat_us_hrw`, `wheat_us_srw`; `coffee_arabica`, `coffee_robusta`; `natural_gas_europe`, `natural_gas_us`, `liquefied_natural_gas_japan`; `coal_australian`, `coal_south_african`; the Pink Sheet and the notes treat these as separate quotes, not sums. They move together in life, but none is made from another. The notes name the sugars and the rubbers as not barred. Soybeans, soybean meal and soybean oil (and the palm, coconut and palm kernel oils) are products of one crop and so are related, but none is a sum or a rate of another.
+4. **Eurostat tourism nights, Eurostat retail turnover, Eurostat industry (apart from 4.5).** No held or new series measures the same thing.
+5. **BIS policy rate and house prices.** `bis_cbpol:policy_rate` and `bis_spp:nominal_index` have no tie in the table (the World Bank's lending and interest-rate series are not held; `wdi` was searched for them).
+6. **Fire and forest.** `firecci:burned_area:country_total` with `wdi:AG.LND.FRST.K2` or `wdi:AG.LND.FRST.ZS`: burned land and forest area are different things, no tie by definition.
+7. **Dengue.** `opendengue` has no held or new neighbour.
+8. **`wdi` greenhouse gas from the power industry** (`wdi:EN.GHG.CO2.PI.MT.CE.AR5` and the like) against `ember:generation_coal` and `ember:generation_gas`: emissions come from fuel burned and may be modelled from generation; cannot be told from descriptions. Not listed as a tie.
+
+## Count
+
+Groups, with series counted by line above (a line may hold several series).
+
+| Kind | Groups listed |
+|---|---|
+| 1. Monthly and yearly forms | 5 lines, 11 pairs |
+| 2. Same quantity twice, republished, or from another source | 14 lines |
+| 3. Sum and parts | 9 lines |
+| 4. Index and components | 6 lines |
+| 5. Rate and level | 6 lines (the first holds 158 triples) |
+| 6. Same event rows | 2 lines (a third is held only) |
+| 7. Near relatives among climate indices | 9 lines |
+| 8. Not ties | 8 lines |
