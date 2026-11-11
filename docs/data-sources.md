@@ -19,6 +19,9 @@ from the repo root, with `uv run python scripts/fetch_<name>.py`. Files land in 
 | [FAOSTAT crops](#faostat-crops-and-livestock-products) | Crop yield by country: six cereals (read), 47 other crops (read once against drought, 2026-11-10; spent for that driver) | Fetched, in use | Direct, no login | CC BY 4.0 | 1961 to 2024 | Country, yearly | 34 MB zipped, 545 MB | FAO, Italy (file host not checked) |
 | [World Bank World Development Indicators](#world-bank-world-development-indicators) | Economy, health, population, energy, environment, education, trade and more, by country (609 of 1,498 indicators in the table) | Fetched, in the table (not yet read against anything) | Direct, no login | CC BY 4.0 (per indicator in the series file: 1,489 of 1,498) | 1960 to 2025 | Country, yearly | 283 MB zipped, 199 MB main file | World Bank, USA |
 | [FAOSTAT consumer prices and exchange rates](#faostat-consumer-prices-and-exchange-rates) | Consumer price indices and food price inflation by month (2000 to 2026-06, 202 countries); official exchange rates by month and year (1970 to 2026, 221 countries) | Fetched, in the table (not yet read against anything) | Direct, no login | CC BY 4.0 under FAO's terms; first source largely the IMF, whose own terms ask permission for commercial reuse (files stay on this box) | 2000 to 2026-06; 1970 to 2026-07 | Country, monthly | 2 MB and 1 MB zipped, 41 MB and 22 MB | FAO, Italy (file host not checked) |
+| [BIS statistics](#bis-statistics) | Policy rates, consumer prices, house prices, credit, effective exchange rates | Fetched and shaped; joins the table after the first read across it | Direct, no login | BIS terms: unrestricted with the BIS cited | 1945 to 2026 by month; house prices and credit by year | Country, month or year | 14 MB zipped | BIS, Switzerland |
+| [Human Fertility Database, short-term fluctuations](#human-fertility-database-short-term-fertility-fluctuations) | Births by month | Fetched and shaped; joins the table after the first read across it | Direct, no login | CC BY 4.0 | 2000 to 2025 | Country, month | 0.2 MB | MPIDR, Germany, and VID, Austria |
+| [Eurostat deaths by month](#eurostat-deaths-by-month) | Deaths by month | Fetched and shaped; joins the table after the first read across it | Open API, no login | Reuse authorised with the source acknowledged | 1960 to 2025 | Country, month | 2 MB | Eurostat, Luxembourg |
 | [FAO GIEWS FPMA](#fao-giews-fpma) | Market food prices | Checked, not fetched (fallback) | Open API, no login | CC BY 4.0, third-party series excluded | 1987 to 2026 | Market, monthly, no coordinates | 4,938 series | FAO, Italy |
 | [Natural Earth](#natural-earth) | Country borders | Used, grid | Direct, no login | Public domain | Fixed release | 1:10m vector | 5 MB | Natural Earth CDN |
 | [CHIRPS v3](#chirps) | Rainfall | Checked, not used | Direct, no login | Public domain, per page | 1981 to near present, file not opened | 0.05 degree, monthly | 8.3 GiB | UCSB, USA |
@@ -141,6 +144,37 @@ from the repo root, with `uv run python scripts/fetch_<name>.py`. Files land in 
   - **Official exchange rates can stand far from the rate people pay.** A country that changes its currency shows a jump in LCU at the changeover; SLC restates the old years in the current currency (by year only). A country with rows in two currencies for one period (1,342 rows) is not used for that period.
   - **Groups of countries** are in the file (area codes 5000 and over, and Sub-Saharan Africa at 420) and are dropped; areas with no Natural Earth match are set aside and counted (`data/table/notes.json`).
   - **Nothing here has been read against anything.** The table describes each series alone (`docs/table-first-count.md`).
+
+## BIS statistics
+
+- **Data:** five bulk files listed at <https://data.bis.org/bulkdownload>, each at `https://data.bis.org/static/bulk/WS_<NAME>_csv_flat.zip`: `CBPOL` (central bank policy rates), `LONG_CPI` (long consumer price series), `SPP` (residential property prices), `TC` (credit to the non-financial sector), `EER` (effective exchange rates). Others on the list (`DPP`, `CPP`, `XRU`) were not taken.
+- **Fetch:** `scripts/fetch_money_people.py` (also fetches the two sources below; it unpacks each zip beside it). Checksums in the manifest.
+- **Licence requires:** the BIS cited as the source wherever its figures are reproduced, nothing that misleads or implies the BIS endorses the work, and no extra charge for them in a commercial product. The terms (<https://data.bis.org/help/legal>): "The use of the statistics is unrestricted, provided that:" those conditions; then "No other use is permissible." Read here as closing the list of conditions, not narrowing the use. The terms can change at any time; read 2026-11-11.
+- **No account, and none made.**
+- **What is kept:** thirteen series (`src/causal_atlas/adapters_money_people.py`). By month: the policy rate (48 places from 1945), the consumer price index (62 from 1913), effective exchange rates on a broad basket (63 from 1994) and a narrow one (25 from 1964), nominal and real. By year: the consumer price index, house prices as the mean of four quarters (57 places), and credit as per cent of GDP at the fourth quarter, to the private sector, from banks, to households, to firms and to government (42 or 43 places).
+- **Know before use:**
+  - **A euro member has no policy rate after it joined.** The euro area's rate is a group's and is set aside, so Germany and France stop at 1998-12. Giving members the area's rate would be a choice to write down first.
+  - **Tied series:** private credit and its parts; the four exchange-rate series; the monthly and yearly price index; and the price index here with the FAOSTAT and World Bank ones held. They must not name each other in a read.
+  - **Quarters were made into years** by this project (a mean for house prices, the fourth quarter for credit).
+  - **Nothing here has been read against anything.** Detail and counts: `docs/reading/sources-money-people.md`.
+
+## Human Fertility Database, Short-Term Fertility Fluctuations
+
+- **Data:** <https://www.humanfertility.org/Data/STFF>; `stff.csv` (as counted) and `stffadj.csv` (seasonally and calendar adjusted, from 2012).
+- **Fetch:** `scripts/fetch_money_people.py`.
+- **Licence requires:** attribution in the database's form (in the manifest). "STFF data are published under CC BY 4.0 license". The input data stays under each national provider's licence and was not fetched.
+- **No account, and none made.**
+- **What is kept:** births by month (43 places, 2000 on), the month's fertility rate (29), and the adjusted births and rate (29, 2012 on). Parts of countries are set aside.
+- **Know before use:** mostly rich countries; preliminary figures, revised twice a year; fourteen countries have births and no rate; the four series are tied.
+
+## Eurostat deaths by month
+
+- **Data:** table `demo_mmonth`, "Deaths (total) by month", <https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/demo_mmonth?format=SDMX-CSV>. The weekly tables by region (`demo_r_mweek3`) and births by month (`demo_fmonth`) exist and were not fetched.
+- **Fetch:** `scripts/fetch_money_people.py`.
+- **Licence requires:** the source acknowledged, and changes stated. The notice (<https://ec.europa.eu/eurostat/help/copyright-notice>) allows reuse "for commercial or non-commercial purposes" and excepts from commercial reuse the data for countries outside the EU, EFTA and the acceding and candidate countries. This project's use is not commercial; anyone reusing its outputs commercially would be bound by that exception.
+- **No account, no key.**
+- **What is kept:** deaths by month, 48 places, 1960-01 to 2025-12. Germany is the record that includes the former GDR; France is the whole country, from 1995 only; forecasts are dropped.
+- **Know before use:** Europe and its neighbours only; the United Kingdom ends in 2019; recent months are provisional.
 
 ## FAO GIEWS FPMA
 

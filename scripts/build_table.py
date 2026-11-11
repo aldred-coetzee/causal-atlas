@@ -6,10 +6,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+from causal_atlas import adapters_money_people as money  # noqa: E402
 from causal_atlas import table  # noqa: E402
 from causal_atlas.panel import RAW  # noqa: E402
 
-ORDER = ("faostat", "drought", "indices", "fire", "ged", "prices", "wdi", "faostat_cp", "faostat_pe")
+ORDER = ("faostat", "drought", "indices", "fire", "ged", "prices", "wdi", "faostat_cp", "faostat_pe", "bis_cbpol", "bis_long_cpi", "bis_spp", "bis_tc", "bis_eer", "hfd_stff", "eurostat_deaths")
 
 
 def run(name, countries):
@@ -33,6 +34,13 @@ def run(name, countries):
         return table.faostat_cp(RAW / "faostat_prices" / "cp" / "ConsumerPriceIndices_E_All_Data_(Normalized).csv", countries)
     if name == "faostat_pe":
         return table.faostat_pe(RAW / "faostat_prices" / "pe" / "Exchange_rate_E_All_Data_(Normalized).csv", countries)
+    if name.startswith("bis_"):
+        return money.bis(next((RAW / "bis" / name.removeprefix("bis_").upper()).glob("*.csv")), name, money.iso2_codes(countries)[0], table.licence(table.manifest(), name))
+    if name == "hfd_stff":
+        return money.hfd_stff(RAW / "hfd_stff" / "stff.csv", RAW / "hfd_stff" / "stffadj.csv", countries, table.licence(table.manifest(), name))
+    if name == "eurostat_deaths":
+        part = money.eurostat_deaths(RAW / "eurostat_deaths" / "demo_mmonth.csv", money.iso2_codes(countries)[0], table.licence(table.manifest(), name))
+        return part._replace(names={p: countries[p]["name"] for p in set(part.obs["place_id"].to_pylist())})
     raise SystemExit(f"unknown source {name}; choose from {ORDER}")
 
 

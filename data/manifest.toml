@@ -71,6 +71,78 @@ sha256 = "53f4dff4a42669eaa45c4946986e80d82130eadd96989b2d98d72b398187c1da"
 coverage = "One zip of 1,274,156 bytes holding the CSV (21,787,229 bytes, 151,212 rows) and four code tables. Two elements: local currency units per US dollar (LCU, by month 1970-01 to 2026-07 and by year to 2025) and standard local currency units per US dollar (SLC, by year only). Used here: 145,603 values in 221 places (21 rows with no value dropped, 1,342 rows with two currencies in one country and period set aside, 9 areas with no Natural Earth match set aside: Czechoslovakia, French Guiana, Guadeloupe, Martinique, Mayotte, Netherlands Antilles, Reunion, Sudan (former), Yugoslav SFR); countries with 120 or more monthly values of LCU: 207"
 known_biases = "These are official exchange rates, which can stand far from the rate people pay (and the file's figures are almost all flag X, from an outside organisation). When a country changes its currency the rate in local currency units jumps by the redenomination and the level of a series breaks; the standard local currency element (SLC, by year only) restates the old years in the current currency. A country-period with rows in two currencies is ambiguous and is not used. Groups of countries are in the file and are not used. A new release replaces the old file at the same address"
 
+[bis_cbpol]
+source_url = "https://data.bis.org/static/bulk/WS_CBPOL_csv_flat.zip"
+fetch_script = "scripts/fetch_money_people.py"
+version = "BIS bulk file, flat CSV; the zip's members are stamped 2026-11-04. The address carries no release: a later fetch may revise every value"
+licence = "BIS terms (https://data.bis.org/help/legal, read 2026-11-11 by a helper and the quoted sentences again by the project session): 'The use of the statistics is unrestricted, provided that' the BIS is cited as the source where figures are reproduced, the use is not misleading and implies no endorsement, and inclusion in a commercial product brings no additional charge; 'No other use is permissible'; the terms may change at any time. The page says most data sets rest on national statistics passed to the BIS by central banks. The files stay on this box and are never committed or passed on. Cite: Source: BIS, central bank policy rates, fetched 2026-11-11"
+fetched = "2026-11-11"
+sha256 = "2306f25a53c31cf97edb4959630e0ea7414cbbb260443d4c7a614daf9540c81f"
+coverage = "4,145,567 bytes. Policy rate by month, end of month: 48 places, 1945-01 to 2026-10, 24,779 values (counted by the adapter and again from the file by the project session); the euro area (XM) and 53 missing rows set aside"
+known_biases = "National figures passed on by central banks. A member of the euro area has no rate of its own after it joined (Germany and France end 1998-12): the euro area's rate is under XM and is not given to members here, so those places go silent, not flat. A new release replaces the file at the same address"
+
+[bis_long_cpi]
+source_url = "https://data.bis.org/static/bulk/WS_LONG_CPI_csv_flat.zip"
+fetch_script = "scripts/fetch_money_people.py"
+version = "BIS bulk file, flat CSV; the zip's members are stamped 2026-11-04. The address carries no release: a later fetch may revise every value"
+licence = "BIS terms (https://data.bis.org/help/legal, read 2026-11-11 by a helper and the quoted sentences again by the project session): 'The use of the statistics is unrestricted, provided that' the BIS is cited as the source where figures are reproduced, the use is not misleading and implies no endorsement, and inclusion in a commercial product brings no additional charge; 'No other use is permissible'; the terms may change at any time. The page says most data sets rest on national statistics passed to the BIS by central banks. The files stay on this box and are never committed or passed on. Cite: Source: BIS, long consumer price series, fetched 2026-11-11"
+fetched = "2026-11-11"
+sha256 = "9310d01a9eeffcba9940a294d1181b61a1ab57cf565f5b1a878e2bb00b447be6"
+coverage = "873,148 bytes. Consumer price index (2010 = 100): by month 62 places, 1913-01 to 2026-09, 47,830 values; by year 62 places, 1661 to 2025, 4,758 values; the year-on-year per cent in the file is not used; 457 missing months set aside"
+known_biases = "Spliced by the BIS from older national series; the earliest years are a few countries only. Overlaps in substance with the FAOSTAT consumer price index held (from 2000) and the World Bank's: near copies, to be barred from naming each other. A new release replaces the file at the same address"
+
+[bis_spp]
+source_url = "https://data.bis.org/static/bulk/WS_SPP_csv_flat.zip"
+fetch_script = "scripts/fetch_money_people.py"
+version = "BIS bulk file, flat CSV; the zip's members are stamped 2026-11-04. The address carries no release: a later fetch may revise every value"
+licence = "BIS terms (https://data.bis.org/help/legal, read 2026-11-11 by a helper and the quoted sentences again by the project session): 'The use of the statistics is unrestricted, provided that' the BIS is cited as the source where figures are reproduced, the use is not misleading and implies no endorsement, and inclusion in a commercial product brings no additional charge; 'No other use is permissible'; the terms may change at any time. The page says most data sets rest on national statistics passed to the BIS by central banks. The files stay on this box and are never committed or passed on. Cite: Source: BIS, residential property prices, fetched 2026-11-11"
+fetched = "2026-11-11"
+sha256 = "a5dd4cc029e805031d94033bdebc245b64bf624757bae9d5b4033c8591f11694"
+coverage = "305,666 bytes. Nominal residential property price index (2010 = 100), by quarter in the file, made yearly here as the mean of a year's four quarters, years with all four only: 57 places, 1927 to 2025, 2,158 values; 62 years with fewer than four quarters and groups of economies set aside; the real index is not used"
+known_biases = "National methods differ (which dwellings, which regions, new or existing); long series are spliced. The yearly mean is this project's choice. A new release replaces the file at the same address"
+
+[bis_tc]
+source_url = "https://data.bis.org/static/bulk/WS_TC_csv_flat.zip"
+fetch_script = "scripts/fetch_money_people.py"
+version = "BIS bulk file, flat CSV; the zip's members are stamped 2026-11-04. The address carries no release: a later fetch may revise every value"
+licence = "BIS terms (https://data.bis.org/help/legal, read 2026-11-11 by a helper and the quoted sentences again by the project session): 'The use of the statistics is unrestricted, provided that' the BIS is cited as the source where figures are reproduced, the use is not misleading and implies no endorsement, and inclusion in a commercial product brings no additional charge; 'No other use is permissible'; the terms may change at any time. The page says most data sets rest on national statistics passed to the BIS by central banks. The files stay on this box and are never committed or passed on. Cite: Source: BIS, credit to the non-financial sector, fetched 2026-11-11"
+fetched = "2026-11-11"
+sha256 = "30b65b768707ef67e2e12f9705d1588079d9663d7519840bc15883b6a69608e8"
+coverage = "1,814,797 bytes. Credit as per cent of GDP, adjusted for breaks, by quarter in the file, the fourth quarter's value taken as the year's: five series (private non-financial sector, the same from banks, households, non-financial corporations, general government), 42 or 43 places, 1947 to 2025, 1,408 to 2,327 values each"
+known_biases = "Private credit holds households and corporations, and the bank part is inside it: series tied by how they are made. Start years differ widely by country. The fourth quarter as the year is this project's choice. A new release replaces the file at the same address"
+
+[bis_eer]
+source_url = "https://data.bis.org/static/bulk/WS_EER_csv_flat.zip"
+fetch_script = "scripts/fetch_money_people.py"
+version = "BIS bulk file, flat CSV; the zip's members are stamped 2026-11-04. The address carries no release: a later fetch may revise every value"
+licence = "BIS terms (https://data.bis.org/help/legal, read 2026-11-11 by a helper and the quoted sentences again by the project session): 'The use of the statistics is unrestricted, provided that' the BIS is cited as the source where figures are reproduced, the use is not misleading and implies no endorsement, and inclusion in a commercial product brings no additional charge; 'No other use is permissible'; the terms may change at any time. The page says most data sets rest on national statistics passed to the BIS by central banks. The files stay on this box and are never committed or passed on. Cite: Source: BIS, effective exchange rates, fetched 2026-11-11"
+fetched = "2026-11-11"
+sha256 = "f71d708847132a94aefb3b18d4d637a3f7cf0c8517ee069e2263950f6f3820a0"
+coverage = "6,630,897 bytes. Effective exchange rates (2020 = 100), averages of the month: broad basket, nominal and real, 63 places, 1994-01 to 2026-09, 24,759 values each; narrow basket, nominal 25 places and real 26, from 1964-01, 18,825 and 19,578 values"
+known_biases = "Four series tied by how they are made, and tied to the exchange rates and prices held. Broad baskets begin in 1994. Weights are the BIS's and change over time. A new release replaces the file at the same address"
+
+[hfd_stff]
+source_url = "https://www.humanfertility.org/File/GetDocumentFree/STFF/stff.csv"
+source_url_adjusted = "https://www.humanfertility.org/File/GetDocumentFree/STFF/stffadj.csv"
+fetch_script = "scripts/fetch_money_people.py"
+version = "Human Fertility Database, Short-Term Fertility Fluctuations; the page (https://www.humanfertility.org/Data/STFF) gives the last update as 02-03-2026 and says the figures are preliminary and updated twice a year"
+licence = "CC BY 4.0: 'STFF data are published under CC BY 4.0 license' (https://www.humanfertility.org/Data/STFF, read 2026-11-11 by a helper and again by the project session). The input data stays under each provider's own licence (https://www.humanfertility.org/Data/UserAgreement, read by the helper) and was not fetched. Cite: Human Fertility Database. Max Planck Institute for Demographic Research (Germany) and Vienna Institute of Demography (Austria). Available at www.humanfertility.org (data downloaded on 11 November 2026)."
+fetched = "2026-11-11"
+sha256 = "92715a16e7708ef9741b80c4db66b31549f4e41e390366995e9a2ec238c8a981"
+sha256_adjusted = "d3cd2d2b8acdc501c7bb386a99b3d02bf63456dc8ffdfed44e1ca9d829b95077"
+coverage = "stff.csv 163,452 bytes, stffadj.csv 75,144 bytes. Live births by month 43 places, 2000-01 to 2025-12, 13,059 values; the month's total fertility rate 29 places, 8,755 values; seasonally and calendar adjusted births and rate 29 places, 2012-01 to 2025-11, 4,705 values each. Parts of countries (Quebec, Northern Ireland, Scotland, England and Wales) and 36 rows of births of unknown month set aside"
+known_biases = "Mostly rich countries with complete registration. Preliminary and revised later; the first year differs by country; whether a birth is counted in its month of occurrence or of registration may differ by country (not checked). Fourteen countries have births and no rate. The rate and the adjusted series are the database's estimates, and the four series are tied by how they are made"
+
+[eurostat_deaths]
+source_url = "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/demo_mmonth?format=SDMX-CSV"
+fetch_script = "scripts/fetch_money_people.py"
+version = "Eurostat demo_mmonth, 'Deaths (total) by month'; the file's own stamp of its last update was read by the helper as 2026-09-23. The address carries no release"
+licence = "Eurostat copyright notice (https://ec.europa.eu/eurostat/help/copyright-notice, read 2026-11-11 by a helper and the first sentence again by the project session): reuse 'for commercial or non-commercial purposes is authorised provided the source is acknowledged'; the notice lists data that 'may not be reused for commercial purposes, but non-commercial reuse is possible without restriction', among them data for countries outside the EU, EFTA and the acceding and candidate countries ('Examples are data for the United States of America, Japan or China'). The file holds some such countries; which, was not settled. Cite: Source: Eurostat, demo_mmonth, fetched 2026-11-11"
+fetched = "2026-11-11"
+sha256 = "9bc9d5582e3a2301cf0dac8ae9a06abdf94c2e6a61141e6d24535d616765a363"
+coverage = "1,984,573 bytes. Deaths by month: 48 places, 1960-01 to 2025-12, 22,064 values (counted by the adapter and again from the file by the project session), 44 places with 120 months or more. Set aside: the year's totals and unknown months (4,579 rows), 42 rows with no value, 50 forecasts, groups of countries, Kosovo (no Natural Earth code), DE (Germany from 1991) in favour of DE_TOT (the same territory from 1960), FX (metropolitan France, 1960 to 2012) in favour of FR (1995 on)"
+known_biases = "Europe and its neighbours only. France begins in 1995 because the longer record is metropolitan France alone; the United Kingdom ends in 2019. Recent months are provisional and revised. How each country places a death in a month was not checked. Some countries' figures fall under the notice's non-commercial exception"
+
 [oni]
 source_url = "https://psl.noaa.gov/data/correlation/oni.data"
 fetch_script = "scripts/fetch_oni.py"
