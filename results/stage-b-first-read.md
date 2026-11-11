@@ -26,7 +26,7 @@ Each series alone: its length, gaps, memory and coverage (`docs/table-first-coun
 - Not in this read because they start too late for these years: violence (1989), burned area (1982 to 2018), local food prices (2007), consumer prices by month (2000). They wait for a read with a later split.
 - **Groups of places:** Natural Earth's subregions. A subregion with fewer than five kept places is pooled with the other such subregions of its UN region; if that is still under five it joins the smallest subregion of that region that has five.
 
-Counted before this rule, each series alone: about 437 series pass the first count (World Bank 340, crops 94 before the recount, exchange rates 2, drought 1) in about 166 places. The exact numbers are written here when the panel is built and before any read.
+Counted before this rule, each series alone: about 437 series pass the first count (World Bank 340, crops 94 before the recount, exchange rates 2, drought 1) in about 166 places. The exact numbers are below, under "Made exact", written when the panel was built and before any read.
 
 ## Four data sets, and what a row may name
 
@@ -67,9 +67,9 @@ Unchanged. It is given 1961 to 2014 and scores **1996 to 2014**, nineteen years,
 
 The made-up tables are not the real table. Before the real read, the whole pipeline, as it will run, is put on the real series arranged so that nothing in one set can predict anything in another. Two ways of breaking the links, because each leaves something different standing:
 
-**Places moved round (20 runs, seeds 58001 to 58020).** The crops, the exchange rates and the drought index each get their own random reordering of the places; the World Bank's series stay where they are; the series common to all places are moved round in time by 10 to 54 years. Every series keeps its own years, trend, roughness and gaps, and what the world did in a year still falls in that year. What is broken is which place goes with which.
+**Places moved round (20 runs, seeds 58001 to 58020).** The crops, the exchange rates and the drought index each get their own random reordering of the places; the World Bank's series stay where they are; the series common to all places are moved round in time, within 1961 to 2014, by 10 to 44 years (made exact before any run, see below). Every series keeps its own years, trend, roughness and gaps, and what the world did in a year still falls in that year. What is broken is which place goes with which.
 
-**Years moved round (8 runs, seeds 58101 to 58108).** Each set is moved round in time by its own number of years (after the departure from the middle is taken), the World Bank's by none, any two sets at least ten years apart. Every place stays where it is, with its neighbours, in both the inputs and the outcome. What is broken is which year goes with which; each moved series has one seam.
+**Years moved round (8 runs, seeds 58101 to 58108).** Each set is moved round in time, within 1961 to 2014, by its own number of years (after the departure from the middle is taken), the World Bank's by none, any two sets at least ten years apart. Every place stays where it is, with its neighbours, in both the inputs and the outcome. What is broken is which year goes with which; each moved series has one seam.
 
 **Marks.** Runs with any pass, labelled or not: **at most 2 of 20** with places moved round, **at most 1 of 8** with years moved round. (At a true rate of one in twenty, three or more of 20 happens about 8 times in 100, two or more of 8 about 6 times in 100.) What these runs can and cannot see: a false-pass rate of a half is caught nearly always (19 times in 20 by the first, 24 in 25 by the second); a rate of one in five slips past the first about one time in five and the second about one time in two. The last ten years are the second guard. **If either mark is missed, the real read does not happen under this rule.** What passed falsely is reported, and a new rule is needed.
 
@@ -77,7 +77,7 @@ What neither placebo covers: a shock that hits one region in one year in both se
 
 ## The known answer on the real table (6 runs, seeds 58201 to 58206)
 
-A silence means nothing unless a link of known size would have been heard. On six more tables with places moved round, nine links are planted in each: an outcome and an input from another set, both drawn at random, a steady link one year ahead, in whole groups drawn at random until they hold a quarter of the places. Three at about 35%, three at 20% and three at 10% of the outcome's year-to-year movement there. The harness plants them; the finders and the referee are told nothing.
+A silence means nothing unless a link of known size would have been heard. On six more tables with places moved round, nine links are planted in each: an outcome and an input from another set, both drawn at random, a steady link one year ahead, in whole groups drawn at random until they hold a quarter of the places and number at least five. Three at about 35%, three at 20% and three at 10% of the outcome's year-to-year movement there. The harness plants them; the finders and the referee are told nothing.
 
 Reported, with no mark: of 18 links a size, how many were heard from the board alone (a sent row naming that input for that outcome passed), how many when the answer was handed over, and the size the referee gave them. This is what a silence in the real read rules out, and nothing smaller is ruled out.
 
@@ -129,6 +129,20 @@ On made-up tables links were heard at 20% to 35% of what own history leaves, in 
 
 - A rehearsal on made-up tables (smoke seeds only) of the swarm as it runs here, with sets given to the series and the departure from the middle taken: development, no marks.
 - An independent reader, with no part in this work, reads this rule and the code before the real read: can anything from 1996 on reach the board; are the placebos fair; does the last step give a second look. Brief in `docs/specs/`, committed before it starts.
+
+## Made exact when the code was written, before any run
+
+Written with `scripts/run_stage_b.py` and before any placebo, planted run or real read. Nothing here was chosen after seeing a number that sets one real series beside another.
+
+**The panel, by the count rule** (`run_stage_b.py panel`; each series alone): **461 series in 166 places**, 64 years. World Bank 341, crops 91, exchange rates 2, drought by country 1: 435 series that differ by place, each an outcome in turn. Common to all places: El Niño and the 25 other climate series, 26. A series that differs by place has between 60 and 166 places, middle 99; about a third of its place-years (34.5%) are missing. 3,025,236 values: 1,609,813 in 1961 to 1995, 930,744 in 1996 to 2014, 484,679 in 2015 to 2024.
+
+**Seventeen groups of places:** Caribbean 14, Central America 11, Eastern Africa 16, Eastern Asia 7, Melanesia 5, Middle Africa 9, Northern Africa 6, Northern Europe 8, Oceania other 6 (pooled), South America 12, South-Eastern Asia 11, Southern Africa 5, Southern Asia 9, Southern Europe 10, Western Africa 16, Western Asia 14, Western Europe 7. The made-up tables had groups of five places, 24 to 96 of them; these are fewer and larger, and the referee's bar draws groups again, so it is wider here.
+
+**Years are moved round within 1961 to 2014 only.** The rule as first written moved the common series "by 10 to 54 years", which over sixty-four years would have carried values of 2015 to 2024 into the years the finders and the referee see. Nothing of the last ten years enters a placebo or a planted run: the common series move by 10 to 44 years of the fifty-four, and in the years-moved placebo the sets stand at least ten years apart round the fifty-four.
+
+**Planted links.** Nine distinct outcomes a table, drawn among the series that differ by place; each input drawn among the series that differ by place in another set and not among the nine. Whole groups are drawn until they hold at least a quarter of the places and number at least five, because the referee passes no row that applies in fewer than five groups. The link adds to the outcome a multiple of the input the year before, sized place by place so that the year-to-year changes of what is added are the stated share (35%, 20%, 10%) of the outcome's year-to-year movement there afterwards; spreads are taken over 1961 to 2014. The answer handed over is the plain line on that input one year before, in those places. Beside each link: the input's year-to-year memory, whether a row naming it alone for that outcome was sent, and where it stood on its outcome's board.
+
+**Seeds.** A placebo or planted run's seed draws its rearrangement, its links and the referee's draws. The real read's referee draws are seed 58900; the last ten years', 58901.
 
 ## Deviations
 
