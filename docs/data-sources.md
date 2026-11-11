@@ -22,6 +22,9 @@ from the repo root, with `uv run python scripts/fetch_<name>.py`. Files land in 
 | [BIS statistics](#bis-statistics) | Policy rates, consumer prices, house prices, credit, effective exchange rates | Fetched and shaped; joins the table after the first read across it | Direct, no login | BIS terms: unrestricted with the BIS cited | 1945 to 2026 by month; house prices and credit by year | Country, month or year | 14 MB zipped | BIS, Switzerland |
 | [Human Fertility Database, short-term fluctuations](#human-fertility-database-short-term-fertility-fluctuations) | Births by month | Fetched and shaped; joins the table after the first read across it | Direct, no login | CC BY 4.0 | 2000 to 2025 | Country, month | 0.2 MB | MPIDR, Germany, and VID, Austria |
 | [Eurostat deaths by month](#eurostat-deaths-by-month) | Deaths by month | Fetched and shaped; joins the table after the first read across it | Open API, no login | Reuse authorised with the source acknowledged | 1960 to 2025 | Country, month | 2 MB | Eurostat, Luxembourg |
+| [USGS earthquake catalogue](#usgs-earthquake-catalogue) | Earthquakes of magnitude 5 and above | Fetched and shaped; joins the table after the first read across it | Open API, no key | U.S. public domain, credit asked | 1973 to 2025 | Event; kept by country and month | 49 MB | USGS, United States |
+| [Mass Mobilization](#mass-mobilization-protest-data) | Protests against governments | Fetched and shaped; joins the table after the first read across it | Direct, no login | CC0 1.0 | 1990 to March 2020 | Event; kept by country and month | 15 MB | Harvard Dataverse, United States |
+| [OpenDengue](#opendengue) | Dengue cases | Fetched and shaped; joins the table after the first read across it; licence stated two ways | Direct, no login | CC BY 4.0 on the release, CC BY-SA in the makers' paper | 1955 to 2025, months from 1993 | Country, month or year | 0.3 MB (and 55 MB held) | figshare, United Kingdom; makers at LSHTM |
 | [FAO GIEWS FPMA](#fao-giews-fpma) | Market food prices | Checked, not fetched (fallback) | Open API, no login | CC BY 4.0, third-party series excluded | 1987 to 2026 | Market, monthly, no coordinates | 4,938 series | FAO, Italy |
 | [Natural Earth](#natural-earth) | Country borders | Used, grid | Direct, no login | Public domain | Fixed release | 1:10m vector | 5 MB | Natural Earth CDN |
 | [CHIRPS v3](#chirps) | Rainfall | Checked, not used | Direct, no login | Public domain, per page | 1981 to near present, file not opened | 0.05 degree, monthly | 8.3 GiB | UCSB, USA |
@@ -175,6 +178,37 @@ from the repo root, with `uv run python scripts/fetch_<name>.py`. Files land in 
 - **No account, no key.**
 - **What is kept:** deaths by month, 48 places, 1960-01 to 2025-12. Germany is the record that includes the former GDR; France is the whole country, from 1995 only; forecasts are dropped.
 - **Know before use:** Europe and its neighbours only; the United Kingdom ends in 2019; recent months are provisional.
+
+## USGS earthquake catalogue
+
+- **Data:** the ANSS Comprehensive Catalog through its API, <https://earthquake.usgs.gov/fdsnws/event/1/>; one CSV a year, 1973 to 2025, magnitude 4.5 and above (the API gives at most 20,000 events a query; the fullest year held 9,584).
+- **Fetch:** `scripts/fetch_events.py usgs` (the same script fetches the two sources below). Checksums of the 53 files in `data/raw/usgs_quakes/SHA256SUMS`; that list's own checksum in the manifest.
+- **Licence requires:** nothing; credit is asked for. "USGS-authored or produced data and information are considered to be in the U.S. Public Domain." (<https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits>).
+- **No account, no key.** The one source here on United States government infrastructure; the files are held on this box.
+- **What is kept:** earthquakes of magnitude 5.0 and above by country (the shape holding the epicentre) and month, their summed seismic moment, and the count for the world. Every country-month is written, zero where nothing was recorded.
+- **Know before use:**
+  - **Why 5.0 and 1973.** The catalogue states no level of completeness. 1973 is where the United States' own global record begins in it. At 4.5 the yearly count more than doubles as stations were added; at 5.0 it is about the same at both ends.
+  - **A dip that is the catalogue's, not the earth's.** At 5.0 the count falls by up to a quarter in 1996 to 2003, the years the usual magnitude type changes. Any link that leans on those years needs a second look.
+  - **Four in five events are at sea** and are in the world series only.
+  - **Nothing here has been read against anything.** Detail and counts: `docs/reading/sources-events.md`.
+
+## Mass Mobilization protest data
+
+- **Data:** version 5.1, <https://doi.org/10.7910/DVN/HTTWYL>; the CSV as deposited and the users' manual.
+- **Fetch:** `scripts/fetch_events.py mm`; each file's MD5 is checked against the record's.
+- **Licence requires:** nothing (CC0 1.0); the citation in the manifest is given anyway.
+- **No account, no guestbook.**
+- **What is kept:** by country and month of a protest's start: all protests, those where protesters used violence, and those the state met with beatings, shootings or killings. A country-year the file has a row for is watched, and its months are written with zero where nothing began; other country-years are not written.
+- **Know before use:** coded from a few English-language papers and wires, so attention differs by country; 50 people or more, demands on the government only; no United States; ends March 2020; states that ended or split, and Kosovo, are set aside (236 protests).
+
+## OpenDengue
+
+- **Data:** V1.3.1, <https://doi.org/10.6084/m9.figshare.24259573>; the national extract is shaped, the highest-temporal extract is held for later.
+- **Fetch:** `scripts/fetch_events.py dengue`; each file's MD5 is checked against the record's. Unpack as the script's first line says.
+- **Licence requires:** attribution, and by the stricter of two statements, share-alike. The release's record says CC BY 4.0. The makers' paper says "OpenDengue data is made available under a creative commons CC BY-SA licence" and that "all adaptations of the OpenDengue dataset must also be made available under the same terms". Not settled between them. This project holds the file and publishes no table made from it; if one is ever published it goes out share-alike, which is a different licence from the rest of this repository and so the owner's call at that point.
+- **No account.**
+- **What is kept:** cases by country and month (from the source's month, or from all of a month's weeks) and by year. A zero only where the source wrote one.
+- **Know before use:** case definitions differ by source; a missing record is not an absence of dengue; filled zeros are flagged; overseas territories are set aside.
 
 ## FAO GIEWS FPMA
 

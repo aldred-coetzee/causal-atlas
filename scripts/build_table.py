@@ -6,11 +6,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+from causal_atlas import adapters_events as events  # noqa: E402
 from causal_atlas import adapters_money_people as money  # noqa: E402
 from causal_atlas import table  # noqa: E402
 from causal_atlas.panel import RAW  # noqa: E402
 
-ORDER = ("faostat", "drought", "indices", "fire", "ged", "prices", "wdi", "faostat_cp", "faostat_pe", "bis_cbpol", "bis_long_cpi", "bis_spp", "bis_tc", "bis_eer", "hfd_stff", "eurostat_deaths")
+ORDER = ("faostat", "drought", "indices", "fire", "ged", "prices", "wdi", "faostat_cp", "faostat_pe", "bis_cbpol", "bis_long_cpi", "bis_spp", "bis_tc", "bis_eer", "hfd_stff", "eurostat_deaths", "usgs_quakes", "mass_mobilization", "opendengue")
 
 
 def run(name, countries):
@@ -39,8 +40,13 @@ def run(name, countries):
     if name == "hfd_stff":
         return money.hfd_stff(RAW / "hfd_stff" / "stff.csv", RAW / "hfd_stff" / "stffadj.csv", countries, table.licence(table.manifest(), name))
     if name == "eurostat_deaths":
-        part = money.eurostat_deaths(RAW / "eurostat_deaths" / "demo_mmonth.csv", money.iso2_codes(countries)[0], table.licence(table.manifest(), name))
-        return part._replace(names={p: countries[p]["name"] for p in set(part.obs["place_id"].to_pylist())})
+        return money.eurostat_deaths(RAW / "eurostat_deaths" / "demo_mmonth.csv", money.iso2_codes(countries)[0], table.licence(table.manifest(), name))
+    if name == "usgs_quakes":
+        return events.usgs_quakes(sorted((RAW / "usgs_quakes").glob("m4.5_*.csv")), countries, table.licence(table.manifest(), name))
+    if name == "mass_mobilization":
+        return events.mass_mobilization(RAW / "mass_mobilization" / "mmALL_073120_csv.csv", countries, table.licence(table.manifest(), name))
+    if name == "opendengue":
+        return events.opendengue(RAW / "opendengue" / "national" / "National_extract_V1_3_1.csv", countries, table.licence(table.manifest(), name))
     raise SystemExit(f"unknown source {name}; choose from {ORDER}")
 
 

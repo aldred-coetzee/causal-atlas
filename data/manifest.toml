@@ -143,6 +143,42 @@ sha256 = "9bc9d5582e3a2301cf0dac8ae9a06abdf94c2e6a61141e6d24535d616765a363"
 coverage = "1,984,573 bytes. Deaths by month: 48 places, 1960-01 to 2025-12, 22,064 values (counted by the adapter and again from the file by the project session), 44 places with 120 months or more. Set aside: the year's totals and unknown months (4,579 rows), 42 rows with no value, 50 forecasts, groups of countries, Kosovo (no Natural Earth code), DE (Germany from 1991) in favour of DE_TOT (the same territory from 1960), FX (metropolitan France, 1960 to 2012) in favour of FR (1995 on)"
 known_biases = "Europe and its neighbours only. France begins in 1995 because the longer record is metropolitan France alone; the United Kingdom ends in 2019. Recent months are provisional and revised. How each country places a death in a month was not checked. Some countries' figures fall under the notice's non-commercial exception"
 
+[usgs_quakes]
+source_url = "https://earthquake.usgs.gov/fdsnws/event/1/query (format=csv, eventtype=earthquake, minmagnitude=4.5, orderby=time-asc; one query a year, 1973 to 2025)"
+fetch_script = "scripts/fetch_events.py"
+version = "ANSS Comprehensive Catalog (ComCat) as queried 2026-11-11. A live catalogue: reviewed events are revised, so a later fetch will not match byte for byte"
+licence = "U.S. Public Domain: 'USGS-authored or produced data and information are considered to be in the U.S. Public Domain.' and 'we ask that proper credit be given' (https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits, read 2026-11-11 by a helper and the sentences again for the project session). The page warns that not everything on USGS sites is public domain; the catalogue also holds contributions from other networks. Credit: U.S. Geological Survey. Cite: U.S. Geological Survey, 2017, Advanced National Seismic System (ANSS) Comprehensive Catalog of Earthquake Events and Products, https://doi.org/10.5066/F7MS3QZH"
+fetched = "2026-11-11"
+sha256 = "a916e76608c8cb8358ecf4306c51f8167a21b7a2b9f5ccfdff25383f79b63aca"
+sha256_of = "data/raw/usgs_quakes/SHA256SUMS, the list of the 53 yearly files' checksums (each file checked against it by the project session)"
+coverage = "53 files, 49,018,526 bytes; 287,309 earthquakes of magnitude 4.5 or more, 1973 to 2025; 87,867 of magnitude 5.0 or more, the floor used (both counted by the helper and again by the project session); 17,995 of those inside a country's shape, 69,872 at sea or outside every shape (world series only). Shaped: count and summed seismic moment by country and month, 234 places, 1973-01 to 2025-12, every country-month written, zero where nothing was recorded; count by month for the world"
+known_biases = "The catalogue states no magnitude of completeness. At 4.5 the yearly count more than doubles as stations were added, so 5.0 is used; at 5.0 it sags by up to a quarter in 1996 to 2003 (1,077 in 1998 against about 1,500 to 1,700 before and after), when the most common magnitude type changes: counted, not corrected. Four in five events are at sea, so a country's count depends on where its shape meets the water. The moment formula is for moment magnitude and understates large events given in body-wave magnitude. A large aftershock sequence fills a month (2004, 2011)"
+
+[mass_mobilization]
+source_url = "https://dataverse.harvard.edu/api/access/datafile/4291456?format=original"
+source_url_manual = "https://dataverse.harvard.edu/api/access/datafile/2775560"
+fetch_script = "scripts/fetch_events.py"
+version = "Mass Mobilization Protest Data, version 5.1, released 2022-10-10 (https://doi.org/10.7910/DVN/HTTWYL)"
+licence = "CC0 1.0 (http://creativecommons.org/publicdomain/zero/1.0), the licence field of the dataset's record (https://dataverse.harvard.edu/api/datasets/:persistentId/?persistentId=doi:10.7910/DVN/HTTWYL, read 2026-11-11 by a helper and again by the project session). Cite: Clark, David; Regan, Patrick, 2016, Mass Mobilization Protest Data, https://doi.org/10.7910/DVN/HTTWYL, Harvard Dataverse, V5"
+fetched = "2026-11-11"
+sha256 = "5906226e24c9892482b0b9133b0b36519e5f7b833b036c7c2fab8bba6e431a9d"
+sha256_manual = "03541007078e661e4df11863f5c62fbe9adb3f745e91547446d05737fcf7cd45"
+coverage = "mmALL_073120_csv.csv, 15,058,276 bytes, its MD5 the record's. 17,145 rows: 15,239 protests and 1,906 rows marking a country-year searched with none found; 166 country names, 1990 to 2020-03 (counted by the helper and again by the project session). Shaped: protests, protests where protesters used violence, and protests met with beatings, shootings or killings, by country and month of start: 159 places, 1990-01 to 2020-03, 56,646 country-months, zero written in every month of a country-year the file has a row for"
+known_biases = "Coded from a handful of English-language papers and wires: attention differs by country and year. A protest is 50 people or more making a demand of the government; rallies, rebel action and communal disputes are not coded. A long protest counts once, in the month it began. No United States. 236 protests in states that ended or split (USSR, Yugoslavia, Czechoslovakia, the two Germanys) and in Kosovo are set aside. Sudan before 2011 includes South Sudan. Ends March 2020"
+
+[opendengue]
+source_url = "https://ndownloader.figshare.com/files/71041980"
+source_url_temporal = "https://ndownloader.figshare.com/files/71041986"
+fetch_script = "scripts/fetch_events.py"
+version = "OpenDengue V1.3.1 (figshare record 24259573, version 5, published 2026-11-03, https://doi.org/10.6084/m9.figshare.24259573)"
+licence = "Two statements that differ. The release's own record states CC BY 4.0 (https://api.figshare.com/v2/articles/24259573, licence field, read 2026-11-11 by a helper and again by the project session). The makers' data descriptor says: 'OpenDengue data is made available under a creative commons CC BY-SA licence.' and 'Under a CC BY-SA licence all adaptations of the OpenDengue dataset must also be made available under the same terms.' (https://doi.org/10.1038/s41597-024-03120-7, section 'Citation and data licence', read in the full text by the project session). Held here on the release's statement; any table made from it and published would be offered share-alike, the stricter of the two, and none is published. Cite the descriptor and: Clarke J, Lim A, Gupte P, Pigott DM, van Panhuis WG, Brady OJ. OpenDengue: data from the OpenDengue database. Version 1.3.1. figshare; 2026. https://doi.org/10.6084/m9.figshare.24259573"
+fetched = "2026-11-11"
+sha256 = "c588335f25f2202e4f87d271381f385c76ffd4dcb68348f40c2a6fcab8889d4e"
+sha256_national_csv = "b9381e3f1dca5828330878c2b9ccb02629019b2b8554defe2f2c7ee0917c5cb1"
+sha256_temporal = "6bb4dbec3d891e444047354619d7bc7003e29e2f9f9cfcec29130fe605c126a2"
+coverage = "National extract 330,958 bytes zipped (MD5 the record's), 29,540 rows for 128 country codes, 1924 to 2025-04, by week, month or year. Shaped: dengue cases by country and month, 118 places, 1993-01 to 2025-04, 7,796 values; by year, 118 places, 1955 to 2024, 3,844 values. A month comes from the source's month row or from all its weeks (817 months with a week missing are not written). The temporal extract (55,205,724 bytes) is held and not shaped"
+known_biases = "Case definitions differ by source (suspected, probable, confirmed). Reporting effort changes through time and between countries. A zero is written only where the source wrote one, and the makers say that for some countries it is unclear whether that records no dengue or no reporting; zeros the makers filled are flagged imputed. Seven overseas territories are set aside, not added to their states. The licence caveat above"
+
 [oni]
 source_url = "https://psl.noaa.gov/data/correlation/oni.data"
 fetch_script = "scripts/fetch_oni.py"
