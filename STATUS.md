@@ -1,6 +1,14 @@
 # Status
 
-Last updated 2026-11-11, 21:16 UTC.
+Last updated 2026-11-11, 23:05 UTC.
+
+**Since 21:16 UTC (read this first; the lines below it are as they stood then):**
+- **Reading by month is in the package, off unless asked for** (decision 0066; `src/causal_atlas/months.py`). Checked by this session before it was taken in: the diff read, the suite run (293 passed, 1 skipped), five stored made-up tables read again to their stored rows. Memory for a monthly table is about 0.5 GB where it was about 5 GB.
+- **Its count on made-up tables is running since 22:44 UTC** under `results/monthly-count.md` (rule committed first): 420 worlds in seven panels, seeds 62001 on, rows kept in `results/monthly-count.jsonl` (not yet committed while it is being written), logs in `data/panel/monthly/count/`. When it ends: `PYTHONPATH=src:scripts .venv/bin/python scripts/run_monthly.py table`, write the result into the rule file, commit rows and result. A panel that stopped short is finished by `run_monthly.py count <panel>`; a seed is never kept twice. If the marks hold, the next step is placebo runs on the real monthly table under a new rule; gaps and late starts are not covered by this count.
+- **The second set of finders and the list of tied series are back** (`docs/reading/second-set-of-finders.md`, `docs/tied-series.md`). The second set's count is designed and not registered. The tied list has not been checked line by line; the ties it could not settle are to be barred unless a source's own documents clear them.
+- **The helper on series that keep their level is still out** (`scripts/lab_levels.py` is its uncommitted work; its notes file will be rewritten). Interim, development numbers: with every series read as its change from the year before, 19 of 54 planted links heard where none were, no pass naming anything unplanted; on tables with a shared slow path 0 of 20 false passes. If its final notes hold that, the next rule is a count of that step on made-up tables and then a second real read (placebos and planted runs first, ties barred, the spent ledger consulted).
+- Tokens need a recount (`~/.claude/skills/checkpoint/cost causal-atlas "2026-11-11 15:32"`); the last was 7.3M today at 20:45 UTC.
+- `.claude/` in the repo root is a helper's working copy and is never committed.
 
 **Where it stands (2026-11-11, 20:34 UTC): the first read across the real table has been made, once, and it is silent. No row passed, so there is no lead and the last ten years (2015 to 2024) were not opened. The runs made before it show the silence rules out very little: links planted into the real series were not heard either.** To pick this up cold:
 
