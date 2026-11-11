@@ -35,6 +35,7 @@ OUT = Path("data/panel/monthly")
 LAGS = (1, 2, 3, 4, 5, 6)  # months before, each a member of the slope family
 WINDOWS = ((1, 2, 3), (4, 5, 6), (1, 2, 3, 4, 5, 6))  # a series over several months before, as one term
 SCALED = {"MIN_PAST": 24, "WARM": 24, "SPAN": 36, "OWN": 120.0, "QUIET": 12}  # the settings counted in years, made two or three years of months
+SCALED_Y = {**SCALED, "YEARS": 120}  # and the scored steps a proposal must apply in, which a2 left at ten (ten months): the fault found on review, 2026-11-11
 FEATURES = ("mean", "peak", "worst three", "months beyond")
 _REFEREE_DRAWS, _REFEREE_LEVEL = rf._draws, rf._level
 
@@ -350,6 +351,7 @@ def job_ways(kind, seed0, n, months=480, ways="a0,a1,a2,by,bh,c", **kw):
     """Question 2: each way on the same worlds. The planted lag runs over one to six months with the seed.
     a0: the season out, everything else as counted (members at one and two months before; bars by single months and by whole years).
     a1: the season out, members at one to six months before and the windows; both bars. a2: as a1 with the settings counted in years made two or three years of months; bar by whole years.
+    a3: as a2 with YEARS (scored steps a proposal must apply in) made 120 months.
     a9: as a2 with the steward's floor taken away and twenty rows sent, under both bars.
     by: yearly features of the calendar year before against the calendar year's outcome. bh: yearly features of the twelve months to June against July to December. c: one calendar month at a time."""
     first = int(0.6 * months) // YEAR * YEAR
@@ -372,6 +374,10 @@ def job_ways(kind, seed0, n, months=480, ways="a0,a1,a2,by,bh,c", **kw):
                 line[way] = {b: tally(rows, res[b], truth) for b in res}
             elif way == "a2":
                 with using(**SCALED):
+                    _, rows, res = read_table(d, g, first, outs, month_members(), bars=("years",), seed=seed, labels=True)
+                line[way] = {b: tally(rows, res[b], truth) for b in res}
+            elif way == "a3":  # a2 with YEARS made months as well
+                with using(**SCALED_Y):
                     _, rows, res = read_table(d, g, first, outs, month_members(), bars=("years",), seed=seed, labels=True)
                 line[way] = {b: tally(rows, res[b], truth) for b in res}
             elif way == "a9":  # a2 with the steward's floor taken away and twenty rows sent, under both bars: what the referee alone does with months whose season is out
