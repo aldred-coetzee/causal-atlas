@@ -21,17 +21,21 @@ FLOOR = 3.0  # the lift a row needs to be sent at all: three of its own spreads 
 FORM = "mean"  # the comparable form the members read
 
 
-def view(values, group, first, outcomes, allowed=None):
-    """What a member may see: the years before `first`, each series in its comparable form, the groups of places, and which series are outcomes. `allowed`, where given, is a yes or no for each outcome (row) and series (column): the series a row for that outcome may name (decision 0063: only series outside the outcome's own data set)."""
+def view(values, group, first, outcomes, allowed=None, settings=None, quiet=None):
+    """What a member may see: the years before `first`, each series in its comparable form, the groups of places, and which series are outcomes. `allowed`, where given, is a yes or no for each outcome (row) and series (column): the series a row for that outcome may name (decision 0063: only series outside the outcome's own data set).
+    settings: the referee's settings for a read at another step than a year (rf.using), held for the view and for every member that reads it in `swarm`; quiet: in place of QUIET. Neither given: the finders as counted."""
     v = np.array(values[:, :, :first], float)
     group = np.asarray(group)
     groups = np.unique(group)
+    quiet = QUIET if quiet is None else quiet
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", RuntimeWarning)
         common = ~(np.nanmax(np.nanstd(v, axis=1), axis=1) > 1e-9 * np.nanstd(v, axis=(1, 2)))  # the same in every place
     member = np.array([group == g for g in groups]) * 1.0
-    return {"values": v, "comp": rf.comparable(v, FORM), "group": group, "groups": groups, "member": member, "size": member.sum(axis=1), "first": first,
-            "outcomes": [int(o) for o in outcomes], "common": common, "shifts": tuple(range(QUIET, first - rf.WARM - QUIET + 1)), "cache": {}, "allowed": None if allowed is None else np.asarray(allowed, bool)}
+    with rf.using(settings):
+        return {"values": v, "comp": rf.comparable(v, FORM), "group": group, "groups": groups, "member": member, "size": member.sum(axis=1), "first": first,
+                "outcomes": [int(o) for o in outcomes], "common": common, "shifts": tuple(range(quiet, first - rf.WARM - quiet + 1)), "cache": {}, "allowed": None if allowed is None else np.asarray(allowed, bool),
+                "settings": settings}
 
 
 def residual(v, o, event=None):
@@ -302,9 +306,10 @@ MEMBERS = [  # in the order they run; the second round reads the board
 def swarm(v, members=None):
     """Every member, in a fixed order, for every outcome: the board. Same table, same board, every time. `members`: fewer than all, for a table too wide for the every-pair member."""
     board = []
-    for member in MEMBERS if members is None else members:
-        for o in v["outcomes"]:
-            board += member(v, o, board)
+    with rf.using(v.get("settings")):
+        for member in MEMBERS if members is None else members:
+            for o in v["outcomes"]:
+                board += member(v, o, board)
     return board
 
 

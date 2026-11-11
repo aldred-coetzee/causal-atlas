@@ -2,6 +2,7 @@
 Since decision 0060 each place's baseline is chosen for that place, a place's recent line carried forward is among the baselines, and a proposal must also stand, by a lower mark, on what was new in its inputs against their recent path: a slow path shared by a series and an outcome is the place's own history, not a link. OWN = None, PATH = False and CHECKS = () give the referee as Stage A1 counted it.
 Since decision 0061 each pass carries a label: whether it also stands turned round, the outcome a year before for the series, or is as strong read in the same year. Either way it may be two series moving together and not one leading the other. The label is not charged in the bar and neither makes nor unmakes a pass."""
 import warnings
+from contextlib import contextmanager
 
 import numpy as np
 
@@ -22,7 +23,29 @@ READS = ("mean", "line")  # the forms of its inputs a proposal is read in and he
 CHECKS = ("recent",)  # forms it is read in beside, not charged in the bar: it must still stand LEAST of its own spreads above zero there, and take something off the baseline's error
 LEAST = 2.0  # of its own spreads above zero, for a read that is a check
 BACK = 2.0  # of its own spreads above zero, in every read held to the bar, for a passed proposal turned round to count as standing too
+LAZY = False  # True: an outcome's errors at each scored step are made again when asked for, not kept (the same numbers, far less memory over hundreds of steps: causal_atlas.months)
 FORMS = ("slope", "hinge", "tail", "product", "by_group", "by_state", "mode")
+SETTINGS = ("MIN_PAST", "WARM", "RIDGE", "CLAIM", "CLIP", "FLOOR", "GROUPS", "YEARS", "SPAN", "OWN", "PATH", "READS", "CHECKS", "LEAST", "BACK", "LAZY")  # what a read at another step may set (causal_atlas.months)
+
+
+@contextmanager
+def using(settings=None, level=None):
+    """The settings above, changed for the length of a block and put back after it, even when the block fails: how a read at another step than a year (causal_atlas.months.MONTHLY) is held to settings counted in its own steps. With nothing given nothing changes, so every yearly read is as counted.
+    level: a function giving the same numbers as _level by a faster way, used for the block (a monthly table has hundreds of steps)."""
+    settings = dict(settings or {})
+    unknown = set(settings) - set(SETTINGS)
+    if unknown:
+        raise ValueError(f"not a setting of the referee: {sorted(unknown)}")
+    g = globals()
+    old, old_level = {k: g[k] for k in settings}, g["_level"]
+    g.update(settings)
+    if level is not None:
+        g["_level"] = level
+    try:
+        yield
+    finally:
+        g.update(old)
+        g["_level"] = old_level
 
 
 def proposal(outcome, inputs, form="slope", where="all", level=None, groups=None, state=None, weights=None, when=None, event=None, by=None):
@@ -222,6 +245,8 @@ def outcome(v, group, first, event=None):
             y = (v - np.nanmean(early, axis=1, keepdims=True)) / np.nanstd(early, axis=1, keepdims=True)
         y[~np.isfinite(y)] = np.nan
         b, chosen = baselines(y, group)
+    if LAZY:
+        return {"y": y, "past": _Past(y, b, chosen, first, event is not None), "chosen": chosen, "chance": event is not None}
     past = []
     for t in range(first, y.shape[1]):
         mine = b[chosen[:, t], np.arange(len(y))]
@@ -230,6 +255,28 @@ def outcome(v, group, first, event=None):
         u = e[:, WARM : t + 1] / unit[:, None]
         past.append((u if event is not None else np.clip(u, -CLIP, CLIP), unit, mine[:, t]))
     return {"y": y, "past": past, "chosen": chosen, "chance": event is not None}
+
+
+class _Past:
+    """`outcome`'s list of each scored step's errors, with LAZY: each step's place units and baseline kept, and its errors made again, by the same arithmetic, when asked for. The same numbers as the list; a table of hundreds of steps would otherwise hold a places-by-steps array for every one of them (causal_atlas.months)."""
+
+    def __init__(self, y, b, chosen, first, chance):
+        self.y, self.b, self.chosen, self.first, self.chance, self.warm, self.clip = y, b, chosen, first, chance, WARM, CLIP
+        self.kept = []
+        for t in range(first, y.shape[1]):
+            mine = b[chosen[:, t], np.arange(len(y))]
+            unit = np.ones(len(y)) if chance else _usual((y - mine)[:, WARM:t])
+            self.kept.append((unit, mine[:, t].copy()))  # a copy: a view would keep the whole of `mine` for every step
+
+    def __len__(self):
+        return len(self.kept)
+
+    def __getitem__(self, k):
+        if not 0 <= k < len(self.kept):
+            raise IndexError(k)
+        t, (unit, now) = self.first + k, self.kept[k]
+        u = (self.y - self.b[self.chosen[:, t], np.arange(len(self.y))])[:, self.warm : t + 1] / unit[:, None]
+        return (u if self.chance else np.clip(u, -self.clip, self.clip), unit, now)
 
 
 def score(out, z, where, first, fit="claimed"):
@@ -325,7 +372,7 @@ def turned(p, values):
     return out
 
 
-def label(values, group, first, p, r, seed=0, draws=DRAWS, fit="claimed"):
+def label(values, group, first, p, r, seed=0, draws=DRAWS, fit="claimed", draw=None, settings=None, level_fn=None):
     """What a pass may be read as. A pass says the inputs, known beforehand, improve the forecast; it does not say they lead. Two readings beside it, neither charged in the bar and neither able to make or unmake a pass:
     back: the proposal turned round stands too, more than BACK of its own spreads above zero with something off the baseline's error, in every read held to the bar; None when it cannot be turned round.
     same: read with each input as it stood in the outcome's own year, it stands at least as far above zero as with the inputs beforehand.
@@ -335,21 +382,27 @@ def label(values, group, first, p, r, seed=0, draws=DRAWS, fit="claimed"):
         return -np.inf if any(t is None for t in ts) else min(ts)
 
     back = turned(p, values)
-    more = judge(values, group, first, back + [{**p, "inputs": [(s, 0) for s, _ in p["inputs"]]}], seed=seed, draws=draws, fit=fit, labels=False)["proposals"]
+    more = judge(values, group, first, back + [{**p, "inputs": [(s, 0) for s, _ in p["inputs"]]}], seed=seed, draws=draws, fit=fit, labels=False, draw=draw, settings=settings, level_fn=level_fn)["proposals"]
     stands = [bool(least(x) > BACK and all(x[f]["s"] > 0 for f in READS)) for x in more[:-1]]
     out = {"back": any(stands) if back else None, "same": bool(least(more[-1]) >= least(r)), "back_t": [least(x) for x in more[:-1]], "same_t": least(more[-1]), "t": least(r)}
     return {**out, "together": bool(out["back"] or out["same"])}
 
 
-def judge(values, group, first, proposals, seed=0, draws=DRAWS, rate=RATE, fit="claimed", shifts=(), labels=True):
+def judge(values, group, first, proposals, seed=0, draws=DRAWS, rate=RATE, fit="claimed", shifts=(), labels=True, draw=None, settings=None, level_fn=None):
     """Every proposal read both ways, with its inputs as they fell and with their past level and line removed, and all of them held to one bar; and read once more as a check, with its inputs against their recent line, which the bar is not charged for.
     A proposal passes when, both ways: its tested statistic stands more than the bar of its own spreads above zero; it took something off the baseline's squared error, and still did without its best year; and it applies widely enough. And when, in the check, the statistic stands more than LEAST of its own spreads above zero and something came off the baseline's error. Its size is the smaller of the two shares removed.
     values: series by places by years. first: the first year scored; finders saw only the years before it. shifts: years to move the inputs by, for the scores reported beside (a weak control alone, decision 0058).
-    Each pass carries a label (see `label`): whether it also stands turned round or in the same year, and so may be two things moving together."""
+    Each pass carries a label (see `label`): whether it also stands turned round or in the same year, and so may be two things moving together.
+    draw: in place of _draws, how groups and steps are drawn again (a monthly read draws whole years of months: causal_atlas.months.whole_years). settings, level_fn: as `using`'s settings and level, for the whole judgement and its labels. None of the three given: the referee as counted."""
+    with using(settings, level_fn):
+        return _judge(values, group, first, proposals, seed, draws, rate, fit, shifts, labels, draw, settings, level_fn)
+
+
+def _judge(values, group, first, proposals, seed, draws, rate, fit, shifts, labels, draw, settings, level_fn):
     forms = READS + CHECKS
     comp = {f: comparable(values, f) for f in forms}
     group = np.asarray(group)
-    cg, cy = _draws(len(np.unique(group)), values.shape[2] - first, draws, seed)
+    cg, cy = (_draws if draw is None else draw)(len(np.unique(group)), values.shape[2] - first, draws, seed)
     outs, reads, beside = {}, [], []
     for p in proposals:
         key = (p["outcome"], p["event"])
@@ -374,7 +427,7 @@ def judge(values, group, first, proposals, seed=0, draws=DRAWS, rate=RATE, fit="
         sizes = [r["s"] for r in both[: len(READS)]]
         out.append({"passes": all(r["ok"] for r in both), "size": float(min(sizes)) if np.all(np.isfinite(sizes)) else None, "fell": both[0], "flat": both[1], **dict(zip(forms, both)), "shifts": beside[i]})
     for p, r in zip(proposals, out):
-        r["label"] = label(values, group, first, p, r, seed, draws, fit) if labels and r["passes"] else None
+        r["label"] = label(values, group, first, p, r, seed, draws, fit, draw, settings, level_fn) if labels and r["passes"] else None
     chosen = {f"{int(k[0])}" + ("" if k[1] is None else f" beyond {k[1]}"): [int(c) for c in np.bincount(o["chosen"][:, first:].ravel(), minlength=5)] for k, o in outs.items()}
     return {"bar": level, "sent": len(proposals), "passed": int(sum(v["passes"] for v in out)), "proposals": out, "chosen": chosen}
 
