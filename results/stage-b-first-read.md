@@ -153,7 +153,7 @@ Written with `scripts/run_stage_b.py` and before any placebo, planted run or rea
 
 ## Deviations
 
-None yet.
+None. The steps were run in the rule's order, each registered seed once; the real read once; the confirmation not at all, because nothing passed.
 
 ## Result
 
@@ -182,6 +182,61 @@ The bar when the answers were handed over stood between 3.87 and 5.13 in the six
 
 **What this says a silence rules out: nothing of these kinds.** A steady link one year ahead, in a quarter of the places, from an input that keeps its level for years, at up to 35% of the outcome's year-to-year movement, was not heard on this table, from the board or when handed over. The referee gave the largest links a size of 5% in the middle (the share taken off the baseline's error) and scores of about half the bar. Why is not shown by these runs. The likeliest reading, not tested here, is that a place's own history already carries most of a slowly moving addition, so little is left for the input to add; a design brief on made-up tables only has been started to find out and to say what reading would hear such a link (`docs/specs/2026-11-11-parallel-helpers-fourth-wave.md`). Until then a quiet real read is a quiet read by an instrument that is known to be hard of hearing on this table, and is reported as that.
 
-### The real read
+### The real read (made once, 2026-11-11, 20:18 to 20:25 UTC): silence
 
-Not yet read.
+**No row passed. No lead.** The swarm posted 70,220 rows from 1961 to 1995; the steward sent forty, eight from each of the five families; the referee scored them on 1996 to 2014 with a bar of 4.78 over the forty. None passed, so nothing is labelled and **the last ten years are not opened**: 2015 to 2024 stay unread, for a later rule.
+
+How far from passing. In 4 of the 40 rows something came off the baseline's error both ways the row was read; in the rest the proposal made the forecast worse one way or both, or could not be scored. The highest pair of scores on a row that applies widely was 2.44 and 0.79, a little over half the bar one way and a sixth of it the other. One row stood above the bar both ways and is not a near miss: it applies in one group in one year, the same division by almost nothing seen in the placebo runs, and falls on the condition that a row applies widely. In 8 rows a score could not be worked out; such a row cannot pass.
+
+**What the silence rules out: very little, and it is not evidence that the sets are unrelated.** The planted runs above are the measure: on this table, read this way, a steady link of up to 35% of an outcome's year-to-year movement from an input that keeps its level was not heard even when handed to the referee. So this read says only that nothing stood out far enough to pass an instrument that the known-answer runs show to be hard of hearing here. It does not say there is no link between crops, exchange rates, drought and the World Bank's indicators one year ahead. No row sent names the drought index against a crop. The known answer on real data (drought on crop yields, about 1.7% of squared error, `results/harvest-drought.md`) is of a size far below what was planted and not heard, so its absence here says nothing new either way.
+
+**Limits, beside those said beforehand.** One table, one arrangement of years (35 seen, 19 scored), one year ahead, yearly values. Forty rows of about 70,000: a link ranked forty-first on the board was never scored. The placebo marks bound the false-pass rate only loosely (above). The referee's bar did not by itself stop every empty row on this table; the breadth condition did (above). Nothing was changed in the finders or the referee after any run was seen.
+
+Every row sent, in the order sent. A score or share of "none" could not be worked out.
+
+| Outcome | Series named | Their sets | Finder | Places | Lift | Score, two ways | Share taken off the baseline's error, two ways (with its interval) | Groups, years it applies in | Passed |
+|---|---|---|---|---|---|---|---|---|---|
+| `wdi:SP.POP.65UP.FE.ZS` | `faostat_qcl:production:401` | crops | slope: lag 1 | 72 | 6.88 | 2.44, 0.79 | 0.078 (-0.013 to 0.167); 0.007 (-0.051 to 0.067) | 6, 19 | no |
+| `faostat_qcl:yield:358` | `wdi:SE.SEC.DURS` | world bank | shape: sign by place | 47 | 8.07 | 0.26, -0.06 | -0.009 (-0.043 to 0.025); -0.003 (-0.022 to 0.014) | 5, 19 | no |
+| `wdi:SE.SEC.DURS` | `faostat_qcl:production:372` | crops | extremes: tail 0.1 to event 0.9 | 49 | 11.95 | none, none | none (none to none); none (none to none) | 0, 0 | no |
+| `wdi:EN.GHG.CO2.IP.MT.CE.AR5` | `candidates:dmi.had.long.data:monthly`, `faostat_qcl:area_harvested:211` | climate, crops | pairs: pairs from the board | 125 | 5.58 | 0.46, 0.39 | -0.007 (-0.041 to 0.014); -0.005 (-0.028 to 0.010) | 13, 19 | no |
+| `wdi:NY.TAX.NIND.CN` | 10 series together | climate, crops, exchange rates | modes: gathered 10 | 112 | 6.24 | -0.01, 0.39 | -0.028 (-0.094 to 0.038); 0.002 (-0.023 to 0.027) | 5, 19 | no |
+| `wdi:SP.RUR.TOTL` | `faostat_pe:slc:year` | exchange rates | slope: lag 1 | 87 | 5.24 | 1.85, -1.29 | 0.013 (-0.029 to 0.051); -0.034 (-0.067 to -0.003) | 10, 19 | no |
+| `wdi:SE.SEC.DURS` | `faostat_qcl:area_harvested:486` | crops | shape: hinge 0.2 | 59 | 7.50 | -0.75, -0.16 | -0.047 (-0.085 to 0.082); -0.006 (-0.026 to 0.111) | 2, 3 | no |
+| `faostat_qcl:yield:116` | `wdi:TM.VAL.AGRI.ZS.UN` | world bank | extremes: tail 0.1 to event 0.9 | 51 | 8.22 | 0.09, -0.43 | -0.130 (-0.822 to 0.230); -0.177 (none to -0.081) | 2, 5 | no |
+| `wdi:SE.SEC.AGES` | `faostat_qcl:area_harvested:397`, `faostat_qcl:area_harvested:426` | crops | pairs: pairs from the board | 52 | 4.76 | 1.25, -0.06 | 0.193 (none to 0.458); -0.008 (none to 0.108) | 2, 2 | no |
+| `wdi:SP.DYN.LE00.MA.IN` | 94 series together | climate, crops, exchange rates | modes: components | 53 | 6.03 | none, none | none (none to none); none (none to none) | 0, 0 | no |
+| `faostat_qcl:yield:826` | `wdi:NY.TAX.NIND.CD` | world bank | slope: lag 1 | 104 | 4.94 | 0.88, 0.57 | -0.001 (-0.044 to 0.042); -0.013 (-0.075 to 0.045) | 9, 19 | no |
+| `wdi:SP.POP.0014.MA.ZS` | `candidates:ao.long.data:monthly` | climate | shape: hinge 0.8 | 147 | 6.82 | -1.37, -9.07 | -0.265 (-0.586 to -0.022); -0.619 (-0.763 to -0.536) | 15, 1 | no |
+| `faostat_qcl:production:372` | `wdi:DT.ODA.ODAT.PC.ZS` | world bank | extremes: tail 0.1 to event 0.1 | 60 | 8.19 | -0.04, -0.30 | -0.128 (-18.484 to 0.133); -0.164 (-1.609 to 0.042) | 3, 8 | no |
+| `wdi:TM.VAL.MRCH.R5.ZS` | `faostat_qcl:production:394`, `faostat_qcl:yield:125` | crops | pairs: pairs from the board | 48 | 4.00 | 0.12, 0.66 | -0.001 (-0.014 to 0.011); 0.019 (-0.024 to 0.085) | 5, 19 | no |
+| `wdi:NY.TAX.NIND.CN` | 20 series together | climate, crops, exchange rates | modes: gathered 20 | 100 | 5.11 | 0.00, -0.60 | -0.089 (-0.377 to 0.096); -0.067 (-0.236 to 0.037) | 2, 19 | no |
+| `wdi:SP.ADO.TFRT` | `candidates:ao.long.data:monthly` | climate | slope: lag 2 | 138 | 4.94 | -0.32, -0.61 | -0.073 (-0.157 to 0.002); -0.116 (-0.270 to -0.016) | 14, 19 | no |
+| `wdi:SP.POP.0014.MA.ZS` | `candidates:pdo.timeseries.sstens.data:monthly` | climate | shape: hinge 0.2 | 147 | 6.71 | 0.04, -0.36 | -1.147 (-3.271 to -0.015); -0.258 (-0.799 to 0.014) | 15, 5 | no |
+| `wdi:EN.GHG.N2O.WA.MT.CE.AR5` | `candidates:amm.data:monthly` | climate | extremes: tail 0.9 to event 0.1 | 135 | 8.06 | -0.62, -0.36 | -1.675 (-5.135 to -0.298); -1.776 (-6.615 to -0.473) | 13, 3 | no |
+| `wdi:SP.POP.DPND.YG` | `faostat_qcl:production:236`, `faostat_qcl:production:574` | crops | pairs: pairs from the board | 54 | 3.76 | -1.75, 0.71 | -0.027 (-0.047 to -0.002); 0.001 (-0.001 to 0.004) | 5, 19 | no |
+| `wdi:NE.GDI.TOTL.CN` | 94 series together | climate, crops, exchange rates | modes: components | 50 | 4.74 | none, none | none (none to none); none (none to none) | 0, 0 | no |
+| `wdi:EN.GHG.CH4.MT.CE.AR5` | `faostat_pe:slc:year` | exchange rates | slope: lag 2 | 48 | 4.68 | 1.10, 0.49 | 0.003 (-0.140 to 0.132); -0.022 (-0.120 to 0.069) | 6, 19 | no |
+| `wdi:SE.PRM.DURS` | `faostat_qcl:yield:397` | crops | shape: hinge 0.2 | 56 | 6.22 | 6.8e+15, 7.6e+15 | 0.612 (0.612 to 0.612); 0.374 (0.374 to 0.374) | 1, 1 | no |
+| `wdi:SP.POP.0014.MA.ZS` | `candidates:np.long.data:monthly` | climate | extremes: tail 0.9 | 147 | 7.96 | -4.26, -4.26 | -2.939 (-3.721 to -2.435); -0.840 (-1.052 to -0.662) | 15, 1 | no |
+| `wdi:SP.POP.DPND.YG` | `faostat_qcl:area_harvested:176`, `faostat_qcl:area_harvested:83` | crops | pairs: pairs from the board | 80 | 3.73 | 0.61, 0.99 | 0.007 (-0.021 to 0.040); 0.012 (-0.019 to 0.030) | 6, 19 | no |
+| `wdi:NV.AGR.TOTL.CN` | 94 series together | climate, crops, exchange rates | modes: components | 81 | 4.73 | none, none | none (none to none); none (none to none) | 0, 0 | no |
+| `wdi:TM.VAL.MRCH.CD.WT` | `faostat_qcl:yield:125` | crops | slope: lag 2 | 64 | 4.61 | 1.22, 0.10 | 0.005 (-0.017 to 0.019); -0.012 (-0.045 to 0.017) | 6, 19 | no |
+| `wdi:SP.POP.2024.FE.5Y` | `faostat_qcl:production:249` | crops | shape: hinge 0.8 | 75 | 6.00 | -0.78, -1.31 | -0.128 (-0.333 to 0.040); -0.101 (-0.220 to 0.003) | 7, 18 | no |
+| `wdi:FP.CPI.TOTL` | `faostat_qcl:production:236` | crops | extremes: tail 0.1 to event 0.1 | 45 | 6.90 | 0.45, 0.16 | 0.101 (-0.100 to 0.259); 0.124 (-5.589 to 0.221) | 4, 10 | no |
+| `wdi:TM.VAL.MRCH.R6.ZS` | `candidates:npgo.data:monthly`, `candidates:sunspot.long.data:monthly` | climate | pairs: pairs from the board | 109 | 3.72 | 0.09, 0.39 | -0.035 (-0.132 to 0.043); -0.009 (-0.087 to 0.059) | 11, 19 | no |
+| `wdi:FS.AST.CGOV.GD.ZS` | 94 series together | climate, crops, exchange rates | modes: components | 90 | 4.17 | none, none | none (none to none); none (none to none) | 0, 0 | no |
+| `wdi:SP.POP.3034.FE.5Y` | `faostat_qcl:production:507` | crops | slope: lag 1 | 55 | 4.33 | 1.13, 0.05 | 0.018 (-0.125 to 0.216); -0.011 (-0.040 to 0.020) | 5, 19 | no |
+| `wdi:SP.POP.6064.FE.5Y` | `faostat_qcl:area_harvested:560` | crops | shape: hinge 0.2 | 49 | 5.83 | -0.29, -1.03 | -0.287 (-0.932 to -0.052); -0.345 (-0.920 to -0.079) | 5, 13 | no |
+| `wdi:TX.VAL.MRCH.HI.ZS` | `faostat_qcl:yield:826` | crops | extremes: tail 0.1 to event 0.9 | 64 | 6.71 | 0.18, 0.37 | -0.063 (-0.466 to 0.136); 0.006 (-0.217 to 0.125) | 6, 18 | no |
+| `wdi:SP.POP.6064.MA.5Y` | `candidates:tni.long.data:monthly`, `faostat_qcl:yield:463` | climate, crops | pairs: pairs from the board | 95 | 3.58 | -1.07, 0.69 | -0.013 (-0.028 to -0.001); -0.001 (-0.014 to 0.012) | 10, 19 | no |
+| `wdi:SP.DYN.CDRT.IN` | 94 series together | climate, crops, exchange rates | modes: components | 37 | 4.16 | none, none | none (none to none); none (none to none) | 0, 0 | no |
+| `faostat_qcl:production:236` | `wdi:SP.POP.3539.FE.5Y` | world bank | slope: lag 1 | 100 | 3.97 | 1.14, 0.50 | 0.004 (-0.022 to 0.033); -0.004 (-0.029 to 0.019) | 10, 19 | no |
+| `wdi:SP.POP.1519.FE.5Y` | `faostat_qcl:production:507` | crops | shape: hinge 0.8 | 56 | 5.70 | -0.10, -0.40 | -0.064 (-0.184 to 0.028); -0.042 (-0.148 to 0.081) | 5, 17 | no |
+| `wdi:AG.LND.ARBL.HA` | `faostat_pe:slc:year` | exchange rates | extremes: tail 0.9 to event 0.1 | 116 | 6.40 | -0.05, 0.95 | -0.157 (-1.575 to 0.150); -0.028 (-0.406 to 0.240) | 7, 17 | no |
+| `wdi:ER.H2O.INTR.K3` | `candidates:dmieast.had.long.data:monthly`, `candidates:qbo.data:monthly` | climate | pairs: pairs from the board | 50 | 3.41 | none, none | -0.080 (-0.080 to -0.080); -0.005 (-0.005 to -0.005) | 1, 1 | no |
+| `wdi:NY.TAX.NIND.CN` | 94 series together | climate, crops, exchange rates | modes: components | 43 | 4.11 | none, none | none (none to none); none (none to none) | 0, 0 | no |
+
+### The last ten years
+
+Not opened: nothing passed. They stay unread.
