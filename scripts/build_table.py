@@ -6,12 +6,15 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+from causal_atlas import adapters_eurostat as eurostat  # noqa: E402
 from causal_atlas import adapters_events as events  # noqa: E402
 from causal_atlas import adapters_money_people as money  # noqa: E402
 from causal_atlas import table  # noqa: E402
 from causal_atlas.panel import RAW  # noqa: E402
 
-ORDER = ("faostat", "drought", "indices", "fire", "ged", "prices", "wdi", "faostat_cp", "faostat_pe", "bis_cbpol", "bis_long_cpi", "bis_spp", "bis_tc", "bis_eer", "hfd_stff", "eurostat_deaths", "usgs_quakes", "mass_mobilization", "opendengue")
+ORDER = ("faostat", "drought", "indices", "fire", "ged", "prices", "wdi", "faostat_cp", "faostat_pe", "bis_cbpol", "bis_long_cpi", "bis_spp", "bis_tc", "bis_eer", "hfd_stff", "eurostat_deaths", "usgs_quakes", "mass_mobilization", "opendengue",
+         "eurostat_unemployment", "eurostat_industry", "eurostat_retail", "eurostat_electricity", "eurostat_tourism", "eurostat_air", "eurostat_asylum", "eurostat_births")
+EUROSTAT = {c.source: t for t, c in eurostat.TABLES.items()}  # the source name in the manifest: Eurostat's table code
 
 
 def run(name, countries):
@@ -47,6 +50,8 @@ def run(name, countries):
         return events.mass_mobilization(RAW / "mass_mobilization" / "mmALL_073120_csv.csv", countries, table.licence(table.manifest(), name))
     if name == "opendengue":
         return events.opendengue(RAW / "opendengue" / "national" / "National_extract_V1_3_1.csv", countries, table.licence(table.manifest(), name))
+    if name in EUROSTAT:
+        return eurostat.eurostat_months(RAW / "eurostat" / EUROSTAT[name] / f"{EUROSTAT[name]}.csv", EUROSTAT[name], money.iso2_codes(countries)[0], table.licence(table.manifest(), name))
     raise SystemExit(f"unknown source {name}; choose from {ORDER}")
 
 

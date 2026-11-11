@@ -107,7 +107,7 @@ def mass_mobilization(csv, countries, lic, last=MM_LAST):
     text = {"protests": "Protests against the government of 50 or more people, by month of their start",
             "protests_violent": "Those protests where the protesters used violence against the state",
             "protests_met_with_force": "Those protests the state met with beatings, shootings or killings"}
-    series = [series_row(f"mass_mobilization:{k}:country_total", "mass_mobilization", "unrest", v + ", by country (the country the file names)", "protests", "count", "log1p", "country", "month", lic) for k, v in text.items()]
+    series = [series_row(f"mass_mobilization:{k}:country_total", "mass_mobilization", "unrest", v + ", by country (the country the file names)", "protests", "level", "log1p", "country", "month", lic) for k, v in text.items()]
     obs = pa.concat_tables([obs_table(f"mass_mobilization:{k}:country_total", [r[0] for r in rows], [r[1] for r in rows], [r[i] for r in rows]) for i, k in enumerate(text, start=2)])
     return Part(series, obs.cast(OBS_SCHEMA), {}, notes)
 
@@ -152,8 +152,8 @@ def opendengue(csv, countries, lic):
     year = {**summed, **own_y}
     flag = lambda imp: "imputed" if imp else ""
     text = "Dengue cases as reported (the case definition differs by source: suspected, confirmed or both), by country"
-    series = [series_row("opendengue:cases:country_total", "opendengue", "health", text + ", by month (from the month's row, or from all its weeks, a week counted in the month holding its middle day)", "cases", "count", "log1p", "country", "month", lic),
-              series_row("opendengue:cases:country_total:year", "opendengue", "health", text + ", by calendar year (from the year's row, or the sum of its twelve months)", "cases", "count", "log1p", "country", "year", lic)]
+    series = [series_row("opendengue:cases:country_total", "opendengue", "health", text + ", by month (from the month's row, or from all its weeks, a week counted in the month holding its middle day)", "cases", "level", "log1p", "country", "month", lic),
+              series_row("opendengue:cases:country_total:year", "opendengue", "health", text + ", by calendar year (from the year's row, or the sum of its twelve months)", "cases", "level", "log1p", "country", "year", lic)]
     obs = pa.concat_tables([obs_table(sid, [k[0] for k in ks], [k[1] for k in ks], [src[k][0] for k in ks], [flag(src[k][1]) for k in ks])
                             for sid, src in (("opendengue:cases:country_total", month), ("opendengue:cases:country_total:year", year)) for ks in [sorted(src)]])
     return Part(series, obs.cast(OBS_SCHEMA), {}, notes)

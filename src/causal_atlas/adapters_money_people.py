@@ -98,7 +98,7 @@ def hfd_stff(crude_csv, adjusted_csv, countries, lic):
     """Births and the total fertility rate by country and month, from the HFD's Short-Term Fertility Fluctuations: crude (stff.csv) and seasonally and calendar adjusted (stffadj.csv, from 2012). A '.' is no value. Births whose month is unknown and the year's totals are not used and are counted; codes for parts of a country (England and Wales, Scotland, Northern Ireland, Quebec) are set aside."""
     iso3 = {i: c for c, d in countries.items() for i in d["iso"]}
     con = duckdb.connect(config={"threads": 1, "memory_limit": "1GB"})
-    plan = (("births", crude_csv, "", "Live births in the month, as counted (crude)", "births", "count", "log1p"),
+    plan = (("births", crude_csv, "", "Live births in the month, as counted (crude)", "births", "level", "log1p"),
             ("tfr", crude_csv, "TFR", "Total fertility rate of the month (crude), the database's estimate", "births per woman", "rate", "none"),
             ("births_adjusted", adjusted_csv, "", "Live births in the month, seasonally and calendar adjusted by the database", "births", "level", "log"),
             ("tfr_adjusted", adjusted_csv, "TFR", "Total fertility rate of the month, seasonally and calendar adjusted by the database", "births per woman", "rate", "none"))
@@ -153,5 +153,5 @@ def eurostat_deaths(csv, iso2, lic):
     notes["codes with no Natural Earth match: groups of countries and others (set aside; rows)"] = unmatched
     rows.sort()
     t = pa.table({k: [r[i] for r in rows] for i, k in enumerate(OBS_SCHEMA.names)}, schema=OBS_SCHEMA)
-    series = [series_row("eurostat_deaths:deaths", "eurostat_deaths", "people", "Deaths in the month (all ages, both sexes), Eurostat demo_mmonth", "deaths", "count", "log1p", "country", "month", lic)]
+    series = [series_row("eurostat_deaths:deaths", "eurostat_deaths", "people", "Deaths in the month (all ages, both sexes), Eurostat demo_mmonth", "deaths", "level", "log1p", "country", "month", lic)]
     return Part(series, t, {}, notes)

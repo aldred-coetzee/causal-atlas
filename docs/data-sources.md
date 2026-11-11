@@ -25,6 +25,7 @@ from the repo root, with `uv run python scripts/fetch_<name>.py`. Files land in 
 | [USGS earthquake catalogue](#usgs-earthquake-catalogue) | Earthquakes of magnitude 5 and above | Fetched and shaped; joins the table after the first read across it | Open API, no key | U.S. public domain, credit asked | 1973 to 2025 | Event; kept by country and month | 49 MB | USGS, United States |
 | [Mass Mobilization](#mass-mobilization-protest-data) | Protests against governments | Fetched and shaped; joins the table after the first read across it | Direct, no login | CC0 1.0 | 1990 to March 2020 | Event; kept by country and month | 15 MB | Harvard Dataverse, United States |
 | [OpenDengue](#opendengue) | Dengue cases | Fetched and shaped; joins the table after the first read across it; licence stated two ways | Direct, no login | CC BY 4.0 on the release, CC BY-SA in the makers' paper | 1955 to 2025, months from 1993 | Country, month or year | 0.3 MB (and 55 MB held) | figshare, United Kingdom; makers at LSHTM |
+| [Eurostat monthly tables](#eurostat-monthly-tables) | Unemployed persons, industrial production, retail turnover, electricity, tourist nights, air passengers, first-time asylum applicants, live births | Fetched and shaped; joins the table after the first read across it | Open API, no login | Reuse authorised with the source acknowledged | 1960 to 2026, by table | Country, month | 17 MB | Eurostat, Luxembourg |
 | [FAO GIEWS FPMA](#fao-giews-fpma) | Market food prices | Checked, not fetched (fallback) | Open API, no login | CC BY 4.0, third-party series excluded | 1987 to 2026 | Market, monthly, no coordinates | 4,938 series | FAO, Italy |
 | [Natural Earth](#natural-earth) | Country borders | Used, grid | Direct, no login | Public domain | Fixed release | 1:10m vector | 5 MB | Natural Earth CDN |
 | [CHIRPS v3](#chirps) | Rainfall | Checked, not used | Direct, no login | Public domain, per page | 1981 to near present, file not opened | 0.05 degree, monthly | 8.3 GiB | UCSB, USA |
@@ -172,7 +173,7 @@ from the repo root, with `uv run python scripts/fetch_<name>.py`. Files land in 
 
 ## Eurostat deaths by month
 
-- **Data:** table `demo_mmonth`, "Deaths (total) by month", <https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/demo_mmonth?format=SDMX-CSV>. The weekly tables by region (`demo_r_mweek3`) and births by month (`demo_fmonth`) exist and were not fetched.
+- **Data:** table `demo_mmonth`, "Deaths (total) by month", <https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/demo_mmonth?format=SDMX-CSV>. The weekly tables by region (`demo_r_mweek3`) exist and were not fetched; births by month (`demo_fmonth`) are among the monthly tables below.
 - **Fetch:** `scripts/fetch_money_people.py`.
 - **Licence requires:** the source acknowledged, and changes stated. The notice (<https://ec.europa.eu/eurostat/help/copyright-notice>) allows reuse "for commercial or non-commercial purposes" and excepts from commercial reuse the data for countries outside the EU, EFTA and the acceding and candidate countries. This project's use is not commercial; anyone reusing its outputs commercially would be bound by that exception.
 - **No account, no key.**
@@ -209,6 +210,15 @@ from the repo root, with `uv run python scripts/fetch_<name>.py`. Files land in 
 - **No account.**
 - **What is kept:** cases by country and month (from the source's month, or from all of a month's weeks) and by year. A zero only where the source wrote one.
 - **Know before use:** case definitions differ by source; a missing record is not an absence of dengue; filled zeros are flagged; overseas territories are set aside.
+
+## Eurostat monthly tables
+
+- **Data:** eight tables through the dissemination API (`https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/<table>?format=SDMX-CSV`), one of each kind: `une_rt_m` (unemployed persons), `sts_inpr_m` (production in industry), `sts_trtu_m` (retail turnover), `nrg_cb_em` (electricity available to the internal market), `tour_occ_nim` (nights at tourist accommodation), `avia_paoc` (air passengers on board), `migr_asyappctzm` (first-time asylum applicants), `demo_fmonth` (live births). Each table's address, with the cut asked for, is in the manifest. Building permits (`sts_cobp_m`) was looked at and not taken: an index only, for 16 countries.
+- **Fetch:** `scripts/fetch_eurostat_months.py`. Notes, with the counts behind every choice: `docs/reading/sources-eurostat-months.md`.
+- **Licence requires:** as for the deaths above: the source acknowledged and changes stated; data for countries outside the EU, EFTA and the acceding and candidate countries may not be reused commercially. Under that exception here: the United States and Japan (unemployment); Andorra, Armenia, Azerbaijan, Belarus, Monaco, Russia and San Marino (births). Whether the United Kingdom's figures fall under it was not settled.
+- **No account, no key.**
+- **What is kept:** one series a table, by a rule written before any file was opened (`docs/specs/2026-11-11-parallel-helpers-second-wave.md`): the total over every breakdown; counts as counted, not seasonally adjusted; an index only where no count exists. Where the rule did not settle a choice, the cut with the most country-months: base year 2021 for the two indices, retail by value and not volume, electricity and not gas, air passengers on board and not carried. 33 to 48 places a table; the earliest begins 1960 (births), the latest 2008 (electricity, asylum).
+- **Know before use:** Europe and its neighbours only. A month with no row is nothing, not a zero. The United Kingdom stops in 2019 or 2020 in every table. Industry and retail are indices, and retail is an index of value, so prices move it. Air passengers on board count a domestic passenger at both ends and are comparable over time only from 2003. Asylum figures are rounded to the nearest 5 and their definition changed in 2014, 2021 and 2026. Germany's unadjusted unemployment begins in 2007. France's births begin in 1994 (the longer record is metropolitan France alone). Births by month overlap the Human Fertility Database's; a steward must bar the two from naming each other. Nothing here has been read against anything.
 
 ## FAO GIEWS FPMA
 

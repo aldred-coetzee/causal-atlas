@@ -95,7 +95,7 @@ def test_hfd_births_and_rates(tmp_path):
     assert part.notes["country codes with no whole-country match (set aside; values)"] == {"GBR_SCO": 12}
     assert part.notes["rows with births of unknown month (not used)"] == 1
     kinds = {s["series_id"]: (s["kind"], s["transform"]) for s in part.series}
-    assert kinds == {"hfd_stff:births": ("count", "log1p"), "hfd_stff:tfr": ("rate", "none"),
+    assert kinds == {"hfd_stff:births": ("level", "log1p"), "hfd_stff:tfr": ("rate", "none"),
                      "hfd_stff:births_adjusted": ("level", "log"), "hfd_stff:tfr_adjusted": ("rate", "none")}
     assert all(s["licence"] == LIC for s in part.series)
 
@@ -121,7 +121,7 @@ def test_eurostat_deaths(tmp_path):
     assert part.notes["codes set aside by choice (rows)"] == {"DE": 1, "FX": 1}
     assert part.notes["codes with no Natural Earth match: groups of countries and others (set aside; rows)"] == {"EU27_2020": 1}
     s = part.series[0]
-    assert (s["kind"], s["transform"], s["period"], s["licence"]) == ("count", "log1p", "month", LIC)
+    assert (s["kind"], s["transform"], s["period"], s["licence"]) == ("level", "log1p", "month", LIC)
 
 
 @pytest.mark.parametrize("flag,word", [(None, None), ("", None), ("e", "estimated"), ("ep", "estimated"), ("p", "other"), ("b", "other")])

@@ -446,3 +446,83 @@ licence = "public domain (PSL disclaimer); from NOAA Storm Prediction Center"
 fetched = "2026-11-09"
 sha256 = "3cb2500c0084c75e944b35df5325b4cc94c11d34cdb7a79234b0081c17d1aad0"
 coverage = "One series, monthly, 1950-01 to 2024-12 complete"
+
+[eurostat_unemployment]
+source_url = "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/une_rt_m/M..TOTAL.THS_PER.T.?format=SDMX-CSV"
+fetch_script = "scripts/fetch_eurostat_months.py"
+version = "Eurostat une_rt_m, 'Unemployment by sex and age - monthly data'; the file's own stamp of its last update reads 2026-11-05. The address carries no release"
+licence = "Eurostat copyright notice (https://ec.europa.eu/eurostat/help/copyright-notice): reuse 'for commercial or non-commercial purposes is authorised provided the source is acknowledged', except that data for countries outside the EU, EFTA and the acceding and candidate countries 'may not be reused for commercial purposes'. Here: the United States and Japan; whether the United Kingdom's figures fall under it was not settled. Cite: Source: Eurostat, une_rt_m, fetched 2026-11-11"
+fetched = "2026-11-11"
+sha256 = "55e350ccf46f58f064a0c429b99cdf8bddea0639fc42ddd0e1730ffab4a2453a"
+coverage = "Fetched and shaped by a helper; checksum recomputed and the places, months and values counted again through the adapter by the project session, for all eight Eurostat tables of this fetch. 3,344,238 bytes. Unemployed persons, thousands, all ages, both sexes, not seasonally adjusted: 36 places, 1983-01 to 2026-10, 13,926 values, 35 places with 120 months or more. The file also holds the seasonally adjusted and trend series, not used. Set aside: EA21, EU27_2020"
+known_biases = "Breaks from major revisions are flagged; months are final after six; several countries join the quarterly survey to registered unemployment; France changed method in January 2025, Germany revised back to 2009 and unadjusted only from 2007; the United Kingdom ends 2020-09, Switzerland begins 2010. Some countries fall under the notice's non-commercial exception"
+
+[eurostat_industry]
+source_url = "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/sts_inpr_m/M.PRD.B-D.NSA..?format=SDMX-CSV"
+fetch_script = "scripts/fetch_eurostat_months.py"
+version = "Eurostat sts_inpr_m, 'Production in industry - monthly data'; the file's own stamp of its last update reads 2026-11-11. The address carries no release"
+licence = "Eurostat copyright notice (https://ec.europa.eu/eurostat/help/copyright-notice): reuse 'for commercial or non-commercial purposes is authorised provided the source is acknowledged', except that data for countries outside the EU, EFTA and the acceding and candidate countries 'may not be reused for commercial purposes'. Whether the United Kingdom's figures fall under it was not settled. Cite: Source: Eurostat, sts_inpr_m, fetched 2026-11-11"
+fetched = "2026-11-11"
+sha256 = "2b3c3bc1e04324338daa652b1384404025fb0ff03fdf9023a279468fd3b27a7e"
+coverage = "2,361,569 bytes. Industrial production (NACE B to D), volume index 2021 = 100, unadjusted: 36 places, 1975-01 to 2026-09, 11,851 values, 35 places with 120 months or more. The file also holds the 2015 and 2010 bases, not used"
+known_biases = "An index, not a count. Comparability very good since 2000 by Eurostat's notes; breaks from major revisions are flagged; rescaled to 2021 = 100 in 2024; the United Kingdom stops in 2020 and is not revised; Ireland begins 2016, Ukraine 2021"
+
+[eurostat_retail]
+source_url = "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/sts_trtu_m/M..G47.NSA..?format=SDMX-CSV"
+fetch_script = "scripts/fetch_eurostat_months.py"
+version = "Eurostat sts_trtu_m, 'Turnover and volume of sales in wholesale and retail trade - monthly data'; the file's own stamp of its last update reads 2026-11-11. The address carries no release"
+licence = "Eurostat copyright notice (https://ec.europa.eu/eurostat/help/copyright-notice): reuse 'for commercial or non-commercial purposes is authorised provided the source is acknowledged', except that data for countries outside the EU, EFTA and the acceding and candidate countries 'may not be reused for commercial purposes'. Whether the United Kingdom's figures fall under it was not settled. Cite: Source: Eurostat, sts_trtu_m, fetched 2026-11-11"
+fetched = "2026-11-11"
+sha256 = "af9d655625105df3934709abcf9b4c53aeb9919f19ea5c6a11763eaad15670bd"
+coverage = "4,678,302 bytes. Net turnover of retail trade (NACE G47), value index 2021 = 100, unadjusted: 36 places, 1994-01 to 2026-09, 10,633 values, 33 places with 120 months or more. The file also holds volume of sales and other bases, not used. Set aside: 704 rows with no value (637 confidential), Kosovo"
+known_biases = "An index of value, so prices move it. Comparability very good since 2000 by Eurostat's notes; breaks from major revisions are flagged; rescaled to 2021 = 100 in 2024; Sweden only from 2023, Ireland from 2021; the United Kingdom stops in 2020"
+
+[eurostat_electricity]
+source_url = "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/nrg_cb_em/M.AIM.E7000.GWH.?format=SDMX-CSV"
+fetch_script = "scripts/fetch_eurostat_months.py"
+version = "Eurostat nrg_cb_em, 'Electricity supply, transformation and consumption - monthly data'; the file's own stamp of its last update reads 2026-11-09. The address carries no release"
+licence = "Eurostat copyright notice (https://ec.europa.eu/eurostat/help/copyright-notice): reuse 'for commercial or non-commercial purposes is authorised provided the source is acknowledged', except that data for countries outside the EU, EFTA and the acceding and candidate countries 'may not be reused for commercial purposes'. Whether the United Kingdom's figures fall under it was not settled. Cite: Source: Eurostat, nrg_cb_em, fetched 2026-11-11"
+fetched = "2026-11-11"
+sha256 = "10520f65a7adcd7309eb872faf72f694a884773a4af15358c9698d3a84d32d6c"
+coverage = "614,007 bytes. Electricity available to the internal market, GWh: 39 places, 2008-01 to 2026-09, 7,607 values (84 estimated), 34 places with 120 months or more. Set aside: EU27_2020, Kosovo"
+known_biases = "Occasional breaks from changes in national statistics; recent months provisional and replaced. Ukraine 2017-10 to 2022-01 only, the United Kingdom to 2020-10, Iceland 2012-09 to 2024-10"
+
+[eurostat_tourism]
+source_url = "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/tour_occ_nim/M.TOTAL.NR.I551-I553.?format=SDMX-CSV"
+fetch_script = "scripts/fetch_eurostat_months.py"
+version = "Eurostat tour_occ_nim, 'Nights spent at tourist accommodation establishments - monthly data'; the file's own stamp of its last update reads 2026-11-04. The address carries no release"
+licence = "Eurostat copyright notice (https://ec.europa.eu/eurostat/help/copyright-notice): reuse 'for commercial or non-commercial purposes is authorised provided the source is acknowledged', except that data for countries outside the EU, EFTA and the acceding and candidate countries 'may not be reused for commercial purposes'. Whether the United Kingdom's figures fall under it was not settled. Cite: Source: Eurostat, tour_occ_nim, fetched 2026-11-11"
+fetched = "2026-11-11"
+sha256 = "9e4ef6a0f82cd341bee24d984ae8a25f43f40660f8ee94109394c5160486f2b1"
+coverage = "1,058,340 bytes. Nights at hotels, holiday and short-stay accommodation and camping grounds, residents and non-residents: 38 places, 1990-01 to 2026-09, 11,861 values (189 estimated, 5 zeros), 35 places with 120 months or more. Set aside: 90 rows with no value (54 confidential), groups of countries, Kosovo"
+known_biases = "Breaks between 2011 and 2012; national thresholds on small establishments harm comparability; Moldova holds six months; the United Kingdom ends 2020-07"
+
+[eurostat_air]
+source_url = "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/avia_paoc/M.PAS.PAS_CRD+PAS_BRD.TOTAL.TOTAL.?format=SDMX-CSV"
+fetch_script = "scripts/fetch_eurostat_months.py"
+version = "Eurostat avia_paoc, 'Air passenger transport by type of schedule, transport coverage and country'; the file's own stamp of its last update reads 2026-11-06. The address carries no release"
+licence = "Eurostat copyright notice (https://ec.europa.eu/eurostat/help/copyright-notice): reuse 'for commercial or non-commercial purposes is authorised provided the source is acknowledged', except that data for countries outside the EU, EFTA and the acceding and candidate countries 'may not be reused for commercial purposes'. Whether the United Kingdom's figures fall under it was not settled. Cite: Source: Eurostat, avia_paoc, fetched 2026-11-11"
+fetched = "2026-11-11"
+sha256 = "5ed43fea6b0cd7e2dbc694dce63eda44693e1a79037c75952779282e2a476e49"
+coverage = "1,727,332 bytes. Passengers on board at the country's reporting airports, all flights: 36 places, 1993-01 to 2026-09, 9,464 values (120 zeros), 35 places with 120 months or more. The file also holds passengers carried, not used. Set aside: groups of countries, Kosovo"
+known_biases = "On board counts direct transit at arrival and departure, and a domestic passenger at both ends; comparable over time only from 2003; airports under 15 000 passenger units a year left out, with breaks as airports cross that line; the United Kingdom 1998-01 to 2020-01"
+
+[eurostat_asylum]
+source_url = "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/migr_asyappctzm/M.PER.TOTAL.T.FRST+TOTAL.TOTAL.?format=SDMX-CSV"
+fetch_script = "scripts/fetch_eurostat_months.py"
+version = "Eurostat migr_asyappctzm, 'Asylum applicants by type, citizenship, age and sex - monthly data'; the file's own stamp of its last update reads 2026-11-10. The address carries no release"
+licence = "Eurostat copyright notice (https://ec.europa.eu/eurostat/help/copyright-notice): reuse 'for commercial or non-commercial purposes is authorised provided the source is acknowledged', except that data for countries outside the EU, EFTA and the acceding and candidate countries 'may not be reused for commercial purposes'. Whether the United Kingdom's figures fall under it was not settled. Cite: Source: Eurostat, migr_asyappctzm, fetched 2026-11-11"
+fetched = "2026-11-11"
+sha256 = "647bbf7c1b46cd35130574d4537e5a5e99df317a8c24e2b1ba3f9ad21348ddec"
+coverage = "1,248,845 bytes. First-time asylum applicants, all citizenships, ages and both sexes, by the country applied in: 33 places, 2008-01 to 2026-10, 6,601 values (118 zeros), 32 places with 120 months or more. The file also holds all applicants, not used. Set aside: EU27_2020"
+known_biases = "Rounded to the nearest 5; definitions changed in 2014, 2021 and July 2026 (registered in place of lodged applicants); Bulgaria from 2011, France from 2009, Austria held from 2014; the United Kingdom to 2020-11; Spain provisional since 2025-03"
+
+[eurostat_births]
+source_url = "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/demo_fmonth?format=SDMX-CSV"
+fetch_script = "scripts/fetch_eurostat_months.py"
+version = "Eurostat demo_fmonth, 'Live births (total) by month'; the file's own stamp of its last update reads 2026-09-30. The address carries no release"
+licence = "Eurostat copyright notice (https://ec.europa.eu/eurostat/help/copyright-notice): reuse 'for commercial or non-commercial purposes is authorised provided the source is acknowledged', except that data for countries outside the EU, EFTA and the acceding and candidate countries 'may not be reused for commercial purposes'. Here: Andorra, Armenia, Azerbaijan, Belarus, Monaco, Russia and San Marino; whether the United Kingdom's figures fall under it was not settled. Cite: Source: Eurostat, demo_fmonth, fetched 2026-11-11"
+fetched = "2026-11-11"
+sha256 = "b80fc4e8273e4efc640be91415db0ac9a89c82a4d9efb72dc90a6f2908c010b4"
+coverage = "2,060,783 bytes. Live births by month of occurrence: 48 places, 1960-01 to 2025-12, 21,994 values, 44 places with 120 months or more. Set aside: the year's totals and unknown months (5,009 rows), 36 rows with no value, 62 forecasts, groups of countries, Kosovo, DE (Germany from 1991) for DE_TOT (the same territory from 1960), FX (metropolitan France) for FR (from 1994)"
+known_biases = "Europe and its neighbours only. Months are not revised to the year's total; France begins in 1994; the United Kingdom ends 2019-06. Births by month overlap the Human Fertility Database's births already held. Some countries fall under the notice's non-commercial exception"
