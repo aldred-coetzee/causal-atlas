@@ -3,7 +3,7 @@
 Two parts. The first holds the prototype members: they read a view of the early years as the members of src/causal_atlas/finders.py do, and import nothing that knows what was planted. The second is the harness, which alone makes the worlds and knows the truth.
 
     lab_second_set.py lost <kind> <places> <seeds...>      question 1: where a planted link of that kind is lost
-    lab_second_set.py try <ask> <kind> <places> <seeds...> questions 2 and 3: the first set beside the prototypes, link by link; <ask> names the arrangements read (shared, state, lag, all)
+    lab_second_set.py try <ask> <kind> <places> <seeds...> questions 2 and 3: the first set beside the prototypes, link by link; <ask> names the arrangements read (shared, state, lag, all, count); count adds the second set as it would be registered (REGISTERED), on its own board
     lab_second_set.py lag <years> <places> <seeds...>      question 3: a steady link planted that many years before
 
 Kinds are those of scripts/run_finders.py (links, and the worlds where nothing predicts). Outputs go to data/panel/second-set/.
@@ -99,7 +99,17 @@ def long_window(v, o, board, far=True):
     return fd._post(_far(v) if far else v, o, z, fd._single(v), lambda i, way, a: {"inputs": [(i, k) for k in LONG], "form": "mode", "weights": [1.0] * len(LONG)}, "slope", "window 3 to 5" + ("" if far else ", near"), 1)
 
 
-PROTOTYPES = {"common": common_slope, "common_new": common_new, "state_pairs": state_pairs, "long": long_slope, "window": long_window,
+def local_slope(v, o, board):
+    """The plain line a year before, for the series that differ by place only: the first set's `lag 1` with the series common to all places taken out of its terms, so that no term is tried by two members and its deduction is for the terms it still tries."""
+    qs = [int(q) for q in np.flatnonzero(~v["common"])]
+    z = fd.lagged(v, "slope", 1)[qs]
+    return fd._post(v, o, z, [(q,) for q in qs], lambda i, way, a: {"inputs": [(qs[i], 1)], "form": "slope"}, "slope", "lag 1", 1)
+
+
+# The second set as the notes would register it: the first set's members in their order, with `lag 1` split in two (series that differ by place; series common to all), and `lags 3 to 5` last, after the second round, so that the pair member's seeds are drawn from the same kinds of rows as before.
+REGISTERED = [local_slope, common_slope] + fd.MEMBERS[1:] + [long_slope]
+
+PROTOTYPES = {"common": common_slope, "local": local_slope, "common_new": common_new, "state_pairs": state_pairs, "long": long_slope, "window": long_window,
               "long_near": lambda v, o, b: long_slope(v, o, b, False), "window_near": lambda v, o, b: long_window(v, o, b, False)}
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -311,6 +321,9 @@ ARRANGE = {  # the boards read on a world, by the question asked: (members of th
     "all": {"first": ((), (), False), "first_by_mean": ((), (), True), "common": ((), ("common",), False), "long": ((), ("long",), False), "window": ((), ("window",), False),
             "second": ((), ("common", "long"), False), "second_by_mean": ((), ("common", "long"), True),
             "wide": (EVERY, (), False), "wide_second_by_mean": (EVERY, ("common", "long", "state_pairs"), True)},
+    # the fifth wave: the earlier arrangements again (first, the by-mean reading, the common member added, both members added), and the second set as it would be registered ("reg": its own board, built by REGISTERED)
+    "count": {"first": ((), (), False), "first_by_mean": ((), (), True), "common": ((), ("common",), False), "second": ((), ("common", "long"), False), "second_by_mean": ((), ("common", "long"), True),
+              "reg": ((), (), False, "reg"), "reg_by_mean": ((), (), True, "reg")},
 }
 
 
@@ -318,14 +331,20 @@ def trial(kind, places, share, seeds, lag=1, ask="all", name=None):
     """Questions 2 and 3. Each world read once in each arrangement, each under its own bar: what is sent, what passes, which planted links are heard and through which member."""
     rn = _harness()[0]
     arrange = ARRANGE[ask]
-    extra = sorted({p for _, add, _ in arrange.values() for p in add})
+    extra = sorted({p for x in arrange.values() for p in x[1]})
     for seed in seeds:
         t0 = time.time()
         w = made(kind, places, share, seed, lag)
         v, board, more, swarm_s = boards(w, extra)
         row = {"kind": kind, "places": places, "share": share, "lag": lag, "seed": seed, "swarm_s": swarm_s, "proto_s": {k: x for k, x in more.items() if k.endswith("_s")}, "links": len(w["truth"]), "arr": {}}
-        for a, (drop, add, by_mean) in arrange.items():
-            rows = [r for r in board if r["member"] not in drop] + [r for p in add for r in more[p]]
+        other = {}
+        if any(len(x) > 3 for x in arrange.values()):
+            t1 = time.time()
+            other["reg"] = fd.swarm(v, REGISTERED)
+            row["reg_s"] = round(time.time() - t1, 1)
+        for a, (drop, add, by_mean, *on) in arrange.items():
+            base = other[on[0]] if on else board
+            rows = [r for r in base if r["member"] not in drop] + [r for p in add for r in more[p]]
             if by_mean:
                 with state_by_mean(w["values"]):
                     res = reading(w, fd.steward(rows), seed, rn)

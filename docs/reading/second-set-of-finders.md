@@ -1,72 +1,61 @@
 # A second set of finders: what would hear what the first set does not
 
-Design notes, 2026-11-11, for the brief in `docs/specs/2026-11-11-parallel-helpers.md`, part C. **Every number here is a development number from smoke worlds** (made-up tables, 35% share, three links a world, seeds 59001 to 59999) and none is a count. Prototypes and harness: `scripts/lab_second_set.py`; outputs under `data/panel/second-set/`. The work was stopped early for a restart: what is half done and where to pick up is at the end.
+Design notes for the brief in `docs/specs/2026-11-11-parallel-helpers.md`, part C, finished under `docs/specs/2026-11-11-parallel-helpers-fifth-wave.md`, C2. **Every number here is a development number from smoke worlds** (made-up tables, 35% share, three links a world, seeds 59001 to 59999) and none is a count. Code: `scripts/lab_second_set.py`; outputs under `data/panel/second-set/` (the fifth wave's are `try-count-*.jsonl`). Nothing real was read.
 
-## 1. Where each unheard kind is lost (run; finished)
+## The harness, read for faults (fifth wave)
 
-**A link from a series common to all places** (`lost shared`, 6 worlds at 120 places and 6 at 240, 18 links each): told where, the answer passed 13 and 17 of 18. The planted term was first among the plain-line member's 39 terms for its outcome in 16 and 16 of 18, yet its lift reached 3 for only 7 and 9. Every row above the floor was sent (8 and 10); 6 and 6 were heard. So it is lost first **at the member's lift**: the deduction for the best of 39 terms (about 2.4 to 3.2) takes a first-ranked term under the floor. The steward loses nothing. Then about a quarter to a third of the rows sent fail at the referee in the scan's places. Inputs with long memory (0.74 to 0.95) are weak even for the answer.
+No fault that changes a number below was found. Three things to know. (a) The steward keys a row on outcome, series named, family and tag; every new member is in the slope family with no tag, so a `common lag 1` or `lags 3 to 5` row and a `lag 1` or `lag 2` row naming the same series count as one, the higher lift standing for all. A long-lag row can therefore stand in for a lag-1 row; hearing is reported at the planted lag as well, and in every run below the two agree. (b) `stands` in `scripts/run_finders.py` labels a row against the first planted link on its outcome only, so a row naming a second link on the same outcome would read as naming nothing planted; no world used here has two links on one outcome (0 of 54 checked), so it is latent. (c) The by-mean emulation replaces, inside one process, the state series' form by its past-mean form in the referee's `terms` for `by_state` proposals only; it reaches every read and the shifted scores, and nothing else. `referee.py` is as it was.
 
-**A sign that turns on a state** (`lost flip_state`, 6 worlds each size): a full row was above the floor and sent for 12 and 16 of 18 links; 2 and 5 were heard. The answer told where passes 1 and 4 of 18 as the referee is coded, 4 and 6 sent as a product, and **18 and 17 of 18 when the state's side is read by its own past mean in every read**. So it is lost **at the referee**: `referee.terms` builds the state's side from the series in the form of the read in hand (line, recent), where `referee.proposal` describes the side of its own past mean; under those reads the side agrees with the planted side in as little as 0.3 to 0.4 of scored years. At 120 places the member's lift is a second limit (at least 3 for 7 of 18 links; 16 of 18 at 240).
+## 1. Where each unheard kind is lost (earlier helper; not rerun)
 
-## 2. What would propose each (run; finished except the last block of worlds)
+**From a series common to all places**: lost first at the plain-line member's lift. The planted term ranked first among its 39 terms for 16 of 18 links at each size, yet the deduction for the best of 39 (about 2.4 to 3.2) left only 7 and 9 of 18 above the floor of 3. The steward lost nothing; a quarter to a third of rows sent then failed at the referee.
 
-| Change | Worlds | Heard before | Heard after |
-|---|---|---|---|
-| Member `common lag 1` added | shared, 12 at 120 places (36 links) | 16 | 21 |
-| | shared, 12 at 240 | 19 | 21 |
-| State read by its past mean in every read | flip_state, 12 at 120 | 3 | 11 |
-| | flip_state, 12 at 240 | 10 | 28 |
+**A sign that turns on a state**: lost at the referee. A row was sent for 12 and 16 of 18 links; 2 and 5 heard. The referee builds the state's side in each read's own form (line, recent) where the proposal means the side of its own past mean; read by the past mean in every read, the answer told where passed 18 and 17 of 18, against 1 and 4 as coded.
 
-- **`common lag 1`** (`common_slope`): the plain line one year before, for the series common to all places only, as one member of the slope family. Same scan, same twenty other alignments, same lift rule; its deduction is the best of its own terms (8 here, about 1.8) and not of 39. Its lift is not raised by choosing or trying more: it tries fewer terms and pays for those. What it does add is one more member's worth of chance rows, and that is the cost to count: where nothing predicts (60 worlds) it put 5 rows above the floor, against 4 and 8 for the two plain-line members. To register it clean, take the common series out of the plain-line member's terms so no term is tried twice (not run that way: here both tried them and the higher lift stood).
-- **The state's side by its past mean**: a change to the referee, not a member, and the project session's to make and count. Emulated here in one process only (`state_by_mean`); the file on disk is as it was.
+## 2 and 3. Members tried, rerun on unused seeds (fifth wave)
 
-## 3. Lags of three to five years (run; finished)
+Arrangements read on every world, each under its own bar: the first set; the first set with the state read by its past mean; `common lag 1` added; `common lag 1` and `lags 3 to 5` added; the same by mean; and **the second set as it would be registered**: its own board built with `lag 1` split into series that differ by place and series common to all (`local_slope`, `common_slope`), `lags 3 to 5` run last after the second round, with and without the by-mean reading.
 
-**`lags 3 to 5`** (`long_slope`): every series at lags 3, 4 and 5 as the terms of one slope member (120 terms here), other alignments kept five years and more away (18 of the 20).
-
-| Planted lag, places | Links | First set | With `lags 3 to 5` | Rows sent, middle | Bar, middle |
+| Worlds (fifth wave) | Links | First set | `common lag 1` added | Registered set | Registered, by mean |
 |---|---|---|---|---|---|
-| 3, 120 | 24 | 0 | 24 | 3 to 6 | 1.91 to 2.49 |
-| 4, 120 | 24 | 0 | 24 | 2 to 6 | 1.76 to 2.46 |
-| 5, 120 | 24 | 0 | 23 | 4 to 6 | 1.39 to 2.57 |
-| 4, 240 | 18 | 0 | 18 | 4 to 8 | 2.27 to 2.61 |
-| 1, 120 | 18 | 18 | 18 | 13 to 13 | 2.67 to 2.70 |
+| shared, 6 at 120 | 18 | 6 | 11 | 11 | 11 |
+| shared, 6 at 240 | 18 | 4 | 5 | 5 | 5 |
+| flip_state, 6 at 120 | 18 | 1 | 1 | 1 | 8 |
+| flip_state, 6 at 240 | 18 | 5 | 5 | 5 | 14 |
 
-Its cost where nothing is at those lags: 2 rows above the floor in six lag-1 worlds; 6 in 60 worlds where nothing predicts; 5 in 27 slow-path worlds.
+**Does it hold?** The direction holds for both: `common lag 1` hears more links from a common series at 120 places (earlier 16 to 21 of 36; now 6 to 11 of 18), little at 240 (earlier 19 to 21; now 4 to 5); the by-mean reading hears more state links at both sizes (earlier 3 to 11 and 10 to 28 of 36; now 1 to 8 and 5 to 14 of 18). The size of the gain at 240 for the common member is small on both sets of seeds. Taking the common series out of the plain-line member changes nothing heard here (registered equals added on every world). **Lags 3 to 5** (earlier helper, not rerun): heard 24, 24 and 23 of 24 at lags 3, 4 and 5 at 120 places, 18 of 18 at lag 4 at 240, against none for the first set.
 
-## False passes with both members and the by-mean reading (run)
+**What the additions cost the seven kinds the first set hears**: nothing, on 6 worlds each at 120 places. Links heard, of 18, the same number in all seven arrangements: steady 18, threshold 8, extremes 7, two together 10, sign by place 16, many weak 10, hidden mover 15. Every heard link was heard at its lag. Rows sent rose by 0 to 5 a kind over six worlds; the bar's middle moved by at most 0.06.
 
-- Nothing predicts, six variants (36 worlds at 120 places, 24 at 240): **no pass under any arrangement.** Rows sent in all: 174 for the first set, 182 with both members.
-- Shared slow paths, seven shapes at 240 places (27 worlds): 2 worlds with a pass, both regimes, both carrying the path label, **the same two under every arrangement**; no pass named nothing planted. Rows sent 115 against 122.
-- Linked worlds (24 shared, 24 flip_state, 36 lagged): no pass named nothing planted.
+## False passes (fifth wave, unused seeds)
+
+- **Nothing predicts**, six variants: 24 worlds at 120 places, 12 at 240: **no pass in any arrangement**, the by-mean reading included. Rows sent: 58 for the first set and 60 registered at 120; 40 and 44 at 240.
+- **Shared slow paths**, seven shapes, 14 worlds at 240: **no pass in any arrangement**. Rows sent 55 against 60. (Earlier: 2 of 27 worlds passed, the same two in every arrangement, both a path.)
+- **Linked worlds** (90 above): no pass named nothing planted, in any arrangement.
 
 ## Recommended for the second set
 
-1. `common lag 1`, settings as above, common series removed from the plain-line member.
-2. `lags 3 to 5`, one member, settings as above.
-3. In the referee, a by_state proposal's state read by its past mean in every read; counted as a referee change, with nothing-predicts and path worlds first.
+1. `common lag 1`: the plain line a year before for the series common to all places, its deduction from its own terms; the common series taken out of `lag 1` (`local_slope`). Expect its gain at 120 places; at 240 it is small.
+2. `lags 3 to 5`: one slope member, every series at lags 3, 4 and 5, other alignments from five years.
+3. In the referee, a `by_state` proposal's state read by its past mean in every read: a referee change, the project session's to make, registered and counted apart from the finders.
 
-## Tried and dropped
+**Dropped** (earlier helper): what was new in a common series (19 and 20 of 36 against 21 and 21); the product of a local and a common series (adds nothing; with the by-mean reading costs hearing, 12 to 10 and 29 to 19); a window summing lags 3 to 5 (hears less at lag 5 and puts 18 rows above the floor where nothing predicts, against 6).
 
-- **What was new in a common series** (lag 1 less its memory times lag 2, as a mode): 19 and 20 of 36 against 21 and 21 for the plain member, and its row stands in for the plain one.
-- **Product of a local and a common series** (`state_pairs`): adds nothing as coded (4 to 4, 7 to 8) and with the by-mean reading costs hearing (12 to 10, 29 to 19), its rows standing in for sign-by-state rows of the same names.
-- **A window over lags 3 to 5** (sum of the three): heard 13, 20 and 4 of 24 at lags 3, 4 and 5, and 18 rows above the floor where nothing predicts against 6.
-- **Other alignments from three years** for the long member: same hearing in 36 lag worlds; not run where nothing predicts.
+## 4. Two further kinds of mathematics (reasoning only; untested)
 
-## 4. Two further kinds of mathematics (reasoning only; nothing run)
+**a. Gathering within blocks that share coverage**, going down only where a block stands (hierarchical testing). Blocks fixed by source before any outcome is seen; one term a block keeps the deduction small. Test: gaps laid by block, weak series planted inside one block and across blocks, nothing-planted tables with the same blocks; drop if it hears no more than `gathered` on a table with gaps. Needs gaps by block in the generator.
+**b. The lagged cross-correlation spectrum between blocks**: the top singular value at the true alignment against the other alignments, pooling outcomes as well as inputs; posts a mode row. Test: a hidden mover planted through several inputs and, a year later, several outcomes; drop if it hears only what `gathered` hears. Needs a planted kind with several outcomes a link.
 
-**a. Gathering within blocks that share coverage, going down only where a block stands** (hierarchical testing, `maths-for-combinations.md` candidate 3). Reason: the first read's rule says a gathered term speaks only where every series has a value, so on a table a third missing the modes family says little; series of one source share places and years. Blocks are fixed by source before any outcome is seen, so they cost no lift; one term a block keeps the deduction small. Test: made-up tables with gaps laid by block; twenty weak series planted inside one block and, apart, across blocks; nothing-planted tables with the same blocks. Drop if it hears no more than the gathered member does on a table with gaps. Needs gaps by block in the generator (it has gaps at random only).
+## What a registered count needs
 
-**b. The lagged cross-correlation spectrum between blocks** (`further-maths.md` field 1; set aside in decision 0062, point 7). Reason: the only candidate that pools over outcomes as well as inputs, and the table has far more series than years. No textbook edge: the top singular value at the true alignment against the same at the other alignments, the whole decomposition done again at each. It posts one mode row an outcome, so the referee needs no new form. Test: a hidden mover planted through several inputs and, a year later, several outcomes, each link too weak for a row alone; nothing-planted worlds with a mover on each side and no link between. Drop if it hears only what the gathered member hears. Needs a planted kind with several outcomes a link.
+- **Two counts, apart.** (A) The second set of finders under the referee as it is. (B) The by-mean reading, as a referee change, on the referee's own nothing-predicts and path panels first, then on state worlds, with worlds where the state series trends added.
+- **Worlds for A**: the first set's count panels (`results/finders-stage-a2.md`: nothing predicts 30, 30, 15 a variant at 120, 240, 480 places; seven path shapes 15, 15, 8; nine linked kinds 20, 20, 10), plus steady links at lags 3, 4 and 5 (20, 20, 10 each): about 1,316 worlds. Each read twice, the first set's board and the registered board, each under its own bar, so that what is lost and gained is paired on the same world.
+- **Marks (proposed)**: marks 1, 2 and 4 of the first set's count, with its limits, for the registered set. Mark 3 at the first set's limits for the seven kinds, and paired: links heard by the first set and not by the second at most 2 of 60 (of 30 at 480) a kind. Common series: more heard than the first set at 120 places, paired; at 240 and 480 reported, no mark. Lags 3 to 5: at least 45 of 60 (25 of 30) a lag. Flip_state: no mark in A.
+- **Seeds**: a fresh range, outside 47001 to 47999, the first set's counted seeds and 59001 to 59999.
+- **Runtime on this box**: per world, the swarm 3 s at 120 places and 6 s at 240; the registered board 1.5 and 3 s more; one reading 2 to 6 s (from seven readings in 10 to 63 s a world, box shared). The first set's count, 1,166 worlds with three readings each, took 2 h 18 min on six processes; this is about the same work, so about 2.5 hours on six processes or 7 on two. 480 places was not timed here.
 
-Set aside: pattern search on conditions (two tails together leave about forty early place-years), transfer entropy, persistent homology.
+## Not known
 
-## Not known; where to pick up
+480 places (nothing run there); the by-mean reading where the state series trends; why the common member gains little at 240; the long member's rows on a table with gaps; tables with 26 common series of 461, as the real table has, against 8 of 40 here; section 4.
 
-- **Not run (stopped):** whether the additions cost hearing of the seven kinds the first set hears. Next: `try all <kind> 120` for steady, threshold, extremes, pair, flip, many, hidden, then flip_state and shared at 120 and 240, on unused seeds. `try-all-steady-120.jsonl` holds one world and is not used above.
-- `common lag 1` with the common series out of the plain-line member; a common member at lag 2; the long member's rows on a table with gaps.
-- The by-mean reading where the state series trends: every late year is then on one side.
-- Common series here number 8 and series 40; the real table has 26 and 461, and its series are read as departures from the year's middle.
-- Section 4 is untested.
-
-**Seeds used:** 59001–59006, 59011–59016, 59021–59026, 59031–59036 (`lost`); 59041–59052, 59061–59072 (`try shared`); 59081–59092, 59101–59112 (`try state`); 59121–59128, 59131–59138, 59141–59148, 59151–59156, 59161–59166 (lags); 59201–59206, 59211–59216, 59221–59226, 59231–59236, 59241–59246, 59251–59256, 59301–59304, 59311–59314, 59321–59324, 59331–59334, 59341–59344, 59351–59354 (nothing predicts); 59401–59403, 59411–59413, 59421–59423, 59431–59433, 59441–59443, 59451–59453, 59461–59463, 59471–59476 (paths); 59501 and 59502 (started, stopped). 59001 was made twice.
+**Seeds used.** Earlier helper: 59001–59006, 59011–59016, 59021–59026, 59031–59036; 59041–59052, 59061–59072; 59081–59092, 59101–59112; 59121–59128, 59131–59138, 59141–59148, 59151–59156, 59161–59166; 59201–59206, 59211–59216, 59221–59226, 59231–59236, 59241–59246, 59251–59256, 59301–59304, 59311–59314, 59321–59324, 59331–59334, 59341–59344, 59351–59354; 59401–59403, 59411–59413, 59421–59423, 59431–59433, 59441–59443, 59451–59453, 59461–59463, 59471–59476; 59501, 59502. Fifth wave: 59511–59516, 59521–59526, 59531–59536, 59541–59546, 59551–59556, 59561–59566, 59571–59576, 59581–59586, 59591–59596, 59601–59606, 59611–59616, 59621–59624, 59631–59634, 59641–59644, 59651–59654, 59661–59664, 59671–59674, 59681–59682, 59691–59692, 59701–59702, 59711–59712, 59721–59722, 59731–59732, 59741–59742, 59751–59752, 59761–59762, 59771–59772, 59781–59782, 59791–59792, 59801–59802; and 59999 (one check that the new member runs).
