@@ -206,3 +206,40 @@ def test_the_swarm_the_steward_and_the_referee_hear_a_planted_link():
     res = rf.judge(v, GROUP, FIRST, [fd.proposal(r) for r in rows], seed=1)
     heard = [r for r, q in zip(rows, res["proposals"]) if q["passes"]]
     assert heard and all(r["outcome"] == 0 and 2 in r["names"] for r in heard)
+
+
+def test_allowing_everything_changes_nothing():
+    v = world(6, "pair")
+    assert same(fd.swarm(see(v)), fd.swarm(fd.view(v, GROUP, FIRST, [0, 1], allowed=np.ones((8, 8), bool))))
+
+
+def test_a_row_names_only_what_its_outcome_may():
+    v = world(7, "steady")
+    ok = np.ones((8, 8), bool)
+    ok[0, [2, 4]] = ok[1, 5] = False  # outcome 0 may not name series 2 or 4, nor outcome 1 series 5
+    cut = fd.swarm(fd.view(v, GROUP, FIRST, [0, 1], allowed=ok))
+    assert cut and all(ok[r["outcome"], s] for r in cut for s in r["names"])
+    assert any(2 in r["names"] for r in cut if r["outcome"] == 1) and any(5 in r["names"] for r in cut if r["outcome"] == 0)
+    assert {r["family"] for r in cut} == set(fd.ORDER)
+    free = top([r for r in fd.swarm(see(v)) if r["outcome"] == 0 and r["member"] == "lag 1"])
+    assert free["names"] == {2} and top([r for r in cut if r["outcome"] == 0 and r["member"] == "lag 1"])["lift"] < free["lift"]  # the planted series is out of reach, and nothing stands in for it
+
+
+def test_what_may_not_be_named_is_not_counted_among_a_members_terms():
+    v = world(8)
+    v[0] = np.where(QUARTER[:, None], np.sqrt(0.6) * v[0] + np.sqrt(0.4) * np.concatenate([np.zeros((PLACES, 1)), v[3][:, :-1]], axis=1), v[0])  # series 3 a year before moves outcome 0
+    ok = np.zeros((8, 8), bool)
+    ok[0, 3] = True  # outcome 0 may name series 3 alone
+    alone = fd.swarm(fd.view(v[[0, 3]], GROUP, FIRST, [0]), [fd.slope])  # a table that holds nothing else
+    cut = fd.swarm(fd.view(v, GROUP, FIRST, [0], allowed=ok), [fd.slope])
+    assert len(cut) == len(alone) == 1 and cut[0]["names"] == {3} and alone[0]["names"] == {1}
+    assert np.isclose(cut[0]["lift"], alone[0]["lift"]) and (cut[0]["where"] == alone[0]["where"]).all()
+
+
+def test_the_swarm_runs_without_the_every_pair_member():
+    v = world(10, "pair")
+    full, less = fd.swarm(see(v)), fd.swarm(see(v), [m for m in fd.MEMBERS if m is not fd.pairs])
+    gone = {r["member"] for r in full} - {r["member"] for r in less}
+    assert gone == {"every pair"}
+    assert same([r for r in full if r["round"] == 1 and r["member"] not in gone], [r for r in less if r["round"] == 1])
+    assert any(r["member"] == "pairs from the board" for r in less)

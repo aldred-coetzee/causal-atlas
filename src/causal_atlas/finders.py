@@ -21,8 +21,8 @@ FLOOR = 3.0  # the lift a row needs to be sent at all: three of its own spreads 
 FORM = "mean"  # the comparable form the members read
 
 
-def view(values, group, first, outcomes):
-    """What a member may see: the years before `first`, each series in its comparable form, the groups of places, and which series are outcomes."""
+def view(values, group, first, outcomes, allowed=None):
+    """What a member may see: the years before `first`, each series in its comparable form, the groups of places, and which series are outcomes. `allowed`, where given, is a yes or no for each outcome (row) and series (column): the series a row for that outcome may name (decision 0063: only series outside the outcome's own data set)."""
     v = np.array(values[:, :, :first], float)
     group = np.asarray(group)
     groups = np.unique(group)
@@ -31,7 +31,7 @@ def view(values, group, first, outcomes):
         common = ~(np.nanmax(np.nanstd(v, axis=1), axis=1) > 1e-9 * np.nanstd(v, axis=(1, 2)))  # the same in every place
     member = np.array([group == g for g in groups]) * 1.0
     return {"values": v, "comp": rf.comparable(v, FORM), "group": group, "groups": groups, "member": member, "size": member.sum(axis=1), "first": first,
-            "outcomes": [int(o) for o in outcomes], "common": common, "shifts": tuple(range(QUIET, first - rf.WARM - QUIET + 1)), "cache": {}}
+            "outcomes": [int(o) for o in outcomes], "common": common, "shifts": tuple(range(QUIET, first - rf.WARM - QUIET + 1)), "cache": {}, "allowed": None if allowed is None else np.asarray(allowed, bool)}
 
 
 def residual(v, o, event=None):
@@ -147,9 +147,10 @@ def _where(v, order, k):
 
 
 def _post(v, o, z, names, describe, family, member, rnd, flip=False, event=None, tag=None):
-    """A member's rows for one outcome, from a stack of terms: the MOST with the highest lift, each with the places its scan took. `names` are the series a term names; a term that names the outcome is not posted nor counted among the member's terms.
+    """A member's rows for one outcome, from a stack of terms: the MOST with the highest lift, each with the places its scan took. `names` are the series a term names; a term that names the outcome, or a series a row for this outcome may not name, is not posted nor counted among the member's terms.
     With `flip` each place goes its own way: what is scanned is how much further the places of a group go each their own way than all one way, less what that comes to at the other alignments."""
-    use = np.flatnonzero([o not in n for n in names])
+    ok = v["allowed"]
+    use = np.flatnonzero([o not in n for n in names] if ok is None else [o not in n and all(ok[o, s] for s in n) for n in names])
     if not len(use):
         return []
     a, c, b = sums(z[use], residual(v, o, event), v["shifts"])
@@ -233,18 +234,20 @@ def pairs_from_board(v, o, board):
     seen = []
     for r in sorted((r for r in board if r["outcome"] == o and r["round"] == 1 and r["family"] in ("slope", "shape", "extremes")), key=lambda r: -r["lift"]):
         seen += [s for s, _ in r["inputs"] if s not in seen]
-    seeds = set(seen[:SEEDS])
-    names, z = _products(v)
-    pick = [i for i, n in enumerate(names) if set(n) <= seeds]
-    if len(pick) < 2:
+    mine = list(combinations(sorted(seen[:SEEDS]), 2))  # only these products are built, so the member runs on a table too wide for every pair
+    if len(mine) < 2:
         return []
-    mine = [names[i] for i in pick]
-    return _post(v, o, z[pick], mine, lambda i, way, a: {"inputs": [(mine[i][0], 1), (mine[i][1], 1)], "form": "product"}, "pairs", "pairs from the board", 2)
+    z = lagged(v, "slope", 1)
+    i, j = (np.array(x) for x in zip(*mine))
+    return _post(v, o, beyond(z[i] * z[j], [z[i], z[j]]), mine, lambda i, way, a: {"inputs": [(mine[i][0], 1), (mine[i][1], 1)], "form": "product"}, "pairs", "pairs from the board", 2)
 
 
 def components(v, o, board):
     """Shared modes: the main components of the block of series that differ by place, each as one term. Nothing about the outcome goes into the weights."""
-    block = [int(s) for s in np.flatnonzero(~v["common"]) if s != o]
+    ok = v["allowed"]
+    block = [int(s) for s in np.flatnonzero(~v["common"]) if s != o and (ok is None or ok[o, s])]
+    if len(block) < 2:
+        return []
     key = ("components", o)
     if key not in v["cache"]:
         x = np.nan_to_num(v["comp"][block][:, :, rf.MIN_PAST:]).reshape(len(block), -1)
@@ -263,9 +266,13 @@ def gathered(v, o, board):
     bg = b @ v["member"].T
     stand = scan(a @ v["member"].T, c @ v["member"].T, bg, v["size"])[0]
     stand[o] = -np.inf
+    ok = v["allowed"]
+    if ok is not None:
+        stand[~ok[o]] = -np.inf
+    most = len(z) - 1 if ok is None else int(ok[o].sum()) - int(ok[o, o])  # the outcome itself is never gathered
     rs = np.stack([r] + [np.roll(r, k, axis=1) for k in v["shifts"]])
     rows = []
-    for m in sorted({min(m, len(z) - 1) for m in GATHER}):
+    for m in sorted({min(m, most) for m in GATHER} - {0}):
         top = np.argsort(-stand, axis=0, kind="stable")[:m]  # the m series, at each alignment; never the outcome, which stands last
         sign = np.where(np.take_along_axis(a.sum(axis=2), top, 0) >= 0, 1.0, -1.0)
         st = []
@@ -291,10 +298,10 @@ MEMBERS = [  # in the order they run; the second round reads the board
 ]
 
 
-def swarm(v):
-    """Every member, in a fixed order, for every outcome: the board. Same table, same board, every time."""
+def swarm(v, members=None):
+    """Every member, in a fixed order, for every outcome: the board. Same table, same board, every time. `members`: fewer than all, for a table too wide for the every-pair member."""
     board = []
-    for member in MEMBERS:
+    for member in MEMBERS if members is None else members:
         for o in v["outcomes"]:
             board += member(v, o, board)
     return board
