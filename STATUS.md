@@ -1,6 +1,15 @@
 # Status
 
-Last updated 2026-11-12, 01:58 UTC.
+Last updated 2026-11-12, 03:20 UTC.
+
+**Since 01:58 UTC on 2026-11-12 (read this first):**
+- **The second real read is made, once, and is silent** (`results/stage-c-second-read.md`, section Result; decision 0067; rows `results/stage-c-second-read.jsonl`). The yearly panel with every series as its change from the year before. Both placebo marks held (0 of 20 and 0 of 8 runs with a pass). Planted links were heard from the board 10, 3 and 1 of 36 at shares 0.35, 0.20 and 0.10 (the first read heard none of 54). The real read sent forty rows against a bar of 3.63 and none passed; the nearest broad row scored 1.69 and 1.66. **2015 to 2024 are not opened.** `run_stage_c.py real once` must never be run again or forced, its marker file never removed, and `confirm once` is not to be run.
+- **What it is worth:** several strong steady one-year-ahead links between changes across the four sets would probably have shown one; a single strong one more likely missed than heard; weaker ones mostly missed. Nothing is said of other kinds of link. In the planted runs the steward sent only 20 of 36 strong links: the board's ranking loses as many as the referee's bar.
+- **1996 to 2014 of the yearly panel are now read twice.** A third read of those years needs a rule saying what it is worth. Seeds 64001 to 64999 are spent; the next fresh block starts at 65001.
+- **Next, this session's choice under decision 0040:** move off the yearly panel of four sets, which two reads have not opened, to where more separate data sets live: the monthly table (events, prices, displacement). That needs the monthly read's same-month fault settled first (a rule and count on unused seeds for "a labelled pass is no lead", gaps and late starts added to the maker), and the second set of finders' count registered (`docs/reading/second-set-of-finders.md`). Also owed: `docs/tied-series.md` checked line by line.
+- **Tokens:** about 4.8 million fresh from the restart at 20:48 UTC on 2026-11-11 to 03:15 UTC by the box's counter (this thread 0.83 million), on about 24.8 million before: **about 29.6 million against the 20 million line**, a count and not a stop.
+
+**As it stood at 01:58 UTC:**
 
 **Since 21:16 UTC on 2026-11-11 (read this first; the lines below it are as they stood then):**
 - **Reading by month is in the package, off unless asked for** (decision 0066; `src/causal_atlas/months.py`), **and its count on made-up tables missed one mark** (`results/monthly-count.md`, section Result; 420 worlds, counted once, never to be run again). Where nothing predicts, 29 of 180 worlds had a pass against a mark of 15, all 29 where an input moves the outcome in the same month: the monthly read takes a same-month tie for a one-month lead about half the time. Plain tables and a changing season had none in 120; every steady link and burst was heard, windows 94 of 120; no pass named anything unplanted. **So the monthly read is not used on the real table as it stands.** Seen after the count and not a mark: all 35 false passes carried the "together" label and 24 of 870 true ones did; making the label part of the pass needs its own rule and count on unused seeds. Gaps and late starts are not in the maker.
