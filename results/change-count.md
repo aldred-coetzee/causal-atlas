@@ -49,3 +49,32 @@ Reported beside, with no mark: every figure for the read of levels and for eithe
 ## What follows
 
 If the marks hold, the read of changes goes to the real yearly table as a second read beside the first, under a rule of its own committed first, with the placebo and planted runs redone on the changed table. If a mark is missed it does not.
+
+## Result
+
+Counted once, 2026-11-12, 00:17 to 01:49 UTC, six processes of one thread. 300 tables, each read both ways; 600 rows in `results/change-count.jsonl`; no seed refused. **Every mark holds.**
+
+| mark | limit | counted |
+|---|---|---|
+| where nothing predicts, tables with any pass by the read of changes | at most 16 of 200 | **2** (1.0%) |
+| where nothing predicts, tables with any pass by either read | at most 20 of 200 | **2** |
+| links heard by the read of changes, share 0.35 | at least 50% | **116 of 180, 64%** (59% to 70%) |
+| links heard by the read of changes, share 0.20 | at least 18% | **40 of 180, 22%** (17% to 28%) |
+| `links` tables with a pass by the read of changes naming nothing planted | at most 6 of 60 | **0** |
+
+Beside the marks:
+
+- **Where nothing predicts, by panel**, tables with any pass, levels and changes: `nothing` 0 and 0 of 100; `path_1` 0 and 1 of 50; `path_2` 0 and 1 of 50. The two false passes: seed 63216, a row of one series at lag 1 that is not a path's pair (t 3.47 and 3.34 over a bar of 2.83); seed 63310, a path's own pair, an extreme of one to an extreme of the other (t 3.53 and 8.34 over a bar of 2.27). **Neither carries the "together" label**, so the label would have stopped neither.
+- **Share 0.10**: the read of changes heard 6 of 180 (3%, 1% to 6%). A link of that size is out of reach on such a table.
+- **The read of levels heard 0 of 540 links** in `links`, at every share, and passed nothing in any of the 200 tables where nothing predicts. So on these tables "either read" is the read of changes.
+- **`earlier`** (links that enter what the outcome's history leaves, 40 series, share 0.35): levels heard 118 of 120 (98%), changes 92 of 120 (77%, 72% to 82%), either 120 of 120. The read of changes loses about a fifth of what the read of levels hears there and found the two it missed.
+- In `earlier` the table printed by the runner shows passes "naming nothing planted" in 12 tables by levels and 10 by changes. **That figure is the harness's and is not a count of false passes**: the harness does not know a near copy, which the counted runner of the finders' count does (`scripts/run_finders.py` `stands`: a named series that goes with a planted input at 0.5 or more). Those tables were read again as a check, with nothing kept: all 27 such passes (16 and 11) are on an outcome with a planted link and name one series that goes with the link's input at 0.95 or 0.96. A near copy predicts and was counted beside, not as false, in the finders' count; the same holds here. No mark rested on it.
+
+## What it means, and what it does not
+
+- On made-up tables shaped like the real yearly panel, reading every series as its change from the year before hears about two thirds of strong links and a fifth of middling ones where the read of levels hears none, with a false pass in about one table in a hundred where nothing predicts.
+- The interval on 2 of 200 runs from about 0.2% to 3%. It is one family of made-up tables. On the real table the placebo runs say what the rate is there, and they come first.
+- The read of changes is deaf to small links (share 0.10) and loses some links of the other kind. It is a second read beside the read of levels.
+- Not covered stays as listed above: the level-driven kind at 120 series, monthly tables, late starts, tied series, 461 series, memory above 0.97.
+
+**So the read of changes goes to the real yearly table as a second read, under a rule of its own committed first.**
