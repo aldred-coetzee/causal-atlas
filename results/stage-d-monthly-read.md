@@ -116,3 +116,30 @@ planted: 12 of 12 runs
 **Deviation, disclosed.** Four planted runs (66203, 66206, 66209, 66212) were cut off by the session's time limit before they finished, kept nothing, and were started again with the same seeds; each seed has one kept row. Planted runs take about four minutes, not two and a half.
 
 **Next:** step 4, the real read, once.
+
+### Step 4: the real read, made once (2026-11-12, 06:14 to 06:17 UTC): silence
+
+Seed 66900, the same panel file. The finders posted 3,948 rows from 1980 to 2008; eleven were sent to the referee, which scored them on 2009 to 2019 against a bar of 3.13. **None passed.** There is no lead, so nothing is called implausible, **step 5 is not run and 2020 to 2024 stay unopened.** Every row sent (the two numbers after `t` are the two reads; a pass needs both over the bar):
+
+```
+real: 3948 rows posted, 11 sent, bar 3.13, 0 passed, 0 of them leads, 0 of those on drought, storms or earthquakes (implausible)
+        ['candidates:noi.data:monthly', 'oni:oni:nino34_3month'] (climate) -> bis_eer:real_broad: pairs from the board, product, places 73, lift 4.23, t [-0.68, -0.69], s [-0.0238, -0.0274], moving together None
+        13 (climate, conflict and protest, earthquakes, prices and money) -> hfd_stff:births: components, mode, places 81, lift 4.02, t [1.39, -0.49], s [0.0203, -0.0037], moving together None
+        ['pink_sheet:copper:world', 'pink_sheet:wheat_us_srw:world'] (prices and money) -> spei:spei3:country_mean: pairs from the board, product, places 58, lift 4.14, t [0.46, 0.58], s [-0.0013, 0.0004], moving together None
+        5 (prices and money) -> ibtracs:storms:country_total: gathered 5, mode, places 160, lift 4.02, t [6.87, 0.45], s [0.2916, -0.0081], moving together None
+        ['pink_sheet:gold:world', 'pink_sheet:wheat_us_srw:world'] (prices and money) -> spei:spei3:country_mean: pairs from the board, product, places 58, lift 3.23, t [0.54, 0.68], s [-0.0031, 0.0002], moving together None
+        20 (prices and money) -> ibtracs:storms:country_total: gathered 20, mode, places 160, lift 3.64, t [6.09, -0.09], s [0.2586, -0.1208], moving together None
+        ['pink_sheet:coal_australian:world', 'pink_sheet:gold:world'] (prices and money) -> spei:spei3:country_mean: pairs from the board, product, places 54, lift 3.22, t [0.68, 0.56], s [-0.001, 0.0005], moving together None
+        10 (prices and money) -> ibtracs:storms:country_total: gathered 10, mode, places 160, lift 3.59, t [6.91, 0.2], s [0.2899, -0.0908], moving together None
+        ['candidates:tni.long.data:monthly', 'hfd_stff:births'] (climate, health and people) -> faostat_cp:food_price_inflation: pairs from the board, product, places 76, lift 3.12, t [-1.15, 0.24], s [-0.0078, -0.0029], moving together None
+        12 (conflict and protest, earthquakes, health and people, prices and money) -> ibtracs:storms:country_total: components, mode, places 40, lift 3.19, t [None, None], s [nan, nan], moving together None
+        ['pink_sheet:gold:world', 'pink_sheet:soybean_meal:world'] (prices and money) -> spei:spei3:country_mean: pairs from the board, product, places 61, lift 3.04, t [0.56, 0.63], s [-0.0035, -0.0011], moving together None
+```
+
+**What the silence is worth.** By the planted runs above: a steady lead of one to six months from a series of one source to an outcome of another, in at least a quarter of the places, holding from 1980 through 2019, would probably have been heard if strong (about two in three at a fifth of the outcome's monthly movement), about half the time if middling, about a quarter if weak; into prices, exchange rates, births and drought. Into conflict, storm and earthquake counts little would have been heard, so the silence says little there.
+
+**What it does not say.** Nothing of links inside one source's set (they were not allowed). Nothing of links that hold in a few places, that switch on and off, that started after 2008 or run longer than the finders look. Nothing of protests, fire, dengue, electricity or the European series, which the count rule left out. Nothing of the two finder members left out for memory. The neighbours' part of the baseline was weaker in the placebos than here.
+
+**The nearest rows, said and not counted.** Three rows have gathered commodity prices ahead of storm counts with one read far over the bar (6.1 to 6.9) and the other near nought (-0.09 to 0.45). A pass needs both, the outcome is one where a lead would be called implausible, and commodity prices and storm counts both have strong shared swings in 2009 to 2019. It is not a result and is not followed up outside a rule.
+
+**Spent.** 2009 to 2019 of this panel are now read once in the real arrangement, across sets. `run_stage_d.py real once` must never be run again or forced, its marker file never removed, and `confirm once` is not to be run.
