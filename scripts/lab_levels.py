@@ -104,7 +104,7 @@ def pipeline(p, v, seed, first, last, truth=(), names=None, answer=None, paths=(
     rows = fd.steward(board)
     res = rf.judge(seen, p["group"], first, [fd.proposal(r) for r in rows], seed=seed)
     planted = {(t["outcome"], frozenset([x])) for t in truth for x in names(t["input"])}
-    pairs = {(a, frozenset([c])) for q in paths for a, c in (q["pair"], q["pair"][::-1])} if not names else set()
+    pairs = {(a, frozenset([x])) for q in paths for a, c in (q["pair"], q["pair"][::-1]) for x in (names(c) if names else {c})}
     kinds = [("link" if (r["outcome"], r["names"]) in planted else "path" if (r["outcome"], r["names"]) in pairs else "part" if any(o == r["outcome"] and x & r["names"] for o, x in planted) else "other") for r in rows]
     passes = [{"kind": k, "family": r["family"], "member": r["member"], "lift": round(r["lift"], 2), "n": len(r["names"]), "t": [q[f]["t"] and round(q[f]["t"], 2) for f in rf.READS], "label": q["label"]["together"] if q["label"] else None}
               for r, q, k in zip(rows, res["proposals"], kinds) if q["passes"]]
@@ -230,14 +230,14 @@ def table(names):
                       f"the whole error with the level at {k('error_with_level'):.3f}, with the change at {k('error_with_change'):.3f}; baselines used (mean, last, mean and share, line, group, recent line): {np.sum([g['chosen'] for g in gs], axis=0).tolist()}")
 
 
-def check():
+def check(seed=61001):
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     import lab_level_worlds as lw
     import run_stage_b as sb  # read only: importing defines names and runs nothing
-    w = lw.make(61001)
+    w = lw.make(seed)
     v = w["values"]
-    a, ta = sb.plant(w, v, 61001)
-    b, tb = lw.plant(w, v, 61001)
+    a, ta = sb.plant(w, v, seed)
+    b, tb = lw.plant(w, v, seed)
     print("the copied plant gives the registered one's table:", bool(np.array_equal(a, b, equal_nan=True) and all(x["outcome"] == y["outcome"] and x["input"] == y["input"] and (x["where"] == y["where"]).all() for x, y in zip(ta, tb))))
     vary = np.flatnonzero(~w["common"])
     mem = np.array([lw.memory(v[s][:, :54]) for s in vary])
@@ -273,7 +273,7 @@ if __name__ == "__main__":
     ap.add_argument("--share", type=float, default=0.35)
     a = ap.parse_args()
     if a.cmd == "check":
-        check()
+        check(*a.seeds[:1])
     elif a.cmd == "table":
         table(a.names)
     else:

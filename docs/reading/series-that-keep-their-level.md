@@ -1,50 +1,58 @@
-# Series that keep their level: why a planted link is not heard, and ways to hear it
+# Series that keep their level: why a planted link is not heard, and a way to hear it
 
-Notes of helper G (brief: `docs/specs/2026-11-11-parallel-helpers-fourth-wave.md`). **Stopped early, on the project session's word, with most of the work not done.** Made-up tables only; every number is a development number on smoke seeds and none is a count. Nothing real was read or set beside anything. Code: `scripts/lab_level_worlds.py` (the maker of tables; numpy only, imports nothing that proposes or scores) and `scripts/lab_levels.py` (the ways and the harness; `finders.py` and `referee.py` imported and not edited). Both compile.
+Notes of helpers G and G2 (briefs: `docs/specs/2026-11-11-parallel-helpers-fourth-wave.md`, `...-fifth-wave.md`). Made-up tables only; every number is a development number on smoke seeds and none is a count. Nothing real was read or set beside anything. Code: `scripts/lab_level_worlds.py` (the maker of tables; numpy only) and `scripts/lab_levels.py` (the ways and the harness; `finders.py` and `referee.py` imported and not edited). "Heard" means a planted link passed from the board; counts are given as 35% / 20% / 10% links.
 
 ## State by question
 
-**1. Does it happen on a made-up table? Finished: yes.** Tables shaped like the real yearly panel: 166 places in 18 groups of 6 to 15, 64 years (35 seen, 19 scored, 10 unused), 120 series (cut from 461 to keep a run near 70 seconds), a third of values missing, one year going with the next at 0.58 to 0.95 by series, middle 0.88 (the real inputs: 0.67 to 1.00, middle 0.89). Links put in by a copy of `plant` that gives the registered one's table exactly (checked on one seed). Six tables, 54 links, the finders and referee as they are: **heard from the board 0; answer handed over, passed 0; the nine answers sent alone under a bar of their own (middle 3.3), passed 0.** The lesser of the two reads' t, middle: 2.5 at 35%, 1.4 at 20%, 1.1 at 10%, under a bar of middle 4.9; gain over the baseline, middle 0.06, 0.04, 0.01. That is the real planted runs' picture. One difference not explained: the board sent 12 of 54 answers here (10 of the 18 at 35%), against 1 of 36 on the real table, which has four times the series.
+**1. Does it happen on a made-up table? Yes, and it holds on rerun.** Tables shaped like the real yearly panel (166 places, 18 groups, 64 years: 35 seen, 19 scored; 120 series; a third missing; memory by series 0.58 to 0.97, middle 0.87). On 16 fresh tables, 144 links, as it is: **heard 0 / 0 / 0 of 48 each**; answer handed over, passed 4 / 0 / 0; answer sent alone 15 / 3 / 0. (G's six tables: 0 heard, 0 handed over, 0 alone.) The lesser t, middle 2.6 / 2.0 / 1.0 under a bar of middle 4.5.
 
-**2. Which difference does it? Half done.**
-- *Where the link goes (finished for the table of question 1, 54 links):* mostly **taken by the baseline**. The middle link keeps 0.26 of what was added in the baseline's error; three quarters is gone, because the outcome's own last value already holds what the input added the year before. Places used "mean with a share of the last departure" in about 63% of scored place-years and "last value" in about 33%. What is left goes with the input's **change** the year before at 0.70 and with its **level** at 0.43; the referee and the finders read the level. The bar is not the first stop: sent alone, under the lowest bar there can be, none passed.
-- *How long the input keeps its level (done; the last cell short):* a clean table of 40 series, outcomes carried at 0.9, 4 tables, 12 links a size. At 35%, heard from the board / handed over / alone: input at 0.3: **7 / 9 / 11**; at 0.6: 3 / 6 / 9; at 0.9: 3 / 2 / 6; at 0.97 (3 tables, 9 links): 2 / 1 / 2. At 20%: 1 / 2 / 4; 1 / 2 / 2; 0 / 0 / 1; 1 / 0 / 0. At 10% nothing passed anywhere. So the input's memory does much of it, steadily; it is not all of it, since at 0.3 the 20% links are still mostly missed.
-- *Not run:* how long the outcome keeps its level; both short; size stated as a share of what own history leaves; 25 scored years against 19; all places against a quarter; no gaps; 120 against 40 series. The clean table of 40 hears 3 of 12 at 35% where the table of question 1 hears 0 of 18: series count, drift, wandering and gaps are not yet told apart.
+**2. Which difference does it? The outcome's memory, with the baseline.** The baseline takes about three quarters of what was added (0.28 left; G: 0.26), because the outcome's last value already holds it; what is left goes with the input's change at 0.71 and its level at 0.43. One thing changed at a time on a clean table of 40 series, 4 tables, 12 links a size, heard as it is (and as changes):
 
-**3. Ways to hear it. Barely started: one table each, and no false-pass count at all.** On one table of 40 series (seed 61001; as it is: 0 heard, 0 handed over, 0 alone of 9), heard / handed over / alone, of 9:
-- (a) every series as its change from the year before: 2 / 5 / 5
-- (b) every series as what its own past did not predict (the referee's own baseline taken off): 2 / 5 / 5
-- (a) for inputs only, outcomes kept as levels, rows may name only the changed copies: 3 / 6 / 7; may name either: 2 / 4 / 7
-- (b) for inputs only, copies only: 2 / 5 / 7
-- (c) levels kept, three more baselines for a place's own slow movement: **0 / 0 / 0**, as expected if the baseline is what takes the link
-On one table of 120 series (seed 61001), way (a): 3 of 3 heard at 35% (as it is: 0 of 3), 0 of 3 at 20% (2 of 3 handed over), 0 of 3 at 10%.
-**Not run: any table where nothing predicts, any table with a shared slow path.** No pass on the planted tables named a series not planted, which says nothing about noise. Until those are counted no way is a gain and **none is recommended**.
+| setting | as it is | as changes |
+|---|---|---|
+| all series at 0.9 | 2 / 0 / 0 | 11 / 7 / 0 |
+| inputs at 0.3; at 0.97 | 6 / 1 / 0; 2 / 0 / 0 | 12 / 6 / 2; 9 / 8 / 1 |
+| outcomes at 0.3; 0.6; 0.97 | 9 / 5 / 1; 8 / 4 / 0; **0 / 0 / 0** | 12 / 7 / 1; 12 / 9 / 2; 9 / 8 / 0 |
+| all at 0.3 | 10 / 6 / 1 | 10 / 7 / 1 |
+| 25 scored years | 1 / 0 / 0 | 11 / 6 / 1 |
+| link in all places, not a quarter | 12 / 7 / 0 | 12 / 12 / 10 |
+| no gaps | 2 / 2 / 0 | 12 / 12 / 7 |
+| 120 series, all at 0.9 | 3 / 0 / 0 | 11 / 6 / 0 |
 
-**4. To the table or to the referee? By construction only.** (a), (b) and their inputs-only forms are steps that make a new panel and hand it to `view` and `judge` unchanged (the inputs-only forms use the `allowed` mask `view` already takes). (c) changes the baselines and is not. Whether a panel step is enough depends on the false passes of question 3.
+So: as it is, the read hears when the outcome forgets and goes deaf as the outcome keeps its level; the input's memory matters less; more years do not help; the quarter of places and the gaps cost the small links. Series count is not the cause.
 
-**5. A registered count. Not started.** Known for it: about 70 seconds a table a way at 120 series and 30 at 40, one thread.
+**3. Ways to hear it.** Tables with any pass where nothing should pass (120 series):
 
-## What to run next, in this order
+| way | nothing predicts | shared slow paths, no link |
+|---|---|---|
+| as it is | 0 of 20 | 0 of 40 |
+| (a) every series as its change | **1 of 40** (one row, t 2.9 and 3.2 over a bar of 2.56) | **1 of 40** (0 of 20 at the first path size, 1 of 20 at twice it; the path's own pair, labelled "together") |
+| (b) every series less its own baseline | 0 of 20 | 1 of 20 (the path's own pair) |
+| (a) or (b) for inputs only, outcomes kept | 0 of 1 | **2 of 4 each**, one pass unlabelled; stopped |
 
-All as `PYTHONPATH=src OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 nice -n 19 .venv/bin/python scripts/lab_levels.py run <name> ...`, detached; `table <name>` prints the summary. **Never yet run, so untested code paths:** `--plant shock`, `--plant none`, `--paths`, `--synth`, `--years 70 --last 60`, the way `unpredicted_beside`.
+On 8 tables of the earlier made-up kind with no link: as it is 0, as changes 0. Heard on the 16 tables of question 1, of 48 a size: (a) **31 / 14 / 1** (handed over 39 / 31 / 12); (b) 31 / 13 / 0 (handed over 38 / 28 / 10); as it is 0 / 0 / 0. No pass by (a) or (b) on those tables named anything not planted. (c), more baselines: 0 heard on G's one table and it is not a panel step.
 
-1. False passes first, since they decide everything: `n1 --plant none --seeds 61101-61120 --ways asis,change,unpredicted,change_only,change_beside` and `p1 --plant none --paths 6 --seeds 61201-61220` with the same ways (120 series; about two hours each on one process).
-2. Heard counts: `e3 --seeds 61002-61006 --ways change,unpredicted,change_only,change_beside,unpredicted_only,unpredicted_beside,baseline` (seed 61001 has only `change`).
-3. The knobs left, each `--seeds 61011-61014 --series 40 --outcomes-from a --goes`: `--fixed a=0.9,b=0.97,c=0.97,d=0.97` for seed 61014 alone; `--fixed a=0.3,b=0.9,c=0.9,d=0.9`, `a=0.6,...`, `a=0.97,...`; all four sets at 0.3; `--plant shock` with all at 0.9, all at 0.3, inputs at 0.3, outcomes at 0.3; all at 0.9 with `--years 70 --last 60`, with `--frac 1.0`, with `--no-gaps`, with all three; all at 0.3 with `--frac 1.0`; all at 0.9 and all at 0.3 with `--series 120`.
-4. Whether a way loses what was heard before: `--synth steady --years 60 --last 60 --places 120` with `--ways asis,change,change_beside,unpredicted` on a few seeds (links there are put into what the outcome's history leaves, from inputs of short memory; a changed input should carry less of such a link).
+**What (a) loses.** Links put into what the outcome's history leaves, so that the input's level moves the outcome's new movement (40 series, all at 0.9): as it is 4 / 2 / 0 of 12, **as changes 0 / 0 / 0**, (b) 0 / 0 / 0. With inputs at 0.3: as it is 9 / 6 / 0, as changes 3 / 1 / 0. On the earlier made-up tables (links of that kind, short memory): steady 12 of 12 as it is, 9 as changes; threshold 5 and 2. On the table of 120 series with such links nothing was heard by any way (0 of 36 each; t near zero, a run not understood), and (b) passed one row naming nothing planted.
 
-## Outputs under `data/panel/levels/` (not committed)
+**4. To the table or to the referee?** (a) and (b) are steps that make a new panel and hand it to `view` and `judge` unchanged. (c) is not.
 
-Every row in every file is a whole table. Whole files: `e1.jsonl` (6 tables, as it is), `t1.jsonl` (1 table, six ways), `k_base`, `k_in03`, `k_in06` (4 tables each). Cut short: `k_in097.jsonl` (3 of 4 tables), `e3.jsonl` (1 of 42 rows: way (a) on seed 61001). `knobs.sh` and `lane1.sh` there are the two lists of runs as they were started; both were stopped and no process of this helper is left running.
+## Recommended
 
-## Seeds used
+**Way (a): a step that writes a second panel in which every series, outcomes and inputs alike, is its value less its value the year before in the same place** (missing where either is missing; the first year is lost), read by the finders and referee exactly as counted, with the registered years. **As a second read beside the read of levels, not in its place**: the two hear different kinds of link, and (a) is deaf to the kind the level read hears best. Why (a) over (b): the same heard counts, one line of arithmetic against a baseline fitted series by series, and nothing taken from the referee. On the changed panel the bar falls from about 4.5 to about 3.0; that is where the hearing comes from and where the two false passes came from.
 
-61001 to 61006 (question 1; 61001 also for the check of the copied `plant`, for setting the table's memory, and for the one-table trials of the ways); 61011 to 61014 (the knobs). No other seed. Planned and not used: 61101 to 61120 (nothing predicts), 61201 to 61220 (shared paths), 61301 on (the earlier made-up tables).
+Dropped: the inputs-only forms (they pass shared slow paths in half the tables); the forms with copies beside (the same construction with more rows; not run); (c).
+
+**5. What a registered count of (a) would need.** Worlds: nothing predicts; shared slow paths at two sizes; links as registered at 35 / 20 / 10%; links of the other kind, so the loss is counted and not hidden. Marks, set before: tables with any pass where nothing should pass (2 of 80 here; the referee's own rate is 0.05, and 80 tables cannot tell 2.5% from 7%, so 200 null tables or more); heard at 35% and 20% (here 65% and 29%); passes naming nothing planted. Fresh registered seeds, none of those below. About one minute a table at 120 series on one thread, so 300 tables is about five hours on one process; at the real 461 series, more. **A second real read** would need, before it: the step written and tested as its own script, its panel and manifest entry; a rule committed first that says the two reads are counted together (two reads double the chance of a false pass); the placebo runs and planted runs of the first read redone on the changed panel; the years held back still unopened.
 
 ## Not known
 
-- Any false-pass figure for any way, so whether hearing more is a gain.
-- Whether the outcome's memory, the quarter of places, the 19 years or the number of series matter beside the input's memory.
-- Why the real board sent 1 answer of 36 and this one 12 of 54.
-- The table's settings (memory, drift, wandering, reading error) were chosen on seed 61001 to bring the middle memory to 0.88; the real panel's top (1.00) is not reached (0.95 here).
-- A fault found and mended in the summary printer only (rows written are unaffected). The harness has had no review but its author's.
+- Whether 2 of 80 is the rate or luck; nothing here bounds it below about 7%.
+- Which kind of link the real table has more of. If the other kind, (a) adds little.
+- Why no way heard the other kind on the table of 120 series; that path of the harness was run once and not checked.
+- Monthly panels, late starts, the 461 series, and tied series were not tried.
+- The table's settings were chosen on one seed; its memory tops at 0.97, the real at 1.00.
+- A fault was found and mended in the harness (a shared path's pair was never recognised, so such a pass would have been counted as "other"); it was mended before any path table ran. The harness has had no review but its authors'.
+
+## Seeds used
+
+G: 61001 to 61006, 61011 to 61014. G2: 61021 to 61037 (question 1 and the ways; 61031 for the check of the copied `plant`), 61041 to 61048 (the knobs and the other kind of link), 61101 to 61140 (nothing predicts), 61201 to 61240 (shared paths), 61301 to 61304 and 61311 to 61318 (the earlier made-up tables). Outputs, one row a table, under `data/panel/levels/` (not committed): `r0, e4, e5, n1, n2, n3, p1, p2, p3, q_*, s_*, x_*` and the lane lists as started.
