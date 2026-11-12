@@ -28,7 +28,7 @@ The two reads of the yearly table were silent. The monthly method could not be u
 - The yearly reads set yearly forms of some of these series beside each other on 1996 to 2014 (drought, exchange rates, climate indices) and were silent, with every row published. Nothing in this rule was chosen from those rows. The monthly values of 2009 to 2019 have not been set beside each other.
 - `results/spent-ledger.md` was consulted. Burned area against drought and El Niño, the harvest and crop records, and the local market food prices are spent or reserved there; none of those series is in this panel.
 - **Known answers, named now.** A passed row of one of these kinds is reported as a known answer, not as a discovery: drought or a climate index leading food prices or food price inflation; conflict leading the exchange rate or prices, or the reverse; a commodity price (oil, food) leading conflict; an El Niño index leading conflict (a published and disputed claim).
-- **Impossible leads, a built-in check.** No series outside the climate set can lead a place's drought or storms, and nothing here can lead its earthquakes. A lead whose outcome is drought, storms or earthquakes is counted as a **false lead** and reported as such, in the real read as in the placebos.
+- **Impossible leads, a built-in check.** No series outside the climate set can lead a place's drought or storms, and nothing here can lead its earthquakes. A lead whose outcome is drought, storms or earthquakes is counted as a **false lead** and reported as such, in the real read as in the placebos. (After the reader: counted apart as **implausible** and read by hand; see below.)
 
 ## Steps, in this order, each registered seed once
 
@@ -67,6 +67,18 @@ Time is moved by whole years so that a month stays in its season, and within the
 ## Before any run
 
 An independent reader, with no part in the work, reads this rule and the code before the first placebo (`docs/specs/2026-11-12-stage-d-rule-check.md`). It runs nothing on the real table and reads no real values. What it finds is settled, and written below, before step 1.
+
+## After the reader, before any run
+
+The reader's report is `docs/reviews/2026-11-12-stage-d-rule-check/report.md` (its own write was refused by the box, so the project session saved its text unchanged; its check script is beside it). It ran nothing on the real table. It found that nothing of 2020 to 2024 can reach a run, the rearrangements, the hearing test, the nought-filling, the sets and the guards sound. Settled on its findings, before step 1:
+
+1. **A lead on drought, storms or earthquakes is now counted apart by the code**, in every placebo step and in the real read (a test holds the sets). It is called **implausible**, not false: the reader is right that the claim is about causes, not prediction (markets price El Niño forecasts; oil prices can come before induced earthquakes). Each one is read by hand. In a placebo it still counts toward the mark as any lead does.
+2. **The panel is pinned.** Every kept run records the checksum of the panel file it read; every step refuses if the file is not the one the kept runs read; `panel` refuses to build again once a run is kept (a test holds it). The checksum begins 979b3c82c75354cb.
+3. **Planted links are reported apart for outcomes that are counts, mostly nought** (conflict, storms, earthquakes). There a planted link is nearly all of the outcome's movement in its quiet months, so hearing it says little about real links into counts. What a silence rules out is read from the links into outcomes that are not counts.
+4. **Said, and left as they are:** the stated share is of raw month-to-month movement, season included, while the read takes the season out, so for seasonal outcomes (births, storms) a link's real size differs from its label. The places placebo and the planted runs scramble each place's neighbours in every set but prices and money, so the neighbour part of the baseline is weaker there than in the real read. Where the groups run out a planted link covers fewer than a quarter of the places (births have about 40). The 97% to 98% heard on made-up tables was on tables of 16 series, not of this panel's shape, and with two members this read leaves out; only the planted runs here say what this read hears.
+5. **A true lead can be labelled as moving together and so not count.** The reader saw it on a made-up table. The planted runs report, beside leads, how many planted links passed when handed over; the gap between the two is what the label costs, and a silence is read with it.
+6. **Confirmation scores five years** that hold the pandemic, against a bar of about 2 for one row. It is weak evidence either way, and how often a false pass would be confirmed is not known. That sentence goes beside any confirmation reported.
+7. **Not checked by the reader, said:** the builder against the real files; what the two left-out members cost on a table of this shape; whether six planted links in one table disturb each other. The builder decides which places and series are kept by whether values are present in each stretch, 2020 to 2024 included, never by what they are.
 
 ## The spent ledger
 

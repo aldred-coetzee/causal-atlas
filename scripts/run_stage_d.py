@@ -9,6 +9,7 @@
 
 What knows a planted truth or how a table was rearranged is here, not in the finders or the referee. The read is causal_atlas.months, as counted on made-up tables, less two members the table is too wide for.
 """
+import hashlib
 import json
 import os
 import sys
@@ -46,6 +47,8 @@ APART = 4  # years any two sets stand apart when they are moved round. Moved by 
 SIZES, LINKS, QUARTER = (0.20, 0.10, 0.04), 2, 0.25  # planted links: two of each size a table (fourteen series differ by place: more outcomes could leave one with no input outside its set), in whole groups holding a quarter of the places
 CONFIRMED = (5, 36)  # groups and months a row must apply in, in 2020 to 2024, to be confirmed
 SMOKE = range(60911, 60931)
+PHYSICAL = ("climate", "earthquakes")  # sets whose outcomes here (a place's drought, storms, earthquakes) nothing allowed could plausibly lead: a lead on one is counted apart, as implausible
+COUNTS = ("ucdp_ged", "ibtracs", "usgs_quakes")  # sources whose series by place are counts, mostly nought: planted links are reported apart for them
 
 
 def members():
@@ -132,6 +135,8 @@ def build():
 def panel():
     z = np.load(HOLD / "panel.npz")
     p = {k: z[k] for k in z.files}
+    p["sha"] = hashlib.sha256((HOLD / "panel.npz").read_bytes()).hexdigest()
+    refuse(any(r.get("panel", p["sha"]) != p["sha"] for r in rows()), "the panel file is not the one the kept runs read")
     p["allowed"] = p["sets"][:, None] != p["sets"][None, :]  # a row names only series outside its outcome's set; every tie in docs/tied-series.md among monthly series lies inside one set
     p["outcomes"] = np.flatnonzero(~p["common"])
     return p
@@ -212,14 +217,14 @@ def reading(p, d, rows, seed, first=FIRST, told=()):
         row = {"outcome": str(p["ids"][r["outcome"]]), "names": [str(p["ids"][s]) for s in sorted(r["names"])] if len(r["names"]) <= 4 else len(r["names"]), "sets": sorted({str(p["sets"][s]) for s in r["names"]}), "family": r["family"], "member": r["member"],
                "form": r["form"], "event": r["event"], "chosen": r["chosen"], "agree": len(r["families"]), "lift": round(r["lift"], 2), "places": "all" if isinstance(r["where"], str) else int(r["where"].sum()),
                "t": [x["t"] and round(x["t"], 2) for x in two], "s": [x["s"] and round(x["s"], 4) for x in two], "without_best": [x["without_best"] and round(x["without_best"], 4) for x in two],
-               "groups": [x["groups"] for x in two], "months": [x["years"] for x in two], "check": q[rf.CHECKS[0]]["t"] and round(q[rf.CHECKS[0]]["t"], 2), "passes": q["passes"], "lead": lead(q), "size": q["size"],
+               "groups": [x["groups"] for x in two], "months": [x["years"] for x in two], "check": q[rf.CHECKS[0]]["t"] and round(q[rf.CHECKS[0]]["t"], 2), "passes": q["passes"], "lead": lead(q), "implausible": lead(q) and str(p["sets"][r["outcome"]]) in PHYSICAL, "size": q["size"],
                "label": q["label"]["together"] if q["label"] else None, "back": bool(q["label"]["back"]) if q["label"] else None, "same": q["label"]["same"] if q["label"] else None}
         if q["passes"]:  # enough to send the same row again on 2020 to 2024
             row["row"] = {"outcome": int(r["outcome"]), "inputs": [[int(a), int(b)] for a, b in r["inputs"]], "form": r["form"], "where": r["where"] if isinstance(r["where"], str) else [int(x) for x in np.flatnonzero(r["where"])], "level": r.get("level"),
                           "groups": None if r.get("groups") is None else [int(x) for x in r["groups"]], "state": None if r.get("state") is None else [int(x) for x in r["state"]], "weights": r.get("weights"), "event": r["event"]}
         out.append(row)
     answers = [{"passes": q["passes"], "lead": lead(q), "size": q["size"], "t": [q[f]["t"] and round(q[f]["t"], 2) for f in rf.READS]} for q in res["proposals"][: len(told)]]
-    return {"bar": res["bar"], "sent": res["sent"], "passed": res["passed"], "leads": sum(x["lead"] for x in out), "answers": answers, "rows": out}, rows
+    return {"bar": res["bar"], "sent": res["sent"], "passed": res["passed"], "leads": sum(x["lead"] for x in out), "implausible": sum(x["implausible"] for x in out), "answers": answers, "rows": out}, rows
 
 
 def run(p, v, seed, truth=None):
@@ -229,13 +234,13 @@ def run(p, v, seed, truth=None):
     board = fd.swarm(fd.view(d, p["group"], FIRST, p["outcomes"], p["allowed"], settings=mo.READ, quiet=mo.QUIET), members())
     t1 = time.time()
     rows = fd.steward(board)
-    out = {"seed": seed, "posted": len(board), "swarm_s": round(t1 - t0), "board": reading(p, d, rows, seed)[0]}
+    out = {"seed": seed, "panel": p.get("sha"), "posted": len(board), "swarm_s": round(t1 - t0), "board": reading(p, d, rows, seed)[0]}
     if truth:
         told, kept = reading(p, d, rows, seed, told=[rf.proposal(t["outcome"], [(t["input"], t["lag"])], "slope", t["where"]) for t in truth])
         hit = lambda rs, sent, t: any(q["lead"] and r["outcome"] == t["outcome"] and r["names"] == {t["input"]} for q, r in zip(rs, sent))
         ranks = [next((n for n, r in enumerate(sorted((r for r in board if r["outcome"] == t["outcome"]), key=lambda r: -r["lift"])) if r["names"] == {t["input"]}), None) for t in truth]
         out["told"] = told
-        out["links"] = [{"outcome": str(p["ids"][t["outcome"]]), "input": str(p["ids"][t["input"]]), "lag": t["lag"], "share": t["share"], "places": int(t["where"].sum()), "heard": hit(out["board"]["rows"], rows, t), "heard_told": hit(told["rows"], kept, t),
+        out["links"] = [{"outcome": str(p["ids"][t["outcome"]]), "input": str(p["ids"][t["input"]]), "lag": t["lag"], "share": t["share"], "count": str(p["ids"][t["outcome"]]).startswith(COUNTS), "places": int(t["where"].sum()), "heard": hit(out["board"]["rows"], rows, t), "heard_told": hit(told["rows"], kept, t),
                          "answer": a["lead"], "answer_pass": a["passes"], "answer_size": a["size"], "answer_t": a["t"], "rank": k, "sent": any(r["outcome"] == t["outcome"] and r["names"] == {t["input"]} for r in rows)} for t, a, k in zip(truth, told["answers"], ranks)]
     return {**out, "seconds": round(time.time() - t0)}
 
@@ -294,7 +299,7 @@ def table():
     rs = rows()
     for step, (n, bad, ok) in marks(rs).items():
         m = [r for r in rs if r["step"] == step]
-        print(f"{step}: {n} of {len(SEEDS[step])} runs, {bad} with any lead (at most {MOST[step]}): {'not all run' if ok is None else 'holds' if ok else 'MISSED'}; with any pass {sum(r['board']['passed'] > 0 for r in m)}")
+        print(f"{step}: {n} of {len(SEEDS[step])} runs, {bad} with any lead (at most {MOST[step]}): {'not all run' if ok is None else 'holds' if ok else 'MISSED'}; with any pass {sum(r['board']['passed'] > 0 for r in m)}; leads on drought, storms or earthquakes {sum(r['board']['implausible'] for r in m)} of {sum(r['board']['leads'] for r in m)} leads")
         if m:
             print(f"   rows posted, middle {np.median([r['posted'] for r in m]):.0f}; sent, middle {np.median([r['board']['sent'] for r in m]):.0f}; bar, middle {fmt(np.median([r['board']['bar'] for r in m if r['board']['sent'] and r['board']['bar'] is not None] or [np.nan]))}; seconds, middle {np.median([r['seconds'] for r in m]):.0f}")
             for r in m:
@@ -304,17 +309,19 @@ def table():
     m = [r for r in rs if r["step"] == "planted"]
     if m:
         print(f"planted: {len(m)} of {len(SEEDS['planted'])} runs")
-        for share in SIZES:
-            ls = [x for r in m for x in r["links"] if x["share"] == share]
-            print(f"   {share:.0%}: {len(ls)} links; sent {sum(x['sent'] for x in ls)}; heard as a lead from the board {sum(x['heard'] for x in ls)}; a lead when handed over {sum(x['answer'] for x in ls)} (a pass {sum(x['answer_pass'] for x in ls)}); places, middle {np.median([x['places'] for x in ls]):.0f}; rank on its outcome's board, middle {np.median([x['rank'] for x in ls if x['rank'] is not None] or [np.nan]):.0f} ({sum(x['rank'] is None for x in ls)} not posted)")
+        for share, count in [(a, b) for a in SIZES for b in (False, True)]:
+            ls = [x for r in m for x in r["links"] if x["share"] == share and x["count"] == count]
+            if not ls:
+                continue
+            print(f"   {share:.0%}, outcome {'a count, mostly nought' if count else 'not a count'}: {len(ls)} links; sent {sum(x['sent'] for x in ls)}; heard as a lead from the board {sum(x['heard'] for x in ls)}; a lead when handed over {sum(x['answer'] for x in ls)} (a pass {sum(x['answer_pass'] for x in ls)}); places, middle {np.median([x['places'] for x in ls]):.0f}; rank on its outcome's board, middle {np.median([x['rank'] for x in ls if x['rank'] is not None] or [np.nan]):.0f} ({sum(x['rank'] is None for x in ls)} not posted)")
         named = lambda r, x: any(l["outcome"] == x["outcome"] and x["names"] == [l["input"]] for l in r["links"])
         print(f"   runs with a lead that names no planted link: {sum(any(x['lead'] and not named(r, x) for x in r['board']['rows']) for r in m)}")
     for r in rs:
         if r["step"] == "real":
             b = r["board"]
-            print(f"real: {r['posted']} rows posted, {b['sent']} sent, bar {fmt(b['bar'])}, {b['passed']} passed, {b['leads']} of them leads")
+            print(f"real: {r['posted']} rows posted, {b['sent']} sent, bar {fmt(b['bar'])}, {b['passed']} passed, {b['leads']} of them leads, {b['implausible']} of those on drought, storms or earthquakes (implausible)")
             for x in b["rows"]:
-                print(f"   {'LEAD' if x['lead'] else 'PASS' if x['passes'] else '    '} {show(x)}")
+                print(f"   {'IMPLAUSIBLE LEAD' if x['implausible'] else 'LEAD' if x['lead'] else 'PASS' if x['passes'] else '    '} {show(x)}")
         if r["step"] == "confirm":
             for x in r["rows"]:
                 print(f"confirm: {x['names']} -> {x['outcome']} ({'lead' if x['lead'] else 'moving together'}): {'confirmed' if x['confirmed'] else 'not confirmed'}, bar {fmt(x['bar'])}, t {x['t']}, s {x['s']}, groups {x['groups']}, months {x['months']}")
@@ -336,6 +343,7 @@ def rehearse(seeds):
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
     if cmd == "panel":
+        refuse(bool(rows()), "runs are kept: the panel they read is not built again")
         describe(build())
     elif cmd == "rehearse":
         rehearse([int(s) for s in sys.argv[2:]])

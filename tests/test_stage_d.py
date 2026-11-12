@@ -140,3 +140,22 @@ def test_marks_refuse_unregistered_or_repeated_seeds():
     m = sd.marks(rs)
     assert m["places"] == (20, 2, True) and m["years"] == (7, 0, None)
     assert sd.marks(rs + [row("places", 66001, 1)][:0] + [row("years", 66108, 1)])["years"] == (8, 1, True)
+
+
+def test_the_panel_is_pinned_once_a_run_is_kept(tmp_path, monkeypatch):
+    monkeypatch.setattr(sd, "HOLD", tmp_path)
+    monkeypatch.setattr(sd, "OUT", tmp_path / "rows.jsonl")
+    p = made(8)
+    np.savez_compressed(tmp_path / "panel.npz", **{k: p[k] for k in ("values", "common", "group", "ids", "sets", "groups")})
+    sha = sd.panel()["sha"]
+    sd.keep({"step": "places", "seed": 66001, "panel": sha})
+    assert sd.panel()["sha"] == sha
+    p["values"][0, 0, 0] += 1.0
+    np.savez_compressed(tmp_path / "panel.npz", **{k: p[k] for k in ("values", "common", "group", "ids", "sets", "groups")})
+    with pytest.raises(SystemExit):
+        sd.panel()
+
+
+def test_a_lead_on_a_physical_outcome_is_counted_apart():
+    assert set(sd.PHYSICAL) <= set(sd.SETS) and sd.STILL not in sd.PHYSICAL
+    assert all(any(c in v for k, v in sd.SETS.items() if k in sd.PHYSICAL or k == "conflict and protest") for c in sd.COUNTS)
