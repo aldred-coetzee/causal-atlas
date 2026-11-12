@@ -47,6 +47,28 @@ Reported beside the marks, not marks: worlds with any pass of either kind; links
 
 Ties at other distances than the same month (an input that moves the outcome inside the month but is recorded a month late would be a true lead by the record). Series of counts that are mostly nought. Shared slow paths between monthly series beyond the maker's shared series. More than about 8% missing. Counted once; never run again.
 
-## Result
+## Result (counted once, 2026-11-12, 03:25 to 04:34 UTC)
 
-Not yet run.
+480 worlds read, each once; 32 seeds refused by the maker and passed over (listed by `scripts/run_monthly_lead.py table`). Rows: `results/monthly-lead-count.jsonl`. Never to be run again.
+
+**Every mark holds.**
+
+| mark | result | |
+|---|---|---|
+| where nothing predicts, at most 9 of 180 worlds with any lead | **0 of 180** | held |
+| heard as a lead, steady at 0.10, at least 85% | 117 of 120, 98% (interval 95% to 99%) | held |
+| heard as a lead, steady at 0.04, at least 70% | 116 of 120, 97% (94% to 99%) | held |
+| heard as a lead, bursts at 0.10, at least 75% | 120 of 120 | held |
+| heard as a lead, three-month windows at 0.10, at least 60% | 98 of 120, 82% (76% to 88%) | held |
+| heard as a lead, steady at 0.10 with gaps, at least 70% | 117 of 120, 98% (95% to 99%) | held |
+| linked worlds with a lead naming nothing planted, at most 12 of 300 | 0 | held |
+
+Beside the marks. The same-month tie still draws passes: 28 of 60 worlds without gaps (34 passes) and 15 of 60 with gaps (19 passes). **Every one of those 53 passes carries the label, so none is a lead.** Plain tables had no pass of either kind. Of 1,134 passes naming a planted link exactly, 52 carry the label; the label cost 3, 4 and 3 links in the three steady panels (heard by a pass, not as a lead) and none elsewhere. Leads naming part of a planted link (one of its series, or a row holding it): 50 worlds. Windows by months before, one to six: 18 of 22, 17 of 18, 14 of 18, 16 of 22, 18 of 22, 15 of 18. Middle time a world 38 seconds, longest 102, one thread.
+
+**What follows.** The monthly read may be used on the real monthly table under its own rule, committed first: a lead is a pass without the label; a labelled pass is reported as two series moving together within a month or so. On made-up tables of this kind it then called no tie a lead in 120 worlds, invented nothing in 60 plain ones, and heard steady links down to 4% of an outcome's movement, with about 8% of values missing and late starts making no difference seen.
+
+**Limits.** As listed under "What this does not cover". The tables are this maker's: 16 series, 120 places, fifty years of months. The real monthly table has far more series, shorter records, counts that are mostly nought, and many more than 8% missing in some sets; its own placebo and planted runs are what will say what a real monthly read can hear.
+
+## Deviations
+
+None.
