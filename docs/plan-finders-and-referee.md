@@ -126,6 +126,20 @@ Not planned here. It needs Stage A's table, the data layer's counts and its own 
 
 *Since 2026-11-11:* the rule is `results/stage-b-first-read.md` (decisions 0063, 0064), the script `scripts/run_stage_b.py`, the reader's brief `docs/reviews/2026-11-11-stage-b-rule-check/brief.md`. Stage A2's condition for it is met.
 
+## What the real reads found (2026-11-11 and 2026-11-12)
+
+Each read once, by its own rule committed first, with placebo runs (places moved round, years moved round) and planted links on the real table before the real arrangement was read. The work was **paused by the owner on 2026-11-12**.
+
+| Read | Table | Placebos | Planted links heard | Real read |
+|---|---|---|---|---|
+| First (`results/stage-b-first-read.md`) | country by year, four sets, levels; finders 1961 to 1995, referee 1996 to 2014 | held | none of 54 | forty rows sent, none passed |
+| Second (`results/stage-c-second-read.md`, decision 0067) | the same, every series as its change from the year before | no pass in 20 and 8 runs | 10, 3 and 1 of 36 at shares 0.35, 0.20, 0.10 | forty rows sent, none passed |
+| Monthly (`results/stage-d-monthly-read.md`, decision 0069) | country by month, 106 series in 202 places, sets by source; finders 1980 to 2008, referee 2009 to 2019 | no pass in 20 and 8 runs | into outcomes that are not counts 9 of 14, 7 of 15, 4 of 14 at shares 0.20, 0.10, 0.04; into counts 4 of 10, 3 of 9, 1 of 10 | eleven rows sent, none passed |
+
+Between the second and the monthly read, the monthly reading was counted on made-up tables (`results/monthly-lead-count.md`, decision 0068): a pass is a lead only when its label does not say the two move together.
+
+**What this answers of "What it could change" above.** The yearly country table is too short: the answer could barely be heard there. The monthly table can hear, and is silent for strong steady many-place leads across sources. What is left unheard, and where the next step lies: links in few places, links that switch on and off, events and not levels (the second set of finders, `docs/reading/second-set-of-finders.md`, designed and not registered); a grain finer than the country; a later split that lets in the series the count rule left out. Unopened and kept for confirmation: 2015 to 2024 of the yearly table, 2020 to 2024 of the monthly.
+
 ## What to change, later
 
 A passed proposal says a series helps predict. Before anything is called a factor that could be changed, it needs one of: the same link holding across places and periods that differ in other ways; a natural experiment; a known mechanism. Every result carries the label of which it has. Stage A plants the hidden mover so that this difference is measured from the start: how often each finder proposes a link that predicts and would not respond to change.
@@ -143,10 +157,10 @@ The finders are one, of plain-code members, from the start (decision 0057, the o
 | A1, second count | the shared-curve hole closed (decision 0060), a helper's shapes of shared path, the referee counted again | not estimated beforehand; counted and reported with its result |
 | The label | a pass marked "may be moving together" when the same proposal also stands turned round, at a lower mark, or is as strong read in the same year; not charged in the bar (decision 0061); registered in `results/finders-stage-a1c.md` and counted on fresh worlds at 120, 240 and 480 places. *Counted (2026-11-10):* both marks hold at every size; 1,669 of 1,686 shared-path passes labelled, 20 of 2,298 lead passes labelled; a lead with a path in its own pair is heard half the time and then mostly labelled | not estimated; counted and reported with its result |
 | A2 | five finders, the registered rule, the counted run, an independent reader. *Counted (2026-11-11):* every mark holds at every size; 2 of 450 worlds where nothing predicts had a pass; the board hears 52 to 60 of 60 links of each marked kind at 240 places, told nothing of where (`results/finders-stage-a2.md`) | 1.5M to 2.5M |
-| B | its own plan | not estimated |
+| B | its own plan. *Done (2026-11-11, 2026-11-12):* three real reads, all silent; see "What the real reads found" | not estimated |
 
 Estimates here have run low before. Tokens are counted and reported beside each result.
 
 ## Not in this plan
 
-Maps, a web page, an API, global gridded coverage, a literature survey, any claim about cause. Monthly and sub-national tables wait for Stage A's ruler.
+Maps, a web page, an API, global gridded coverage, a literature survey, any claim about cause. Monthly and sub-national tables wait for Stage A's ruler. *Since 2026-11-12:* the monthly country table is built and read; sub-national is not.

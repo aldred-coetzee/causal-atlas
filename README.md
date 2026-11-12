@@ -12,7 +12,29 @@ still an open question. His words are in
 `docs/decisions/0021-owner-refines-the-aim.md`. The first experiment below tests
 the narrower question.
 
-**Where it stands (2026-11-10).** Nothing new about the world has been found.
+**Where it stands (2026-11-12). Paused by the owner on this date; nothing new
+about the world has been found.** Since 2026-11-10 the work has been a search
+across many series at once and not one driver at a time: the held data in one
+table (`docs/table-first-count.md`), a swarm of small plain-code finders that
+propose links from the early years, and one referee that scores every proposal
+on later years against each place's own history and charges for how many were
+sent (`docs/plan-finders-and-referee.md`). On made-up tables with planted links
+it passed every count. It has read real tables three times, each once, each
+with part of the record kept unopened: a yearly country table as levels
+(`results/stage-b-first-read.md`), the same as year-on-year changes
+(`results/stage-c-second-read.md`), and a monthly country table of 106 series
+in 202 places, 1980 to 2024 (`results/stage-d-monthly-read.md`). **All three
+are silent: no proposal passed.** The yearly reads could hear almost nothing
+planted in them, so their silence says little. The monthly read heard about
+two in three strong planted links and half the middling ones into prices,
+exchange rates, births and drought, so its silence does say something: among
+those series, at country and month, there is probably no strong steady lead of
+one to six months from one source to another across many places. It says
+little about conflict, storms or earthquakes as outcomes, and nothing about
+links in few places, links that switch on and off, or the series too short for
+its split. `results/spent-ledger.md` records what has been read against what.
+
+What had been shown before that, by 2026-11-10: nothing new about the world.
 What has been shown is that the chain works end to end on links that are already
 known: one inside climate, and since 2026-11-10 one from weather into farm
 statistics, small and independently checked, and carried the same day to 47
@@ -190,6 +212,10 @@ makes no model calls: it is deterministic at runtime.
 - `docs/data-sources.md`: every source checked, how to get it and what its
   licence requires.
 - `docs/plan-phase-1.md`: the first design, on synthetic data.
+- `docs/plan-finders-and-referee.md`: the plan for the search across many
+  series, with what each stage found.
+- `results/spent-ledger.md`: what has been read against what, and what is
+  still unopened. `results/seed-ledger.md`: seeds used, never reused.
 - `docs/decisions/`: decision records, immutable once written.
 - `docs/reviews/`: reports of independent checks, as written, with their code.
 - `results/`: one file per experiment, its rule committed before its numbers.

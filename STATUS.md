@@ -1,6 +1,10 @@
 # Status
 
-Last updated 2026-11-12, 06:25 UTC.
+Last updated 2026-11-12, 08:55 UTC.
+
+**PAUSED by the owner, 2026-11-12 08:46 UTC:** "Ok we will pause for now as I want to focus on agentic swarms work". No work is done here until he says to resume. Nothing is running, nothing is half-made, everything is committed and pushed. **To resume, start at the third item below (the next step, not yet chosen)**; decision 0040's delegation of direction stood when he paused and is his to restate or change. The items under "Since 01:58 UTC" are current; everything from "As it stood at 01:58 UTC" down is history, kept as it was written, and its "next steps" are not the next steps.
+
+**Where the whole thing stands, in four lines.** Two small real links are shown under the rules, both already known to the world (El Niño leading drought on four continents; drought and crop yields). The search across many series at once (a swarm of plain-code finders, one referee) is built and passes every count on made-up tables. It has read real tables three times, the yearly table as levels and as changes and the monthly table, and **all three are silent**; only the monthly read could hear well enough for its silence to mean something. Nothing new about the world has been found.
 
 **Since 01:58 UTC on 2026-11-12 (read this first):**
 - **The first real monthly read is made, once, and is silent** (`results/stage-d-monthly-read.md`, section Result; rows `results/stage-d-monthly-read.jsonl`; the reader's report `docs/reviews/2026-11-12-stage-d-rule-check/report.md`, its two faults fixed before any run). Both placebo marks held (no pass in 20 runs with places moved, none in 8 with years moved). Planted links into outcomes that are not counts were heard as leads 9 of 14, 7 of 15 and 4 of 14 at shares 0.20, 0.10 and 0.04; into counts 4 of 10, 3 of 9, 1 of 10; every lead in a planted run was on a planted outcome, a third naming the input's sibling from the same source. The real read sent eleven rows against a bar of 3.13 and none passed. **2020 to 2024 are not opened.** `run_stage_d.py real once` must never be run again or forced, its marker file never removed, `confirm once` is not to be run, and the panel file is not rebuilt. Seeds 66001 to 66999 are spent; next fresh block 67001.

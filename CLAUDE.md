@@ -36,6 +36,8 @@ stand until a plan revision and his yes change them.
 
 Update this statement, with the date, when the owner refines it.
 
+**Paused by the owner, 2026-11-12 08:46 UTC:** "Ok we will pause for now as I want to focus on agentic swarms work". No work until he says to resume; `STATUS.md` says where to pick up.
+
 ## Who does what
 
 - **This session** does the project's work: repo files, plan, code, results,
