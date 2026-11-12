@@ -43,3 +43,28 @@ A missed mark is reported as missed.
 - Many zeros; a season that shifts its timing; shares under 0.04; lags beyond six months; links in fewer than half the groups; more than 20 series.
 - One family of made-up worlds, by one maker. Holding these marks says the read is ready to be tried on a placebo of the real table, not that it finds real links.
 - The marks came from development runs of the same maker on other seeds, so they are not blind to it.
+
+## Result (counted once, 2026-11-11 22:44 to 2026-11-12 00:02 UTC)
+
+420 worlds read, each once; 19 seeds refused by the maker and passed over (same_month 62107, 62108, 62126, 62153; steady_10 62318, 62321, 62360; steady_04 62410, 62412, 62418, 62425, 62431, 62445, 62450; burst_10 62549, 62557, 62561; window_10 62630, 62634). Rows: `results/monthly-count.jsonl`. Table: `scripts/run_monthly.py table`.
+
+**One mark is missed.**
+
+| mark | result | |
+|---|---|---|
+| where nothing predicts, at most 15 of 180 worlds with any pass | **29 of 180** | **missed** |
+| heard, steady at 0.10, at least 90% | 120 of 120 (interval 100% to 100%) | held |
+| heard, steady at 0.04, at least 75% | 120 of 120 (100% to 100%) | held |
+| heard, bursts at 0.10, at least 80% | 120 of 120 (100% to 100%) | held |
+| heard, three-month windows at 0.10, at least 70% | 94 of 120, 78% (72% to 84%) | held |
+| linked worlds with a pass naming nothing planted, at most 12 of 240 | 0 | held |
+
+By panel where nothing predicts: plain 0 of 60 worlds; season changing size 0 of 60; **same-month tie 29 of 60** (35 passes). Windows by lag from one to six months: 16 of 18, 16 of 20, 16 of 18, 16 of 22, 18 of 22, 12 of 20. Every other linked panel heard every link at every lag.
+
+**What the miss is.** All 29 worlds are in one panel: an input whose shock enters the outcome in the same month, with nothing leading. Every one of the 35 passes names that tied input, at one month before (32) or over a window of months before (3); none names a series that is not tied. The monthly read as it stands takes a same-month tie between two series that each keep their level for a lead of one month, in about half of such worlds. The yearly count had a same-year panel and held its mark there; the monthly worlds keep their level from month to month far more than the yearly ones do from year to year.
+
+**Described after the count, not a mark and not a rescue:** each pass carries the label of decision 0061 (whether it also stands turned round or in the same month). All 35 false passes carry it. Of the 870 passes that name exactly a planted link in the four linked panels, 24 carry it. So on these worlds the label tells the two apart, but that was seen after the numbers and no mark was set for it; treating a labelled pass as no lead is a change to be counted on its own, on seeds not used here.
+
+**What follows.** The monthly read is not to be used on the real table as it stands. It does not invent links between unrelated series (0 of 120 worlds, and no pass naming nothing planted in 240 linked worlds) and it hears planted links down to 4% of the outcome's movement. It cannot tell a one-month lead from a same-month tie. Either the label is made part of the pass and that is counted afresh, or a monthly pass is reported only as "these two move together within a month or so".
+
+Middle time a world 35 seconds, longest 102, one thread; about 0.5 GB a process.
