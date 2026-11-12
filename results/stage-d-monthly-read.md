@@ -86,4 +86,33 @@ The reader's report is `docs/reviews/2026-11-12-stage-d-rule-check/report.md` (i
 
 ## Result
 
-Not yet run.
+### Steps 1 to 3: the placebos and the planted links (2026-11-12, 05:07 to 06:13 UTC)
+
+Forty runs, each registered seed once, every one on the panel whose checksum begins 979b3c82c75354cb. Rows: `results/stage-d-monthly-read.jsonl`. The runner's table:
+
+```
+places: 20 of 20 runs, 0 with any lead (at most 2): holds; with any pass 0; leads on drought, storms or earthquakes 0 of 0 leads
+   rows posted, middle 3948; sent, middle 4; bar, middle 2.35; seconds, middle 156
+years: 8 of 8 runs, 0 with any lead (at most 1): holds; with any pass 0; leads on drought, storms or earthquakes 0 of 0 leads
+   rows posted, middle 3948; sent, middle 6; bar, middle 2.64; seconds, middle 161
+planted: 12 of 12 runs
+   20%, outcome not a count: 14 links; sent 14; heard as a lead from the board 9; a lead when handed over 11 (a pass 11); places, middle 52; rank on its outcome's board, middle 0 (0 not posted)
+   20%, outcome a count, mostly nought: 10 links; sent 9; heard as a lead from the board 4; a lead when handed over 1 (a pass 4); places, middle 54; rank on its outcome's board, middle 0 (0 not posted)
+   10%, outcome not a count: 15 links; sent 12; heard as a lead from the board 7; a lead when handed over 7 (a pass 7); places, middle 51; rank on its outcome's board, middle 0 (0 not posted)
+   10%, outcome a count, mostly nought: 9 links; sent 6; heard as a lead from the board 3; a lead when handed over 4 (a pass 5); places, middle 38; rank on its outcome's board, middle 1 (0 not posted)
+   4%, outcome not a count: 14 links; sent 10; heard as a lead from the board 4; a lead when handed over 7 (a pass 7); places, middle 51; rank on its outcome's board, middle 0 (0 not posted)
+   4%, outcome a count, mostly nought: 10 links; sent 7; heard as a lead from the board 1; a lead when handed over 1 (a pass 3); places, middle 47; rank on its outcome's board, middle 2 (0 not posted)
+   runs with a lead that names no planted link: 9
+```
+
+**Both placebo marks hold, with nothing to spare needed.** With places moved round, no run of 20 had a lead, or any pass at all (the mark allowed 2). With whole years moved round, none of 8 (the mark allowed 1). So on this table, with every real link across sets broken, the read named nothing.
+
+**What the read hears on this table.** Links whose outcome is not a count, heard as a lead from the whole board: 9 of 14 at a share of 20% of the outcome's month-to-month movement, 7 of 15 at 10%, 4 of 14 at 4%. Into outcomes that are counts and mostly nought (conflict, storms, earthquakes): 4 of 10, 3 of 9, 1 of 10. So a silence in the real read would rule out most strong steady leads into prices, exchange rates, births and drought, about half of the middling ones, and little of the weak ones or of anything into the counts. That is far more than the yearly reads could hear (10, 3 and 1 of 36).
+
+**What the label costs.** Handed over directly, every planted link into an outcome that is not a count that passed was also called a lead (11 of 11, 7 of 7, 7 of 7). Into counts, 4 of 12 passes were called leads; the rest were labelled as moving together. So the label throws away true leads into counts, and not elsewhere.
+
+**Leads that name no planted link: 9 of 12 runs, and what they are** (a look after the runs, not in the rule). The 52 leads across the twelve runs: 33 name the planted input on the planted outcome; 18 are on the planted outcome and name the planted input's sibling from the same source (earthquake moment for earthquake count, conflict events for conflict deaths, the food price index for food price inflation); 1 is a gathered row on a planted outcome. **None is on an outcome with no planted link.** So a real lead says which outcome and which source; it does not say which series of that source.
+
+**Deviation, disclosed.** Four planted runs (66203, 66206, 66209, 66212) were cut off by the session's time limit before they finished, kept nothing, and were started again with the same seeds; each seed has one kept row. Planted runs take about four minutes, not two and a half.
+
+**Next:** step 4, the real read, once.
