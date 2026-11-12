@@ -15,7 +15,7 @@ The first read (`results/stage-b-first-read.md`) was silent, and its own planted
 ## What is already known, said before it starts
 
 - **1996 to 2014 of this panel have been read once, as levels**: forty rows, none passed, each row's scores published. They were also seen 34 times in rearranged form. So these years are not untouched. What was learned there and could bear on this read: bars of about 3.5 to 5.2; that a row applying in one group or one year can stand above the bar and falls only on breadth; which outcomes the board ranked highest as levels.
-- **Nothing in this rule was chosen from those rows.** The choice to read changes came from the planted runs' deafness and from made-up tables. The finders, the steward, the referee, the years, the ties and the rule for the last ten years are as they were. The change is one line of arithmetic with no setting.
+- **Nothing in this rule was chosen from those rows.** The choice to read changes came from the planted runs' deafness and from made-up tables. The finders, the steward, the referee, the years, the ties and the rule for the last ten years are as they were. The change is one line of arithmetic with no setting (but see "After the reader" on what the year's middle does to it).
 - **Two reads of the same years raise the chance that something passes by chance.** On the made-up tables a pass by either read where nothing predicts came on 2 of 200 tables; the real table is not those tables, and its placebo marks (below) cannot show a rate under about one in ten. For that reason a pass in this read is a **candidate** and nothing more until the last ten years confirm it.
 
 ## Steps, in this order, each registered seed once
@@ -40,7 +40,7 @@ As in the first read's rule, with this added:
 - **A lead between separate data sets, in changes:** a candidate confirmed on 2015 to 2024. It says that one series' change helps predict another's change a year ahead beyond the outcome's own history, season and neighbours, in the places named. It is reported with its size and interval, the places and years it applies in, and every limit below. It does not say that changing the input would change the outcome.
 - **Moving together:** passed and labelled. A lead is not shown.
 - **A near copy, a known answer:** as in the first read; looked for by hand in whatever passes, with the source's own description of the series.
-- **Silence:** no row passed. Reported quietly beside what the planted runs of step 3 heard; with the first read's silence it would say that neither kind of steady link of the planted sizes stood out one year ahead between these four sets, as far as those runs show the read can hear.
+- **Silence:** no row passed. Reported quietly beside what the planted runs of step 3 heard. The first read's silence covers no kind of link (it heard none of its planted links), so only this read's planted runs give a silence any weight, and only for a change leading a change at the sizes they hear.
 
 ## Limits known beforehand
 
@@ -55,6 +55,17 @@ As in the first read's rule, with this added:
 ## Before any run
 
 An independent reader, with no part in the work, reads this rule and the code before the first placebo (`docs/specs/2026-11-12-stage-c-rule-check.md`). It runs nothing on the real table and reads no real values. What it finds is settled, and written under "After the reader" below, before step 1.
+
+## After the reader, before any run
+
+The reader's report is `docs/reviews/2026-11-12-stage-c-rule-check/report.md` (its own write was refused by the box, so the project session saved its text unchanged; its check script is beside it). It ran nothing on the real table. It found no way for the last ten years to reach a run, the rearrangements and the bookkeeping sound, and `confirm` right. Settled on its findings, before step 1:
+
+1. **A year-wide move sits in every place's change, and the rule now says so.** The panel holds each series that differs by place as its departure from the year's middle; the change of that is the place's change less the change of the middle, so a move of the middle place, or places entering and leaving, is carried into every place that year. The count on made-up tables used the same arithmetic and its marks were met with it; the arithmetic is kept so the read is the one counted. But: the places-moved placebo does not break this part (reordering places leaves a year's middle where it was); only the years-moved placebo does. And a pass carried by it would be a relation between years over nineteen points, not a lead in the places named. So **each passed row is read once more, in the same command, on the changed table with the year's middle of the changes taken off, against the real read's own bar** (`recentred`; a test holds it). A candidate that does not stay above the bar both ways there is reported as **a year-wide move, not a lead in the places named**, and is not called a lead even if confirmed. This is a check beside the pass, fixed here before any number; it is not a second read and adds no pass.
+2. **A step run once cannot be started twice.** The real read and the last ten years each make a marker with an exclusive create before they start (a test holds it). Placebo and planted seeds are given to processes in lists that do not overlap.
+3. **Inflation is a known answer, named now.** As changes, the two exchange-rate series, the World Bank's series in current local currency and its price series (consumer prices, the deflator) are largely inflation, which persists from year to year. A passed row that names an exchange-rate series with one of those, either way round, is reported as a known answer, never as a lead. The first read's ties stay as they were, so such rows may take some of the forty places. A redenomination is one very large change in the local-currency rate; the referee clips it, and it widens that place's spread afterwards.
+4. **The silence paragraph** claimed more than stands behind it and is corrected above.
+5. **How often a false pass would also be confirmed is not known** for the read of changes. (For levels, the first read's reader found the confirmation rule met by chance in 0 of 80 tries on made-up tables.) The change of 2015 uses the value of 2014, a year read twice.
+6. **Smaller things, left as they are and said:** where a planted link's input is missing nothing is added that year, which as a change is a jump in the outcome; it makes links harder to hear, as it did in the count, so a silence is undersold. The planted table's split by the input's memory is of levels, not changes. A confirmed row's label from the real read is printed beside it.
 
 ## The spent ledger
 

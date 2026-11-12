@@ -85,3 +85,21 @@ def test_planted_links_are_put_in_before_the_change():
     for s in range(len(v)):
         same = np.array_equal(np.nan_to_num(v[s]), np.nan_to_num(plain[s]))
         assert same == (s not in outs)
+
+
+def test_recentred_takes_a_year_wide_move_out_and_leaves_common_series():
+    p = made(6)
+    v = sc.change(p["values"])
+    shock = np.random.default_rng(8).normal(size=v.shape[2])
+    a, b = sc.recentred(p, v), sc.recentred(p, v + shock)
+    vary = ~p["common"]
+    np.testing.assert_allclose(np.nan_to_num(a[vary]), np.nan_to_num(b[vary]), atol=1e-9)
+    np.testing.assert_array_equal(b[~vary], (v + shock)[~vary])
+
+
+def test_a_step_run_once_cannot_be_started_twice(tmp_path, monkeypatch):
+    monkeypatch.setattr(sb, "HOLD", tmp_path)
+    sc.only_once("real")
+    with pytest.raises(SystemExit):
+        sc.only_once("real")
+    sc.only_once("confirm")

@@ -7,7 +7,9 @@
 
 The panel, the ties, the swarm, the steward, the referee and the rule for the last ten years are the first read's (run_stage_b.py), unchanged. What is new is here: the changed table, the order in which a table is rearranged, planted and changed, the seeds and the file the runs are kept in.
 """
+import os
 import sys
+import warnings
 
 import numpy as np
 
@@ -59,6 +61,28 @@ def changed(p, how=None, seed=None, plant=False):
     return v, truth
 
 
+def recentred(p, v):
+    """The changed table with the year's middle of the changes taken off each series that differs by place, as the panel takes it off the levels: what is left of a change is the place's own, with no year-wide move in it."""
+    with np.errstate(invalid="ignore"), warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)
+        mid = np.where(np.isfinite(v).sum(axis=1) >= sb.MIDDLE, np.nanmedian(v, axis=1), np.nan)
+    return np.where(p["common"][:, None, None], v, v - mid[:, None, :])
+
+
+def sent_again(q, n):
+    """A passed row as kept, made a proposal again."""
+    where = q["where"] if isinstance(q["where"], str) else np.isin(np.arange(n), q["where"])
+    return rf.proposal(q["outcome"], [tuple(i) for i in q["inputs"]], q["form"], where, level=q["level"], groups=None if q["groups"] is None else np.array(q["groups"]), state=None if q["state"] is None else tuple(q["state"]), weights=q["weights"], event=q["event"])
+
+
+def only_once(step):
+    """A marker made before a step that is run once, so that two commands started together cannot both run it. Made with an exclusive create; never removed by the script."""
+    try:
+        os.close(os.open(sb.HOLD / f"stage-c-{step}.started", os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644))
+    except FileExistsError:
+        sys.exit(f"refused: the {step} step has been started")
+
+
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
     if cmd == "table":
@@ -80,26 +104,37 @@ if __name__ == "__main__":
         sb.refuse(any(r["step"] == "real" for r in rs), "the real read has been made")
         sb.refuse(not all(ok for _, _, ok in sb.marks(rs).values()), f"the placebo marks do not all hold: {sb.marks(rs)}")
         sb.refuse({r["seed"] for r in rs if r["step"] == "planted"} != set(SEEDS["planted"]), "the planted runs are not all in: a silence could not be read")
+        only_once("real")
         p = sb.panel()
-        sb.keep({"step": "real", **sb.run(p, changed(p)[0], REAL)})
+        v = changed(p)[0]
+        r = {"step": "real", **sb.run(p, v, REAL)}
+        w = recentred(p, v)[:, :, :LAST]
+        for x in r["board"]["rows"]:  # each passed row read once more with the year's middle of the changes taken off, against the same bar: a check beside the pass, not a second read
+            if x["passes"]:
+                g = rf.judge(w, p["group"], sb.FIRST, [sent_again(x["row"], v.shape[1])], seed=REAL, labels=False)["proposals"][0]
+                x["own"] = {"t": [g[f]["t"] and round(g[f]["t"], 2) for f in rf.READS], "s": [g[f]["s"] and round(g[f]["s"], 4) for f in rf.READS], "holds": bool(all(g[f]["t"] is not None and g[f]["t"] > r["board"]["bar"] and g[f]["s"] > 0 for f in rf.READS))}
+        sb.keep(r)
         sb.table()
+        for x in r["board"]["rows"]:
+            if x["passes"]:
+                print(f"   with the year's middle of the changes taken off: {x['names']} -> {x['outcome']}: t {x['own']['t']}, s {x['own']['s']}, {'holds' if x['own']['holds'] else 'does not hold: a year-wide move'}")
     elif cmd == "confirm" and sys.argv[2:] == ["once"]:
         rs = sb.rows()
         sb.refuse(any(r["step"] == "confirm" for r in rs), "the last ten years have been read")
         real = [r for r in rs if r["step"] == "real"]
         sb.refuse(len(real) != 1, "no real read to confirm")
+        only_once("confirm")
         p, out = sb.panel(), []
         v = changed(p)[0]
         for x in real[0]["board"]["rows"]:
             if not x["passes"]:
                 continue
-            q = x["row"]
-            where = q["where"] if isinstance(q["where"], str) else np.isin(np.arange(v.shape[1]), q["where"])
-            prop = rf.proposal(q["outcome"], [tuple(i) for i in q["inputs"]], q["form"], where, level=q["level"], groups=None if q["groups"] is None else np.array(q["groups"]), state=None if q["state"] is None else tuple(q["state"]), weights=q["weights"], event=q["event"])
-            res = rf.judge(v, p["group"], LAST, [prop], seed=CONFIRM, labels=False)
+            res = rf.judge(v, p["group"], LAST, [sent_again(x["row"], v.shape[1])], seed=CONFIRM, labels=False)
             g = res["proposals"][0]
             out.append({"outcome": x["outcome"], "names": x["names"], "label": x["label"], "bar": res["bar"], "confirmed": bool(sb.confirmed(g, res["bar"])), **{k: [g[f][k] if k in ("groups", "years") else g[f][k] and round(g[f][k], 4) for f in rf.READS] for k in ("t", "s", "without_best", "groups", "years")}})
         sb.keep({"step": "confirm", "seed": CONFIRM, "rows": out})
         sb.table()
+        for x in out:
+            print(f"   {x['names']} -> {x['outcome']}: labelled as moving together in the real read: {x['label']}")
     else:
         sys.exit(__doc__)
